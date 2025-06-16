@@ -22,8 +22,26 @@ class SetRotationNode extends LogicNode {
 		if (_q == null) return;
 
 		final q = new Quat(_q.x, _q.y, _q.z, _q.w).normalize();
-		object.transform.rot.setFrom(q);
-		object.transform.buildMatrix();
+
+		switch (property0){
+		case "Local":
+			object.transform.rot.setFrom(q);
+			object.transform.buildMatrix();
+		case "Global":
+			var newLocalRot = new Quat();
+			if (object.parent != null) {
+				var parentGlobalRot = new Quat();
+				var tempPos = new Vec4();
+				var tempScale = new Vec4();
+				object.parent.transform.world.decompose(tempPos, parentGlobalRot, tempScale);
+				var invParentRot = new Quat().inverse(parentGlobalRot);
+				newLocalRot.multquats(invParentRot, q);
+			} else {
+				newLocalRot.setFrom(q);
+			}
+			object.transform.rot.setFrom(newLocalRot);
+			object.transform.buildMatrix();
+		}
 
 		#if arm_physics
 		var rigidBody = object.getTrait(RigidBody);
