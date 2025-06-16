@@ -25,8 +25,7 @@ class SetRotationNode extends LogicNode {
 
 		switch (property0){
 		case "Local":
-			object.transform.rot.setFrom(q);
-			object.transform.buildMatrix();
+			object.transform.rot.setFrom(q);			
 		case "Global":
 			var newLocalRot = new Quat();
 			if (object.parent != null) {
@@ -40,8 +39,9 @@ class SetRotationNode extends LogicNode {
 				newLocalRot.setFrom(q);
 			}
 			object.transform.rot.setFrom(newLocalRot);
-			object.transform.buildMatrix();
 		}
+
+		object.transform.buildMatrix();
 
 		#if arm_physics
 		var rigidBody = object.getTrait(RigidBody);
