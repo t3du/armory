@@ -2,12 +2,14 @@
 package armory.logicnode;
 
 import iron.object.Object;
+import iron.math.Mat4;
+import iron.math.Vec4;
 import iron.math.Quat;
 import armory.trait.physics.RigidBody;
 
 class SetRotationNode extends LogicNode {
 
-	public var property0: String; // UNUSED
+	public var property0 = "Local";
 
 	public function new(tree: LogicTree) {
 		super(tree);
