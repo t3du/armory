@@ -6,6 +6,7 @@ import iron.math.Vec4;
 import iron.data.SceneFormat;
 import iron.system.ArmPack;
 using StringTools;
+import js.lib.Float32Array as JSFloat32Array;
 
 class WorldData {
 
@@ -116,11 +117,18 @@ class Probe {
 		else {
 			var ext = raw.irradiance.endsWith(".json") ? "" : ".arm";
 			Data.getBlob(raw.irradiance + ext, function(b: kha.Blob) {
-				var irradianceParsed: TSceneFormat = ext == "" ?
-					Json.parse(b.toString()) :
-					ArmPack.decode(b.toBytes());
+				
 				var irr = new Float32Array(28); // Align to mult of 4 - 27->28
-				for (i in 0...27) irr[i] = irradianceParsed.irradiance[i];
+				
+				if(ext == ""){
+					var irradianceParsed = new JSFloat32Array(Json.parse(b.toString()));
+					for (i in 0...27) irr[i] = irradianceParsed[i];
+				}
+				else{
+					var irradianceParsed: TSceneFormat = ArmPack.decode(b.toBytes());
+					for (i in 0...27) irr[i] = irradianceParsed.irradiance[i];
+				}
+				
 				done(irr);
 			});
 		}

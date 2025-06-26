@@ -1,6 +1,8 @@
 package iron;
 
 import haxe.ds.Vector;
+import kha.arrays.Float32Array;
+import js.lib.Float32Array as JSFloat32Array;
 import kha.graphics4.TextureFormat;
 import iron.Trait;
 import iron.object.Transform;
@@ -870,11 +872,62 @@ class Scene {
 	}
 
 	static function generateTransform(object: TObj, transform: Transform) {
+
+		//trace(Scene.active.raw.name, Scene.active.raw.name.endsWith(".json"));
+		
+		//trace(object.name);
+
+		/*var objtv = new JSFloat32Array(haxe.Json.parse(object.transform.values));
+		
+		for (i in 0...16)
+			objTrans[i] = object.transform.values[i];
+		*/
+		//trace(Type.getClassName(Type.getClass(object.transform.values)));
+
+		if (Scene.active.raw.name.endsWith(".json")){
+
+			var rawString:String = Std.string(object.transform.values);
+			var cleanString = rawString.replace("[", "").replace("]", "");
+			var stringValues:Array<String> = cleanString.split(",");
+			trace(stringValues);
+
+			var floatList:Array<Float> = [];
+			for (strVal in stringValues) {
+			    var trimmedStr = strVal.trim();
+			    if (trimmedStr.length > 0) {
+			        var fVal = Std.parseFloat(trimmedStr);
+			        if (!Math.isNaN(fVal)) {
+			            floatList.push(fVal);
+			        }
+			    }
+			}
+
+			trace(floatList);
+
+			var float32Result:kha.arrays.Float32Array = new kha.arrays.Float32Array(floatList.length);
+			for (i in 0...floatList.length) {
+			    float32Result[i] = floatList[i];
+			}
+
+			trace(float32Result);
+
+			for (i in 0...float32Result.length)
+	    		trace('Index ${i}: ${float32Result[i]}');
+
+			transform.world = object.transform != null ? iron.math.Mat4.fromFloat32Array(float32Result) : iron.math.Mat4.identity();
+		}
+		else
 		transform.world = object.transform != null ? iron.math.Mat4.fromFloat32Array(object.transform.values) : iron.math.Mat4.identity();
+		
+		trace(object.name, transform.world);
+		//transform.world = object.transform != null ? iron.math.Mat4.fromFloat32Array(object.transform.values) : iron.math.Mat4.identity();
+		
 		transform.world.decompose(transform.loc, transform.rot, transform.scale);
+		//trace(Type.getClassName(Type.getClass(transform.loc)), Type.getClassName(Type.getClass(transform.rot)), Type.getClassName(Type.getClass(transform.scale)));
 		// Whether to apply parent matrix
-		if (object.local_only != null) transform.localOnly = object.local_only;
-		if (transform.object.parent != null) transform.update();
+		if (object.local_only != null){ transform.localOnly = object.local_only;}
+		if (transform.object.parent != null){ transform.update();}
+
 	}
 
 	static function createTraits(traits: Array<TTrait>, object: Object) {
