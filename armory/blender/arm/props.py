@@ -423,6 +423,8 @@ def init_properties():
                ('clockwise', 'Front', 'Clockwise'),
                ('counter_clockwise', 'Back', 'Counter-Clockwise')],
         name="Cull Mode", default='clockwise', description="Draw geometry faces")
+    bpy.types.Material.arm_solid = BoolProperty(name="Solid", default=False, description="Renders material as RGB Color (Only Forward)")
+    bpy.types.Material.arm_solid_factor = FloatProperty(name="Factor", default=0.0, description="mix RGB Color and Shader, values in range [0, 1]. Can be accessed with shader uniform _mixColor.")
     bpy.types.Material.arm_discard = BoolProperty(name="Alpha Test", default=False, description="Do not render fragments below specified opacity threshold")
     bpy.types.Material.arm_discard_opacity = FloatProperty(name="Mesh Opacity", default=0.2, min=0, max=1)
     bpy.types.Material.arm_discard_opacity_shadows = FloatProperty(name="Shadows Opacity", default=0.1, min=0, max=1)

@@ -84,6 +84,10 @@ class ShaderContext:
         self.data['constants'] = []
         self.constants = self.data['constants']
 
+        if hasattr(self.material, 'arm_solid'):
+            if self.material.arm_solid:
+                self.constants.append({'floatValue': self.material.arm_solid_factor, "is_arm_parameter": True, 'link': '_mixColor', 'name': 'mixColor', 'type': 'float'})
+
     def add_elem(self, name, data):
         elem = { 'name': name, 'data': data }
         if elem not in self.data['vertex_elements']:

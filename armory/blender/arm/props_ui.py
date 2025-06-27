@@ -586,6 +586,12 @@ class ARM_PT_MaterialPropsPanel(bpy.types.Panel):
         layout.prop(mat, 'arm_depth_read')
         layout.prop(mat, 'arm_overlay')
         layout.prop(mat, 'arm_decal')
+        columnb = layout.column()
+        columnb.enabled = arm.utils.get_rp().rp_renderer == 'Forward'
+        columnb.prop(mat, 'arm_solid')
+        columnc = columnb.column()
+        columnc.enabled = mat.arm_solid
+        columnc.prop(mat, 'arm_solid_factor')
         layout.prop(mat, 'arm_discard')
         columnb = layout.column()
         columnb.enabled = mat.arm_discard
