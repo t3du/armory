@@ -109,7 +109,7 @@ def make_base(con_mesh, parse_opacity):
     tese = None
 
     if mat_state.material.arm_solid:
-        if rid == 'Forward':
+        if arm.utils.get_rp().rp_renderer == 'Forward':
             frag.add_uniform('float mixColor', '_mixColor')
 
     billboard = mat_state.material.arm_billboard
