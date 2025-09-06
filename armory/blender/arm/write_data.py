@@ -345,7 +345,7 @@ project.addSources('Sources');
         if os.path.exists(project_path + '/Bundled/config.arm'):
             assets.add_khafile_def('arm_config')
 
-        if is_publish and wrd.arm_loadscreen:
+        if wrd.arm_loadscreen:
             assets.add_khafile_def('arm_loadscreen')
 
         if wrd.arm_winresize or state.target == 'html5':
@@ -511,7 +511,7 @@ class Main {
                 f.write("""
             iron.object.LightObject.cascadeBounds = """ + str(rpdat.arm_shadowmap_bounds) + """;""")
 
-        if is_publish and wrd.arm_loadscreen:
+        if wrd.arm_loadscreen:
             asset_references = list(set(assets.assets))
             loadscreen_class = 'armory.trait.internal.LoadingScreen'
             if os.path.isfile(arm.utils.get_fp() + '/Sources/' + wrd.arm_project_package + '/LoadingScreen.hx'):
