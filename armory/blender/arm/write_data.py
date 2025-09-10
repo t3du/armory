@@ -511,8 +511,9 @@ class Main {
                 f.write("""
             iron.object.LightObject.cascadeBounds = """ + str(rpdat.arm_shadowmap_bounds) + """;""")
 
+        asset_references = list(set(assets.assets))
+
         if wrd.arm_loadscreen:
-            asset_references = list(set(assets.assets))
             loadscreen_class = 'armory.trait.internal.LoadingScreen'
             if os.path.isfile(arm.utils.get_fp() + '/Sources/' + wrd.arm_project_package + '/LoadingScreen.hx'):
                 loadscreen_class = wrd.arm_project_package + '.LoadingScreen'
