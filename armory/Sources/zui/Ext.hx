@@ -197,7 +197,7 @@ class Ext {
 
 		ui._x = px - (scroll ? 0 : ui.SCROLL_W() / 2);
 		ui._y = py;
-		ui.image(ui.ops.black_white_gradient);
+		ui.image(ui.ops.black_white_gradient, kha.Color.fromFloats(cval, cval, cval, 0.15));
 
 		ui.g.color = 0xff000000;
 		ui.g.fillRect(cx - 3 * ui.SCALE(), cy - 3 * ui.SCALE(), 6 * ui.SCALE(), 6 * ui.SCALE());
