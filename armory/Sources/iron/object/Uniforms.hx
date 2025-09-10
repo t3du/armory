@@ -332,12 +332,10 @@ class Uniforms {
 			var v: Vec4 = null;
 			helpVec.set(0, 0, 0, 0);
 			switch (c.link) {
-				#if arm_debug
 				case "_input": {
 					helpVec.set(Input.getMouse().x / iron.App.w(), Input.getMouse().y / iron.App.h(), Input.getMouse().down() ? 1.0 : 0.0, 0.0);
 					v = helpVec;
 				}
-				#end
 				default:
 					return false;
 			}
