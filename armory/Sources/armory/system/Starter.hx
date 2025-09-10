@@ -9,6 +9,8 @@ class Starter {
 	public static var numAssets: Int;
 	#end
 
+	public static var assets: Array<String>;
+
 	public static function main(scene: String, mode: Int, resize: Bool, min: Bool, max: Bool, w: Int, h: Int, msaa: Int, vsync: Bool, getRenderPath: Void->iron.RenderPath) {
 
 		var tasks = 0;

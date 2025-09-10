@@ -520,6 +520,9 @@ class Main {
         armory.system.Starter.numAssets = """ + str(len(asset_references)) + """;
         armory.system.Starter.drawLoading = """ + loadscreen_class + """.render;""")
 
+        f.write("""
+        armory.system.Starter.assets = """ + str([os.path.basename(path) for path in asset_references if 'Bundled' in path]) + """;""")
+
         if wrd.arm_ui == 'Enabled':
             if wrd.arm_canvas_img_scaling_quality == 'low':
                 f.write("""
