@@ -115,6 +115,9 @@ project.addSources('Sources');
             khafile.write(add_armory_library(sdk_path, 'armory', rel_path=do_relpath_sdk))
         if not os.path.exists(os.path.join('Libraries', 'iron')):
             khafile.write(add_armory_library(sdk_path, 'iron', rel_path=do_relpath_sdk))
+        if not os.path.exists(os.path.join('Libraries', 'lib/hscript')):
+            khafile.write(add_armory_library(sdk_path, 'lib/hscript', rel_path=do_relpath_sdk))
+            khafile.write("project.addDefine('" + 'hscript' + "');\n")
 
         # Project libraries
         if os.path.exists('Libraries'):
