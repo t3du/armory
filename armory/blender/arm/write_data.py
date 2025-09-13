@@ -174,6 +174,10 @@ project.addSources('Sources');
                 recastjs_path = recastjs_path.replace('\\', '/').replace('//', '/')
                 khafile.write(add_assets(recastjs_path, rel_path=do_relpath_sdk))
 
+    
+        if wrd.arm_no_traces:
+            khafile.write("project.addParameter('--no-traces');\n")
+
         if is_publish:
             assets.add_khafile_def('arm_published')
             if wrd.arm_dce:
