@@ -1002,7 +1002,7 @@ class Zui {
 		drawRect(g, t.FILL_BUTTON_BG, _x + buttonOffsetY, _y + buttonOffsetY, _w - buttonOffsetY * 2, BUTTON_H());
 
 		g.color = t.BUTTON_TEXT_COL;
-		drawString(g, text, null, 0, align);
+		drawString(g, text, null, BUTTON_H()/3, align);
 		if (label != "") {
 			g.color = t.LABEL_COL;
 			drawString(g, label, null, 0, align == Align.Right ? Align.Left : Align.Right);
