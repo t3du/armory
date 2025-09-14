@@ -1012,7 +1012,7 @@ class ArmoryExporter:
                     bone_translation_pose = pose_bone.tail - pose_bone.head
                     out_object['parent_bone_tail_pose'] = [bone_translation_pose[0], bone_translation_pose[1], bone_translation_pose[2]]
 
-            if bobject.type == 'ARMATURE' and bobject.data is not None:
+            if arm.utils.get_rp().arm_skin != 'Off' and bobject.type == 'ARMATURE' and bobject.data is not None:
                 # Armature data
                 bdata = bobject.data
                 # Reference start action
