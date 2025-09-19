@@ -540,6 +540,7 @@ def parse_tex_environment(node: bpy.types.ShaderNodeTexEnvironment, out_socket: 
 
 def parse_tex_voronoi(node: bpy.types.ShaderNodeTexVoronoi, out_socket: bpy.types.NodeSocket, state: ParserState) -> Union[floatstr, vec3str]:
     outp = 0
+    exp = 0
     if out_socket.type == 'RGBA':
         outp = 1
     elif out_socket.type == 'VECTOR':
@@ -551,6 +552,7 @@ def parse_tex_voronoi(node: bpy.types.ShaderNodeTexVoronoi, out_socket: bpy.type
         m = 2
     elif node.distance == 'MINKOWSKI':
         m = 3
+        exp = c.parse_value_input(node.inputs['Exponent'])
 
     c.write_procedurals()
     state.curshader.add_function(c_functions.str_tex_voronoi)
@@ -560,9 +562,8 @@ def parse_tex_voronoi(node: bpy.types.ShaderNodeTexVoronoi, out_socket: bpy.type
     else:
         co = 'bposition'
 
-    scale = c.parse_value_input(node.inputs[2])
-    exp = c.parse_value_input(node.inputs[4])
-    randomness = c.parse_value_input(node.inputs[5])
+    scale = c.parse_value_input(node.inputs['Scale'])
+    randomness = c.parse_value_input(node.inputs['Randomness'])
 
     # Color or Position
     if out_socket == node.outputs[1] or out_socket == node.outputs[2]:
@@ -585,6 +586,7 @@ def parse_tex_wave(node: bpy.types.ShaderNodeTexWave, out_socket: bpy.types.Node
     distortion = c.parse_value_input(node.inputs[2])
     detail = c.parse_value_input(node.inputs[3])
     detail_scale = c.parse_value_input(node.inputs[4])
+    phase_offset = c.parse_value_input(node.inputs['Phase Offset'])
     if node.wave_profile == 'SIN':
         wave_profile = 0
     else:
@@ -596,9 +598,9 @@ def parse_tex_wave(node: bpy.types.ShaderNodeTexWave, out_socket: bpy.types.Node
 
     # Color
     if out_socket == node.outputs[0]:
-        res = 'vec3(tex_wave_f({0} * {1},{2},{3},{4},{5},{6}))'.format(co, scale, wave_type, wave_profile, distortion, detail, detail_scale)
+        res = 'vec3(tex_wave_f({0} * {1},{2},{3},{4},{5},{6},{7}))'.format(co, scale, wave_type, wave_profile, distortion, detail, detail_scale, phase_offset)
     # Fac
     else:
-        res = 'tex_wave_f({0} * {1},{2},{3},{4},{5},{6})'.format(co, scale, wave_type, wave_profile, distortion, detail, detail_scale)
+        res = 'tex_wave_f({0} * {1},{2},{3},{4},{5},{6},{7})'.format(co, scale, wave_type, wave_profile, distortion, detail, detail_scale, phase_offset)
 
     return res

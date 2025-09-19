@@ -421,11 +421,12 @@ float tex_brick_blender_f(vec3 co,
 """
 
 str_tex_wave = """
-float tex_wave_f(const vec3 p, const int type, const int profile, const float dist, const float detail, const float detail_scale) {
+float tex_wave_f(const vec3 p, const int type, const int profile, const float dist, const float detail, const float detail_scale, const float phase_offset) {
     float n;
     if(type == 0) n = (p.x + p.y + p.z) * 9.5;
     else n = length(p) * 13.0;
     if(dist != 0.0) n += dist * fractal_noise(p * detail_scale, detail) * 2.0 - 1.0;
+    n += phase_offset;
     if(profile == 0) { return 0.5 + 0.5 * sin(n - PI); }
     else {
         n /= 2.0 * PI;
