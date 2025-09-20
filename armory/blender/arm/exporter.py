@@ -1036,12 +1036,14 @@ class ArmoryExporter:
                 # armature object to deform with
                 if hasattr(adata, 'nla_tracks') and adata.nla_tracks is not None:
                     for track in adata.nla_tracks:
-                        if track.strips is None:
+                        if track.strips is None or track.mute:
                             continue
                         for strip in track.strips:
                             if strip.action is None:
                                 continue
                             if strip.action.name == action.name:
+                                continue
+                            if strip.mute:
                                 continue
                             export_actions.append(strip.action)
 
