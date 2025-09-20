@@ -21,6 +21,7 @@ class AnimationStateNode extends LogicNode {
 			case 0: animation.action;
 			case 1: animation.currentFrame();
 			case 2: animation.paused;
+			case 3: animation.totalFrames();
 			default: null;
 		}
 	}
