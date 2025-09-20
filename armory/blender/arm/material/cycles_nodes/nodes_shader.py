@@ -139,7 +139,7 @@ if bpy.app.version > (4, 1, 0):
             subsurface_radius = c.parse_vector_input(node.inputs[9])
             subsurface_color = c.parse_vector_input(node.inputs[8])
             state.out_metallic = c.parse_value_input(node.inputs[1])
-            state.out_specular = c.parse_value_input(node.inputs[12])
+            state.out_specular = c.parse_value_input(node.inputs[13])
             state.out_roughness = c.parse_value_input(node.inputs[2])
             # Prevent black material when metal = 1.0 and roughness = 0.0
             try:
