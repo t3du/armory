@@ -55,7 +55,7 @@ class PlayActionFromNode extends LogicNode {
 
 			if (animation.isSkinned){
 				for(a in animation.armature.actions)
-					if (a.name == actionR) isnew = false;
+					if (a.name == actionR){ isnew = false; break; }
 
 				if (isnew){
 					for(a in animation.armature.actions)
@@ -153,7 +153,7 @@ class PlayActionFromNode extends LogicNode {
 				var oactions = cast(animation, ObjectAnimation).oactions;
 
 				for (a in oactions)
-					if (a != null && a.objects[0].name == actionR) isnew = false;
+					if (a != null && a.objects[0].name == actionR){ isnew = false; break; }
 
 				if (isnew){
 					for (a in oactions){
