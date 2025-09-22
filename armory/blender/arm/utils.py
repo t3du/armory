@@ -866,10 +866,10 @@ def is_bone_animation_enabled(bobject):
         if not has_actions and adata != None:
             if hasattr(adata, 'nla_tracks') and adata.nla_tracks != None:
                 for track in adata.nla_tracks:
-                    if track.strips == None:
+                    if track.strips == None or track.mute:
                         continue
                     for strip in track.strips:
-                        if strip.action == None:
+                        if strip.action == None or strip.mute:
                             continue
                         has_actions = True
                         break

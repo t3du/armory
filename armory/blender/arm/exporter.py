@@ -980,10 +980,10 @@ class ArmoryExporter:
                 action = bobject.animation_data.action
                 export_actions = [action]
                 for track in bobject.animation_data.nla_tracks:
-                    if track.strips is None:
+                    if track.strips is None or track.mute:
                         continue
                     for strip in track.strips:
-                        if strip.action is None or strip.action in export_actions:
+                        if strip.action is None or strip.action in export_actions  or strip.mute:
                             continue
                         export_actions.append(strip.action)
                 orig_action = action
@@ -1039,11 +1039,9 @@ class ArmoryExporter:
                         if track.strips is None or track.mute:
                             continue
                         for strip in track.strips:
-                            if strip.action is None:
+                            if strip.action is None or strip.mute:
                                 continue
                             if strip.action.name == action.name:
-                                continue
-                            if strip.mute:
                                 continue
                             export_actions.append(strip.action)
 
