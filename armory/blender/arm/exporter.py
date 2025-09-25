@@ -2485,6 +2485,8 @@ Make sure the mesh only has tris/quads.""")
         """Exports the world of the current scene."""
         for world in bpy.data.worlds:
             if world is not None:
+                if world.name == 'Arm':
+                    continue
                 world_name = arm.utils.safestr(arm.utils.asset_name(world) if world.library else world.name)
 
                 if world_name not in self.world_array:
