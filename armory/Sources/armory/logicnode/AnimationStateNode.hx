@@ -17,6 +17,8 @@ class AnimationStateNode extends LogicNode {
 
 		if (animation == null) animation = object.getParentArmature(object.name);
 
+		if (animation == null) return null;
+
 		return switch (from) {
 			case 0: animation.action;
 			case 1: animation.currentFrame();
