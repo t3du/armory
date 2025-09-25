@@ -2483,20 +2483,19 @@ Make sure the mesh only has tris/quads.""")
 
     def export_world(self):
         """Exports the world of the current scene."""
-        world = self.scene.world
+        for world in bpy.data.worlds:
+            if world is not None:
+                world_name = arm.utils.safestr(arm.utils.asset_name(world) if world.library else world.name)
 
-        if world is not None:
-            world_name = arm.utils.safestr(arm.utils.asset_name(world) if world.library else world.name)
+                if world_name not in self.world_array:
+                    self.world_array.append(world_name)
+                    out_world = {'name': world_name}
 
-            if world_name not in self.world_array:
-                self.world_array.append(world_name)
-                out_world = {'name': world_name}
+                    self.post_export_world(world, out_world)
+                    self.output['world_datas'].append(out_world)
 
-                self.post_export_world(world, out_world)
-                self.output['world_datas'].append(out_world)
-
-        elif arm.utils.get_rp().rp_background == 'World':
-            log.warn(f'Scene "{self.scene.name}" is missing a world, some render targets will not be cleared')
+            elif arm.utils.get_rp().rp_background == 'World':
+                log.warn(f'Scene "{self.scene.name}" is missing a world, some render targets will not be cleared')
 
     def export_objects(self, scene):
         """Exports all supported blender objects.
