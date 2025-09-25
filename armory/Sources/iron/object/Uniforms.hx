@@ -61,11 +61,8 @@ class Uniforms {
 
 	public static function setContextConstants(g: Graphics, context: ShaderContext, bindParams: Array<String>) {
 		if (context.raw.constants != null) {
-			//trace(context.raw.constants.length);
 			for (i in 0...context.raw.constants.length) {
 				var c = context.raw.constants[i];
-				//trace('CC '+context.constants[i]);
-				trace('C '+c);
 				setContextConstant(g, context.constants[i], c);
 			}
 		}
@@ -497,7 +494,6 @@ class Uniforms {
 									w.raw.sun_direction[1],
 									w.raw.sun_direction[2] > 0 ? w.raw.sun_direction[2] : 0);
 						v = helpVec;
-						trace('aca '+v);
 					}
 				}
 				#if rp_probes
