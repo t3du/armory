@@ -488,7 +488,7 @@ class Uniforms {
 				}
 				case "_hosekSunDirection": {
 					var w = Scene.active.world;
-					if (w != null && Reflect.field(w.raw, "sun_direction")) {
+					if (w != null) {
 						// Clamp Z for night cycle
 						helpVec.set(w.raw.sun_direction[0],
 									w.raw.sun_direction[1],
