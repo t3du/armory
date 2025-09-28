@@ -138,6 +138,7 @@ project.addSources('Sources');
 
         if export_physics:
             assets.add_khafile_def('arm_physics')
+            assets.add_khafile_def('arm_physics_soft')
             if wrd.arm_physics_engine == 'Bullet':
                 assets.add_khafile_def('arm_bullet')
                 if not os.path.exists('Libraries/haxebullet'):
