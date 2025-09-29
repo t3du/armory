@@ -17,7 +17,7 @@ class WriteImageNode extends LogicNode {
 		// Relative or absolute path to file
 		file = inputs[1].get();
 
-		assert(Error, iron.App.w() % inputs[3].get() == 0 && iron.App.h() % inputs[4].get() == 0, "Aspect ratio must match display resolution ratio");
+		//assert(Error, iron.App.w() % inputs[3].get() == 0 && iron.App.h() % inputs[4].get() == 0, "Aspect ratio must match display resolution ratio");
 
 		camera = inputs[2].get();
 		renderTarget = kha.Image.createRenderTarget(inputs[3].get(), inputs[4].get(),
@@ -107,8 +107,11 @@ class WriteImageNode extends LogicNode {
 				}
 			}
 
-			var imgwriter = new iron.format.bmp.Writer(bo);
-			imgwriter.write(iron.format.bmp.Tools.buildFromARGB(tw, th, rgb));
+            var writer = new iron.format.jpg.Writer(bo);
+            writer.write({width: tex.width, height: tex.height, quality: 100, pixels: rgb});
+
+			//var imgwriter = new iron.format.bmp.Writer(bo);
+			//imgwriter.write(iron.format.bmp.Tools.buildFromARGB(tw, th, rgb));
 
 			#if kha_krom
 			Krom.fileSaveBytes(Krom.getFilesLocation() +  "/" + file, bo.getBytes().getData());
