@@ -17,38 +17,36 @@ class DrawImageRenderNode extends LogicNode {
 		if (from == 1)
 			tree.notifyOnRender(render);
 		else {
+			RenderToTexture.ensure2DContext("DrawImageRenderNode");
 
-		RenderToTexture.ensure2DContext("DrawImageRenderNode");
+			final colorVec: Vec4 = inputs[3].get();
+			final anchorH: Int = inputs[4].get();
+			final anchorV: Int = inputs[5].get();
+			final x: Float = inputs[6].get();
+			final y: Float = inputs[7].get();
+			final width: Float = inputs[8].get();
+			final height: Float = inputs[9].get();
+			final sx: Float = inputs[10].get();
+			final sy: Float = inputs[11].get();
+			final swidth: Float = inputs[12].get();
+			final sheight: Float = inputs[13].get();
+			final angle: Float = inputs[14].get();
 
-		final colorVec: Vec4 = inputs[3].get();
-		final anchorH: Int = inputs[4].get();
-		final anchorV: Int = inputs[5].get();
-		final x: Float = inputs[6].get();
-		final y: Float = inputs[7].get();
-		final width: Float = inputs[8].get();
-		final height: Float = inputs[9].get();
-		final sx: Float = inputs[10].get();
-		final sy: Float = inputs[11].get();
-		final swidth: Float = inputs[12].get();
-		final sheight: Float = inputs[13].get();
-		final angle: Float = inputs[14].get();
+			final drawx = x - 0.5 * width * anchorH;
+			final drawy = y - 0.5 * height * anchorV;
 
-		final drawx = x - 0.5 * width * anchorH;
-		final drawy = y - 0.5 * height * anchorV;
+			RenderToTexture.g.rotate(angle, x, y);
 
-		RenderToTexture.g.rotate(angle, x, y);
+			if (img != null){
+				RenderToTexture.g.color = 0xff000000;
+				RenderToTexture.g.fillRect(drawx, drawy,  width, height);
+				RenderToTexture.g.color = RenderToTexture.g.color = Color.fromFloats(colorVec.x, colorVec.y, colorVec.z, colorVec.w);
+				RenderToTexture.g.drawScaledSubImage(img, sx, sy, swidth, sheight, drawx, drawy, width, height);
+			}
 
-		if (img != null){
-			RenderToTexture.g.color = 0xff000000;
-			RenderToTexture.g.fillRect(drawx, drawy,  width, height);
-			RenderToTexture.g.color = RenderToTexture.g.color = Color.fromFloats(colorVec.x, colorVec.y, colorVec.z, colorVec.w);
-			RenderToTexture.g.drawScaledSubImage(img, sx, sy, swidth, sheight, drawx, drawy, width, height);
-		}
+			RenderToTexture.g.rotate(-angle, x, y);
 
-		RenderToTexture.g.rotate(-angle, x, y);
-
-		runOutput(0);
-
+			runOutput(0);
 		}
 
 	}

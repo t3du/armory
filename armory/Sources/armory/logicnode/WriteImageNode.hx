@@ -9,6 +9,9 @@ class WriteImageNode extends LogicNode {
 	var camera: CameraObject;
 	var renderTarget: kha.Image;
 
+	var height: Int;
+	var width: Int;
+
 	public function new(tree: LogicTree) {
 		super(tree);
 	}
@@ -17,10 +20,14 @@ class WriteImageNode extends LogicNode {
 		// Relative or absolute path to file
 		file = inputs[1].get();
 
-		assert(Error, iron.App.w() % inputs[3].get() == 0 && iron.App.h() % inputs[4].get() == 0, "Aspect ratio must match display resolution ratio");
+		//assert(Error, iron.App.w() % inputs[3].get() == 0 && iron.App.h() % inputs[4].get() == 0, "Aspect ratio must match display resolution ratio");
 
 		camera = inputs[2].get();
-		renderTarget = kha.Image.createRenderTarget(inputs[3].get(), inputs[4].get(),
+		width = inputs[3].get();
+		height = inputs[4].get();
+
+
+		renderTarget = kha.Image.createRenderTarget(width, height,
 			kha.graphics4.TextureFormat.RGBA32,
 			kha.graphics4.DepthStencilFormat.NoDepthAndStencil);
 
@@ -46,20 +53,20 @@ class WriteImageNode extends LogicNode {
 
 		if (inputs[9].get()){
 
-			tex = kha.Image.createRenderTarget(inputs[3].get(), inputs[4].get(),
+			tex = kha.Image.createRenderTarget(width, height,
 				kha.graphics4.TextureFormat.RGBA32,
 				kha.graphics4.DepthStencilFormat.NoDepthAndStencil);
 
 			tex.g2.begin(true, Color.Transparent);
 
 			tex.g2.color = Color.White;
-			tex.g2.drawScaledImage(renderTarget, 0, 0, inputs[3].get(), inputs[4].get());
+			tex.g2.drawScaledImage(renderTarget, 0, 0, width, height);
 
-			var scl = inputs[3].get() / iron.App.w();
+			var scl = width / iron.App.w();
 
 			if (kha.Image.renderTargetsInvertedY()){
 				tex.g2.scale(scl, -scl);
-				tex.g2.translate(0, inputs[4].get());
+				tex.g2.translate(0, height);
 			}
 			else
 				tex.g2.scale(scl, scl);
@@ -107,8 +114,11 @@ class WriteImageNode extends LogicNode {
 				}
 			}
 
-			var imgwriter = new iron.format.bmp.Writer(bo);
-			imgwriter.write(iron.format.bmp.Tools.buildFromARGB(tw, th, rgb));
+            var writer = new iron.format.jpg.Writer(bo);
+            writer.write({width: tw, height: th, quality: 100, pixels: rgb});
+
+			//var imgwriter = new iron.format.bmp.Writer(bo);
+			//imgwriter.write(iron.format.bmp.Tools.buildFromARGB(tw, th, rgb));
 
 			#if kha_krom
 			Krom.fileSaveBytes(Krom.getFilesLocation() +  "/" + file, bo.getBytes().getData());
