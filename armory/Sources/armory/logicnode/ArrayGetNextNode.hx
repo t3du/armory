@@ -2,7 +2,7 @@ package armory.logicnode;
 
 class ArrayGetNextNode extends LogicNode {
 
-	var i = 0;
+	var i = -1;
 
 	public function new(tree: LogicTree) {
 		super(tree);
@@ -13,12 +13,12 @@ class ArrayGetNextNode extends LogicNode {
 
 		if (ar == null) return null;
 		
-		var value = ar[i];
-		
 		if (i < ar.length - 1)
 			i++;
 		else 
 			i = 0;
+
+		var value = ar[i];
 		
 		return value;
 		
