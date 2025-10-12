@@ -214,7 +214,14 @@ class Canvas {
 				ui.t.ACCENT_COL = getColor(element.color, getTheme(canvas.theme).BUTTON_COL);
 				ui.t.ACCENT_HOVER_COL = getColor(element.color_hover, getTheme(canvas.theme).BUTTON_HOVER_COL);
 
-				ui.slider(h.nest(element.id), getText(canvas, element), 0.0, 1.0, true, 100, true, element.alignment);
+				var v = getText(canvas, element).split(";");
+				if (v.length == 1){
+					v[1] = "0";
+					v[2] = "1";
+					v[3] = "100";
+				}
+				
+				ui.slider(h.nest(element.id), v[0], Std.parseFloat(v[1]), Std.parseFloat(v[2]), true, Std.parseFloat(v[3]), true, element.alignment);
 
 				ui.t.TEXT_COL = prevTEXT_COL;
 				ui.t.LABEL_COL = prevLABEL_COL;
@@ -465,6 +472,7 @@ typedef TElement = {
 	@:optional var asset: String;
 	@:optional var visible: Null<Bool>;
 	@:optional var editable: Null<Bool>;
+	@:optional var slider_max: Null<Float>;
 }
 
 typedef TAsset = {
