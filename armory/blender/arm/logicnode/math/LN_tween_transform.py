@@ -45,7 +45,13 @@ class TweenTransformNode(ArmLogicTreeNode):
                 ('CircInOut', 'CircInOut', 'CircInOut'),
                 ('BackIn', 'BackIn', 'BackIn'),
                 ('BackOut', 'BackOut', 'BackOut'),
-                ('BackInOut', 'BackInOut', 'BackInOut')],
+                ('BackInOut', 'BackInOut', 'BackInOut'),
+                ('BounceIn', 'BounceIn', 'BounceIn'),
+                ('BounceOut', 'BounceOut', 'BounceOut'),
+                ('BounceInOut', 'BounceInOut', 'BounceInOut'),
+                ('ElasticIn', 'ElasticIn', 'ElasticIn'),
+                ('ElasticOut', 'ElasticOut', 'ElasticOut'),
+                ('ElasticInOut', 'ElasticInOut', 'ElasticInOut')],
         name='', default='Linear')
 
     def arm_init(self, context):

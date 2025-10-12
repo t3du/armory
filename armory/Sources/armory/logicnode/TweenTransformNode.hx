@@ -93,6 +93,18 @@ class TweenTransformNode extends LogicNode {
 				type = BackOut;
 			case "BackInOut":
 				type = BackInOut;
+			case "BounceIn":
+				type = BounceIn;
+			case "BounceOut":
+				type = BounceOut;
+			case "BounceInOut":
+				type = BounceInOut;
+			case "ElasticIn":
+				type = ElasticIn;
+			case "ElasticOut":
+				type = ElasticOut;
+			case "ElasticInOut":
+				type = ElasticInOut;
 			}		
 
 			anim = Tween.to({
