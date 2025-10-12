@@ -35,9 +35,8 @@ class SetNishitaPropertiesNode extends LogicNode {
 			world.raw.sun_direction[0] = vec.x;
 			world.raw.sun_direction[1] = vec.y;
 			world.raw.sun_direction[2] = vec.z;
+			Nishita.recompute(world);
 		}
-
-		Nishita.recompute(world);
 
 		runOutput(0);
 		
