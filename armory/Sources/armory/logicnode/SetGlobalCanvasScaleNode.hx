@@ -18,8 +18,11 @@ class SetGlobalCanvasScaleNode extends LogicNode {
 		canvas = Scene.active.getTrait(CanvasScript);
 		if (canvas == null) canvas = Scene.active.camera.getTrait(CanvasScript);
 
-		canvas.setUiScale(factor);
-		runOutput(0);
+		canvas.notifyOnReady(() -> {
+			canvas.setUiScale(factor);
+			runOutput(0);
+		});
+
 	}
 #end
 }

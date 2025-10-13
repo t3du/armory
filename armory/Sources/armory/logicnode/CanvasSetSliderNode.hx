@@ -14,6 +14,7 @@ class CanvasSetSliderNode extends LogicNode {
 	}
 
 #if arm_ui
+	/*
 	function update() {
 		if (!canvas.ready) return;
 
@@ -26,7 +27,7 @@ class CanvasSetSliderNode extends LogicNode {
 		catch (e: Dynamic) {}
 
 		runOutput(0);
-	}
+	}*/
 
 	override function run(from: Int) {
 		element = inputs[1].get();
@@ -34,9 +35,15 @@ class CanvasSetSliderNode extends LogicNode {
 
 		canvas = CanvasScript.getActiveCanvas();
 
+		canvas.notifyOnReady(() -> {
+			canvas.getHandle(element).value = value;
+			runOutput(0);
+
+		});
+
 		// Ensure canvas is ready
-		tree.notifyOnUpdate(update);
-		update();
+		//tree.notifyOnUpdate(update);
+		//update();
 	}
 #end
 }
