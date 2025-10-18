@@ -70,6 +70,12 @@ class AddParticleToObjectNode extends LogicNode {
 					mobjTo.setupParticleSystem(sceneName, obj.particle_refs[slot]);
 					mobjTo.render_emitter = inputs[5].get();
 
+					for (i => ps in rawScene.particle_datas)
+						if (obj.particle_refs[slot].particle == ps.name){
+							slot = i;
+							break;
+						}
+
 					iron.Scene.active.spawnObject(rawScene.particle_datas[slot].instance_object, null, function(o: Object) {
 						if (o != null) {
 							var c: iron.object.MeshObject = cast o;
