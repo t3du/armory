@@ -21,6 +21,7 @@ def write(vert, particle_info=None, shadowmap=False):
     rotation_factor_random = 0
     phase_factor = 0
     phase_factor_random = 0
+    normal_factor = 0.0
 
     for obj in bpy.data.objects:
         for psys in obj.particle_systems:
@@ -36,6 +37,8 @@ def write(vert, particle_info=None, shadowmap=False):
                         rotation_factor_random = psettings.rotation_factor_random
                         phase_factor = psettings.phase_factor
                         phase_factor_random = psettings.phase_factor_random
+                        
+                        normal_factor = psettings.normal_factor
 
                         # Texture slots data
                         if psettings.texture_slots and len(psettings.texture_slots.items()) != 0:
@@ -69,6 +72,12 @@ def write(vert, particle_info=None, shadowmap=False):
     vert.add_uniform('float pd_size_random', '_particleSizeRandom')
     vert.add_uniform('float pd_random', '_particleRandom')
     vert.add_uniform('float pd_size', '_particleSize')
+
+    vert.add_const('float', 'P_NORMAL_FACTOR', str(normal_factor))
+
+    if (shadowmap and normal_factor != 0.0):
+        vert.add_out('vec3 N')
+
 
     if ramp_el_len != 0:
         vert.add_const('float', 'P_SIZE_OVER_TIME_FACTOR', str(size_over_time_factor))
@@ -140,6 +149,13 @@ def write(vert, particle_info=None, shadowmap=False):
     vert.write('p_velocity.x += (fhash(gl_InstanceID + pd_random)                * 2.0 / pd_size - 1.0 / pd_size) * pd[1][3];')
     vert.write('p_velocity.y += (fhash(gl_InstanceID + pd_random +     pd[0][3]) * 2.0 / pd_size - 1.0 / pd_size) * pd[1][3];')
     vert.write('p_velocity.z += (fhash(gl_InstanceID + pd_random + 2 * pd[0][3]) * 2.0 / pd_size - 1.0 / pd_size) * pd[1][3];')
+
+    if normal_factor != 0.0:
+        vert.write('if (P_NORMAL_FACTOR != 0.0) {')
+        vert.write('    vec3 local_normal_dir = normalize(ipos);')
+        vert.write('    vec3 world_emitter_normal = normalize(N * local_normal_dir);')
+        vert.write('    p_velocity += world_emitter_normal * P_NORMAL_FACTOR;')
+        vert.write('}')
 
     # factor_random = pd[1][3]
     # p.i = gl_InstanceID
