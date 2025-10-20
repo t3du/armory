@@ -2310,7 +2310,7 @@ class ARM_PT_TilesheetPanel(bpy.types.Panel):
     bl_label = "Armory Tilesheet"
     bl_space_type = "PROPERTIES"
     bl_region_type = "WINDOW"
-    bl_context = "material"
+    bl_context = "render"
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
