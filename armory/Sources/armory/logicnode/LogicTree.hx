@@ -35,6 +35,7 @@ class LogicTree extends iron.Trait {
 
 		if (_update != null) for (f in _update) iron.App.removeUpdate(f);
 		if (_lateUpdate != null) for (f in _lateUpdate) iron.App.removeLateUpdate(f);
+		if (_render2D != null) for (f in _render2D) iron.App.removeRender2D(f);
 	}
 
 	public function resume() {
@@ -43,5 +44,6 @@ class LogicTree extends iron.Trait {
 
 		if (_update != null) for (f in _update) iron.App.notifyOnUpdate(f);
 		if (_lateUpdate != null) for (f in _lateUpdate) iron.App.notifyOnLateUpdate(f);
+		if (_render2D != null) for (f in _render2D) iron.App.notifyOnRender2D(f);
 	}
 }
