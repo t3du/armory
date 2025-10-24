@@ -761,11 +761,13 @@ class Scene {
 		}
 		else { #end // arm_skin
 			#if arm_stream
-			streamMeshObject(
+				if ((o.particle_refs == null || o.particle_refs.length == 0) && o.is_particle == null && parent != null)
+					streamMeshObject(object_file, data_ref, sceneName, null, materials, parent, parentObject, o, done);
+				else
+					returnMeshObject(object_file, data_ref, sceneName, null, materials, parent, parentObject, o, done);
 			#else
-			returnMeshObject(
+			returnMeshObject(object_file, data_ref, sceneName, null, materials, parent, parentObject, o, done);
 			#end
-				object_file, data_ref, sceneName, null, materials, parent, parentObject, o, done);
 		#if arm_skin
 		}
 		#end
