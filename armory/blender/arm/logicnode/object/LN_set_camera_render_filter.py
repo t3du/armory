@@ -22,6 +22,8 @@ class SetCameraRenderFilterNode(ArmLogicTreeNode):
         self.add_input('ArmNodeSocketAction', 'In')
         self.add_input('ArmNodeSocketObject', 'Object')
         self.add_input('ArmNodeSocketObject', 'Camera')
+        self.add_input('ArmBoolSocket', 'Children', default_value=True)
+        self.add_input('ArmBoolSocket', 'Recursive', default_value=False)
 
         self.add_output('ArmNodeSocketAction', 'Out')
 
