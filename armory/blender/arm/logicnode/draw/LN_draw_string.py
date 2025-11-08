@@ -27,6 +27,20 @@ class DrawStringNode(ArmLogicTreeNode):
     arm_section = 'draw'
     arm_version = 3
 
+    property1: HaxeEnumProperty(
+    'property1',
+    items = [('TextLeft', 'Hor. Align. Left', 'Hor. Align. Left'),
+             ('TextCenter', 'Hor. Align. Center', 'Hor. Align. Center'),
+             ('TextRight', 'Hor. Align. Right', 'Hor. Align. Right'),],
+    name='', default='TextLeft')
+
+    property2: HaxeEnumProperty(
+    'property2',
+    items = [('TextTop', 'Ver. Align. Top', 'Ver. Align. Top'),
+             ('TextMiddle', 'Ver. Align. Middle', 'Ver. Align. Middle'),
+             ('TextBottom', 'Ver. Align. Bottom', 'Ver. Align. Bottom'),],
+    name='', default='TextTop')
+
     def arm_init(self, context):
         self.add_input('ArmNodeSocketAction', 'Draw')
         self.add_input('ArmStringSocket', 'String')
@@ -40,6 +54,10 @@ class DrawStringNode(ArmLogicTreeNode):
         self.add_output('ArmNodeSocketAction', 'Out')
         self.add_output('ArmFloatSocket', 'Width')
         self.add_output('ArmFloatSocket', 'Height')
+
+    def draw_buttons(self, context, layout):
+        layout.prop(self, 'property1')
+        layout.prop(self, 'property2')
 
     def get_replacement_node(self, node_tree: bpy.types.NodeTree):
         if self.arm_version not in (0, 1, 2):

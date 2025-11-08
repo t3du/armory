@@ -3,9 +3,13 @@ package armory.logicnode;
 import kha.Font;
 import kha.Color;
 import armory.renderpath.RenderToTexture;
+import kha.graphics2.VerTextAlignment;
+import kha.graphics2.HorTextAlignment;
 
 #if arm_ui
 import armory.ui.Canvas;
+
+using zui.GraphicsExtension;
 #end
 
 class DrawStringNode extends LogicNode {
@@ -13,12 +17,18 @@ class DrawStringNode extends LogicNode {
 	var lastFontName = "";
 	var string:String;
 
+	public var property1: String;
+	public var property2: String;
+
 	public function new(tree: LogicTree) {
 		super(tree);
 	}
 
 	override function run(from: Int) {
 		RenderToTexture.ensure2DContext("DrawStringNode");
+
+		var horA = TextLeft;
+		var verA = TextTop;
 
 		string = Std.string(inputs[1].get());
 		var angle: Float = inputs[7].get();
@@ -45,6 +55,18 @@ class DrawStringNode extends LogicNode {
 			return;
 		}
 
+					switch(property1){
+				case 'TextLeft': horA = TextLeft;
+				case 'TextCenter': horA = TextCenter;
+				case 'TextRight': horA = TextRight;
+			}
+
+					switch(property2){
+			case 'TextTop': verA = TextTop;
+			case 'TextMiddle': verA = TextMiddle;
+			case 'TextBottom': verA = TextBottom;
+		}
+
 		RenderToTexture.g.rotate(angle, inputs[5].get(), inputs[6].get());
 
 		final colorVec = inputs[4].get();
@@ -53,7 +75,7 @@ class DrawStringNode extends LogicNode {
 		RenderToTexture.g.fontSize = inputs[3].get();
 		RenderToTexture.g.font = font;
 
-		RenderToTexture.g.drawString(string, inputs[5].get(), inputs[6].get());
+		RenderToTexture.g.drawAlignedString(string, inputs[5].get(), inputs[6].get(), horA, verA);
 
 		RenderToTexture.g.rotate(-angle, inputs[5].get(), inputs[6].get());
 
