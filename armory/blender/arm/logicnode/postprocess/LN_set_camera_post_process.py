@@ -21,6 +21,10 @@ class CameraSetNode(ArmLogicTreeNode):
             self.add_input('ArmFloatSocket', 'Fisheye Distortion', default_value=0.01)#4
         if self.property0 == 'Auto Focus':
             self.add_input('ArmBoolSocket', 'Auto Focus', default_value=True)#5
+        if self.property0 == 'Auto Focus Value':
+            self.add_input('ArmVectorSocket', 'Auto Focus Value', default_value=[0.5, 0.5, 0])
+        if self.property0 == 'DoF Max Blur':
+            self.add_input('ArmFloatSocket', 'DoF Max Blur', default_value=1.0)
         if self.property0 == 'DoF Distance':
             self.add_input('ArmFloatSocket', 'DoF Distance', default_value=10.0)#6
         if self.property0 == 'DoF Length': 
@@ -49,6 +53,8 @@ class CameraSetNode(ArmLogicTreeNode):
              ('Exposure Compensation', 'Exposure Compensation', 'Exposure Compensation'),
              ('Fisheye Distortion', 'Fisheye Distortion', 'Fisheye Distortion'),
              ('Auto Focus', 'Auto Focus', 'Auto Focus'),
+             ('Auto Focus Value', 'Auto Focus Value', 'Auto Focus Value'),
+             ('DoF Max Blur', 'DoF Max Blur', 'DoF Max Blur'),
              ('DoF Distance', 'DoF Distance', 'DoF Distance'),
              ('DoF Length', 'DoF Length', 'DoF Length'),
              ('DoF F-Stop', 'DoF F-Stop', 'DoF F-Stop'),

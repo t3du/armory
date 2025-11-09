@@ -67,6 +67,7 @@ uniform vec3 PPComp14;
 uniform vec4 PPComp15;
 uniform vec4 PPComp16;
 uniform vec4 PPComp18;
+uniform vec4 PPComp19;
 #endif
 
 // #ifdef _CPos
@@ -344,15 +345,17 @@ void main() {
 			float compoLength = PPComp3.y;
 			float compoStop = PPComp3.z;
 
+			vec2 focus = vec2(PPComp19.x, PPComp19.y);
+
 			if (PPComp2.z == 1){
 				compoAutoFocus = true;
 			} else {
 				compoAutoFocus = false;
 			}
 
-			fragColor.rgb = dof(texCo, depth, tex, gbufferD, texStep, cameraProj, compoAutoFocus, compoDistance, compoLength, compoStop);
+			fragColor.rgb = dof(texCo, depth, tex, gbufferD, texStep, cameraProj, compoAutoFocus, compoDistance, compoLength, compoStop, focus, PPComp19.z);
 		#else
-			fragColor.rgb = dof(texCo, depth, tex, gbufferD, texStep, cameraProj, true, compoDOFDistance, compoDOFLength, compoDOFFstop);
+			fragColor.rgb = dof(texCo, depth, tex, gbufferD, texStep, cameraProj, true, compoDOFDistance, compoDOFLength, compoDOFFstop, focus, PPComp19.z);
 		#endif
 	#else
 	fragColor = textureLod(tex, texCo, 0.0);

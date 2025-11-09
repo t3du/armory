@@ -13,6 +13,8 @@ class CameraGetNode(ArmLogicTreeNode):
         self.add_output('ArmFloatSocket', 'Exposure Compensation')#3
         self.add_output('ArmFloatSocket', 'Fisheye Distortion')#4
         self.add_output('ArmBoolSocket', 'Auto Focus')#5
+        self.add_output('ArmVectorSocket', 'Auto Focus Value')
+        self.add_output('ArmFloatSocket', 'DOF Max Blur')
         self.add_output('ArmFloatSocket', 'DOF Distance')#6
         self.add_output('ArmFloatSocket', 'DOF Length')#7
         self.add_output('ArmFloatSocket', 'DOF F-Stop')#8

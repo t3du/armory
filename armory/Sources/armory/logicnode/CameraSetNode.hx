@@ -23,6 +23,11 @@ class CameraSetNode extends LogicNode {
 				armory.renderpath.Postprocess.camera_uniforms[4] = inputs[1].get();//Fisheye Distortion
 			case 'Auto Focus':
 				armory.renderpath.Postprocess.camera_uniforms[5] = inputs[1].get();//DoF AutoFocus §§ If true, it ignores the DoF Distance setting
+			case 'Auto Focus Value':
+				armory.renderpath.Postprocess.auto_focus[0] = inputs[1].get().x;
+				armory.renderpath.Postprocess.auto_focus[1] = inputs[1].get().y;
+			case 'DoF Max Blur':
+				armory.renderpath.Postprocess.auto_focus[2] = inputs[1].get(); // DoF Max Blur
 			case 'DoF Distance':
 				armory.renderpath.Postprocess.camera_uniforms[6] = inputs[1].get();//DoF Distance
 			case 'DoF Length':

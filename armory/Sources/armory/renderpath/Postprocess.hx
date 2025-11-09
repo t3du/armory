@@ -137,6 +137,12 @@ class Postprocess {
 		0					//1: Filter
 	];
 
+	public static var auto_focus = [
+		0.5, 				// auto focus x
+		0.5,				// auto focus y
+		1.0 				// maxblur 
+		]; 
+
 	public static function vec3Link(object: Object, mat: MaterialData, link: String): iron.math.Vec4 {
 		var v:Vec4 = null;
 
@@ -394,6 +400,11 @@ class Postprocess {
 			v.y = volumetric_fog_uniforms[0][1];
 			v.z = volumetric_fog_uniforms[0][2];
 			v.w = volumetric_fog_uniforms[1][0]; //Amount A
+		case "_PPComp19":
+			v = iron.object.Uniforms.helpVec;
+			v.x = auto_focus[0];
+			v.y = auto_focus[1];
+			v.z = auto_focus[2];
 		}
 
 		return v;

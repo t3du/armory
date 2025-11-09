@@ -10,9 +10,9 @@
 
 const int samples = 6; // Samples on the first ring
 const int rings = 6; // Ring count
-const vec2 focus = vec2(0.5, 0.5);
+//const vec2 focus = vec2(0.5, 0.5);
 const float coc = 0.11; // Circle of confusion size in mm (35mm film = 0.03mm)
-const float maxblur = 1.0;
+//const float maxblur = 1.0;
 const float threshold = 0.5; // Highlight threshold
 const float gain = 2.0; // Highlight gain
 const float bias = 0.5; // Bokeh edge bias
@@ -41,7 +41,9 @@ vec3 dof(
 	const bool autoFocus, 
 	const float DOFDistance, 
 	const float DOFLength, 
-	const float DOFFStop) {
+	const float DOFFStop,
+	const vec2 focus,
+	const float maxblur) {
 
 	float depth = linearize(gdepth, cameraProj);
 	float fDepth = 0.0;
@@ -80,7 +82,6 @@ vec3 dof(
 				float pw = (cos(float(j) * step) * float(i));
 				float ph = (sin(float(j) * step) * float(i));
 				float p = 1.0;
-				// if (pentagon) p = penta(vec2(pw, ph));
 				col += color(texCoord + vec2(pw * w, ph * h), blur, tex, texStep) * mix(1.0, (float(i)) / (float(rings)), bias) * p;  
 				s += 1.0 * mix(1.0, (float(i)) / (float(rings)), bias) * p;  
 			}

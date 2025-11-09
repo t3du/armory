@@ -14,14 +14,16 @@ class CameraGetNode extends LogicNode {
 			case 3: armory.renderpath.Postprocess.camera_uniforms[3];//Camera: Exposure Compensation
 			case 4: armory.renderpath.Postprocess.camera_uniforms[4];//Fisheye Distortion
 			case 5: armory.renderpath.Postprocess.camera_uniforms[5];//DoF AutoFocus §§ If true, it ignores the DoF Distance setting
-			case 6: armory.renderpath.Postprocess.camera_uniforms[6];//DoF Distance
-			case 7: armory.renderpath.Postprocess.camera_uniforms[7];//DoF Focal Length mm
-			case 8: armory.renderpath.Postprocess.camera_uniforms[8];//DoF F-Stop
-			case 9: armory.renderpath.Postprocess.camera_uniforms[9];//Tonemapping Method
-			case 10: armory.renderpath.Postprocess.camera_uniforms[10];//Distort
-			case 11: armory.renderpath.Postprocess.camera_uniforms[11];//Film Grain
-			case 12: armory.renderpath.Postprocess.camera_uniforms[12];//Sharpen
-			case 13: armory.renderpath.Postprocess.camera_uniforms[13];//Vignette
+			case 6: new iron.math.Vec4(armory.renderpath.Postprocess.auto_focus[0], armory.renderpath.Postprocess.auto_focus[1], 0, 1); //Auto Focus Value
+			case 7: armory.renderpath.Postprocess.auto_focus[2]; //max blur
+			case 8: armory.renderpath.Postprocess.camera_uniforms[6];//DoF Distance
+			case 9: armory.renderpath.Postprocess.camera_uniforms[7];//DoF Focal Length mm
+			case 10: armory.renderpath.Postprocess.camera_uniforms[8];//DoF F-Stop
+			case 11: armory.renderpath.Postprocess.camera_uniforms[9];//Tonemapping Method
+			case 12: armory.renderpath.Postprocess.camera_uniforms[10];//Distort
+			case 13: armory.renderpath.Postprocess.camera_uniforms[11];//Film Grain
+			case 14: armory.renderpath.Postprocess.camera_uniforms[12];//Sharpen
+			case 15: armory.renderpath.Postprocess.camera_uniforms[13];//Vignette
 			default: 0.0;
 		}
 	}
