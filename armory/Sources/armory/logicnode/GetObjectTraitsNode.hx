@@ -11,6 +11,6 @@ class GetObjectTraitsNode extends LogicNode {
 	override function get(from: Int): Dynamic {
 		var object: Object = inputs[0].get();
 		if (object == null) return null;
-		return object.traits;
+		return object.name != null ? object.traits : inputs[0].get().root.children[0].traits;
 	}
 }
