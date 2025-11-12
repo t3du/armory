@@ -1,8 +1,6 @@
 package armory.logicnode;
 import iron.object.Object;
 import iron.math.Vec4;
-import armory.system.Event;
-
 
 class CreateMapNode extends LogicNode {
   public var property0: String;
