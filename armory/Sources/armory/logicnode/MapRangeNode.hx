@@ -13,7 +13,7 @@ class MapRangeNode extends LogicNode {
 		var toMin = inputs[3].get();
 		var toMax = inputs[4].get();
 
-		if (value == null || fromMin == null || fromMax == null || toMin == null || toMax == null) return null;
+		//if (value == null || fromMin == null || fromMax == null || toMin == null || toMax == null) return null;
 
 		//Implements https://stackoverflow.com/a/5732390
 		var slope = (toMax - toMin) / (fromMax - fromMin);
