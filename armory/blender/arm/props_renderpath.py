@@ -66,7 +66,7 @@ def update_preset(self, context):
         rpdat.rp_stereo = False
         rpdat.rp_voxelgi_resolution = '32'
         rpdat.arm_voxelgi_size = 0.25
-        rpdat.rp_voxels = 'Voxel AO'
+        rpdat.rp_voxels = 'Off' #'Voxel AO'
         rpdat.rp_render_to_texture = True
         rpdat.rp_supersampling = '1'
         rpdat.rp_antialiasing = 'SMAA'
