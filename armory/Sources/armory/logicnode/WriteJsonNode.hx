@@ -10,7 +10,8 @@ class WriteJsonNode extends LogicNode {
 		// Relative or absolute path to file
 		var file: String = inputs[1].get();
 		var data: Dynamic = inputs[2].get();
-		var s = haxe.Json.stringify(data);
+		//var s = haxe.Json.stringify(data);
+		var s = haxe.Json.stringify(data, "\t");
 
 		#if kha_krom
 		var path = Krom.getFilesLocation() + "/" + file;
