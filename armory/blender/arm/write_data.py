@@ -567,6 +567,7 @@ def write_indexhtml(w, h, is_publish):
     if wrd.arm_project_html5_popupmenu_in_browser:
         popupmenu_in_browser = ' oncontextmenu="return false"'
     with open(arm.utils.build_dir() + dest + '/index.html', 'w') as f:
+        icon = """<link rel="icon" href="favicon.ico" type="image/x-icon">""" if wrd.arm_project_icon != '' else ''
         f.write(
 """<!DOCTYPE html>
 <html>
@@ -577,6 +578,7 @@ def write_indexhtml(w, h, is_publish):
     <meta name='viewport' content='width=device-width, initial-scale=1.0, user-scalable=no'>""")
         f.write("""
     <title>"""+html.escape( wrd.arm_project_name)+"""</title>
+    """+icon+"""
 </head>
 <body style='margin: 0; padding: 0;'>""")
         if rpdat.rp_stereo or wrd.arm_winmode == 'Fullscreen':
