@@ -355,7 +355,7 @@ void main() {
 
 			fragColor.rgb = dof(texCo, depth, tex, gbufferD, texStep, cameraProj, compoAutoFocus, compoDistance, compoLength, compoStop, focus, PPComp19.z);
 		#else
-			fragColor.rgb = dof(texCo, depth, tex, gbufferD, texStep, cameraProj, true, compoDOFDistance, compoDOFLength, compoDOFFstop, focus, PPComp19.z);
+			fragColor.rgb = dof(texCo, depth, tex, gbufferD, texStep, cameraProj, true, compoDOFDistance, compoDOFLength, compoDOFFstop, vec2(0.5, 0.5), 1.0);
 		#endif
 	#else
 	fragColor = textureLod(tex, texCo, 0.0);
