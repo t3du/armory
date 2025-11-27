@@ -33,7 +33,7 @@ class PlaySoundNode(ArmLogicTreeNode):
     bl_idname = 'LNPlaySoundRawNode'
     bl_label = 'Play Sound'
     bl_width_default = 200
-    arm_version = 3
+    arm_version = 4
 
     def remove_extra_inputs(self, context):
         while len(self.inputs) > 5:
@@ -87,6 +87,8 @@ class PlaySoundNode(ArmLogicTreeNode):
         self.add_output('ArmNodeSocketAction', 'Out')
         self.add_output('ArmNodeSocketAction', 'Is Running')
         self.add_output('ArmNodeSocketAction', 'Done')
+        self.add_output('ArmFloatSocket', 'Length')
+        self.add_output('ArmFloatSocket', 'Position')
 
     def draw_buttons(self, context, layout):
         layout.prop(self, 'property6')

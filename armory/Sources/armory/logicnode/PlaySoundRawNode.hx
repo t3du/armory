@@ -76,6 +76,11 @@ class PlaySoundRawNode extends LogicNode {
 			else runOutput(1);
 		}
 	}
+
+	override function get(from: Int): Dynamic {
+		return
+			channel != null ? from == 3 ? channel.length : channel.position : null;
+	}
 }
 
 private enum abstract PlayState(Int) from Int to Int {
