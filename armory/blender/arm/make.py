@@ -14,6 +14,7 @@ import time
 import traceback
 from typing import Callable
 import webbrowser
+import sys
 
 import bpy
 
@@ -55,6 +56,14 @@ profile_time = 0
 # Queue of threads and their done callbacks. Item format: [thread, done]
 thread_callback_queue = Queue(maxsize=0)
 
+def open_private(url):
+    try:
+        subprocess.run(['start', '', 'opera', '--private', url], check=True, shell=True)
+        return True
+    except:
+        pass
+    webbrowser.open(url)
+    return False
 
 def run_proc(cmd, done: Callable) -> subprocess.Popen:
     """Creates a subprocess with the given command and returns it.
@@ -721,7 +730,7 @@ def build_success():
                     cmd = re.split(' +', tplstr)
             if len(cmd) == 0:
                 if browsername in (None, '', 'default'):
-                    webbrowser.open(url)
+                    open_private(url)
                     return
                 cmd = [browsername, url]
         elif wrd.arm_runtime == 'Krom':
@@ -763,7 +772,7 @@ def build_success():
             traceback.print_exc()
             log.warn('Failed to start player, command and exception have been printed to console above')
             if wrd.arm_runtime == 'Browser':
-                webbrowser.open(url)
+                open_private(url)
 
     elif state.is_publish:
         sdk_path = arm.utils.get_sdk_path()
@@ -879,7 +888,7 @@ def build_success():
                 if len(arm.utils.get_link_web_server()) and (wrd.arm_project_html5_start_browser):
                     link_html5_app = arm.utils.get_link_web_server() +'/'+ project_name
                     print("Running a browser with a link " + link_html5_app)
-                    webbrowser.open(link_html5_app)
+                    open_private(link_html5_app)
 
         # Windows After Publish
         if target_name.startswith('windows') and wrd.arm_project_win_build != 'nothing' and arm.utils.get_os_is_windows():
