@@ -111,17 +111,28 @@ class UniformsManager extends Trait{
 						case "float":
 							var link = constant.link;
 							var value = constant.floatValue;
-							setFloatValue(material, object, link, value);
-							register(Float);
-
+							
+							var rootMaterialMap = floatsMap.get(object);
+							var entry = rootMaterialMap != null ? rootMaterialMap.get(material) : null;
+							
+							if (entry == null || entry.get(link) == null) {
+								setFloatValue(material, object, link, value);
+								register(Float);
+							}
+							
 						case "vec3":
 							var vec = new Vec4();
 							vec.x = constant.vec3Value.get(0);
 							vec.y = constant.vec3Value.get(1);
 							vec.z = constant.vec3Value.get(2);
-
-							setVec3Value(material, object, constant.link, vec);
-							register(Vector);
+							
+							var rootMaterialMap = vectorsMap.get(object);
+							var entry = rootMaterialMap != null ? rootMaterialMap.get(material) : null;
+							
+							if (entry == null || entry.get(constant.link) == null) {
+								setVec3Value(material, object, constant.link, vec);
+								register(Vector);
+							}
 					}
 				}
 			}
@@ -130,17 +141,24 @@ class UniformsManager extends Trait{
 
 					uniformExist = true;
 					var object = Scene.active.root; // Map default texture to scene root
+					
+					var rootMaterialMap = texturesMap.get(object);
+					var entry = rootMaterialMap != null ? rootMaterialMap.get(material) : null;
+					var link = texture.link;
+					
+					if (entry == null || entry.get(link) == null) {
 
-					if (texture.default_image_file == null) {
-						setTextureValue(material, object, texture.link, null);
+						if (texture.default_image_file == null) {
+							setTextureValue(material, object, link, null);
 
+						}
+						else {
+							iron.data.Data.getImage(texture.default_image_file, function(image: kha.Image) {
+								setTextureValue(material, object, link, image);
+							});
+						}
+						register(Texture);
 					}
-					else {
-						iron.data.Data.getImage(texture.default_image_file, function(image: kha.Image) {
-							setTextureValue(material, object, texture.link, image);
-						});
-					}
-					register(Texture);
 				}
 			}
 		}
