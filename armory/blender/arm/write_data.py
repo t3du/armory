@@ -176,15 +176,17 @@ project.addSources('Sources');
                 khafile.write(add_assets(recastjs_path, rel_path=do_relpath_sdk))
 
     
-        if wrd.arm_dce:
-            khafile.write("project.addParameter('-dce full');\n")
         if wrd.arm_no_traces:
             khafile.write("project.addParameter('--no-traces');\n")
-        if wrd.arm_asset_compression:
-            assets.add_khafile_def('arm_compress')
 
         if is_publish:
             assets.add_khafile_def('arm_published')
+            if wrd.arm_dce:
+                khafile.write("project.addParameter('-dce full');\n")
+            if wrd.arm_no_traces:
+                khafile.write("project.addParameter('--no-traces');\n")
+            if wrd.arm_asset_compression:
+                assets.add_khafile_def('arm_compress')
 
         else:
             assets.add_khafile_def(f'arm_assert_level={wrd.arm_assert_level}')
