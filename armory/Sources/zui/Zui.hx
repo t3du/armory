@@ -9,6 +9,7 @@ import kha.input.Surface;
 import kha.input.Keyboard;
 import kha.input.KeyCode;
 import kha.graphics2.Graphics;
+using zui.GraphicsExtension;
 
 @:structInit
 typedef ZuiOptions = {
@@ -999,10 +1000,16 @@ class Zui {
 				  hover ? t.BUTTON_HOVER_COL :
 				  t.BUTTON_COL;
 
-		drawRect(g, t.FILL_BUTTON_BG, _x + buttonOffsetY, _y + buttonOffsetY, _w - buttonOffsetY * 2, BUTTON_H());
-
+		var v = text.split(";");
+		if (v.length == 2){
+			var radius = Std.parseFloat(v[1]) * SCALE(); 
+			text = v[0];
+			drawRoundRect(g, t.FILL_BUTTON_BG, _x + buttonOffsetY, _y + buttonOffsetY, _w - buttonOffsetY * 2, BUTTON_H(), radius);
+		} else
+			drawRect(g, t.FILL_BUTTON_BG, _x + buttonOffsetY, _y + buttonOffsetY, _w - buttonOffsetY * 2, BUTTON_H()); 
+		
 		g.color = t.BUTTON_TEXT_COL;
-		drawString(g, text, null, BUTTON_H()/3, align);
+		drawString(g, text, null, -buttonOffsetY + SCALE(), align);
 		if (label != "") {
 			g.color = t.LABEL_COL;
 			drawString(g, label, null, 0, align == Align.Right ? Align.Left : Align.Right);
@@ -1710,6 +1717,24 @@ class Zui {
 		if (strength == 0.0) strength = 1;
 		if (!enabled) fadeColor();
 		fill ? g.fillRect(x, y - 1, w, h + 1) : g.drawRect(x, y, w, h, strength);
+	}
+
+	public function drawRoundRect(g: Graphics, fill: Bool, x: Float, y: Float, w: Float, h: Float, r: Float) {
+		if (r <= 0) {
+			fill ? g.fillRect(x, y, w, h) : g.drawRect(x, y, w, h);
+			return;
+		}
+
+		if (fill) {
+			g.fillRect(x + r, y, w - 2 * r, h);
+			g.fillRect(x, y + r, w, h - 2 * r);
+			g.fillCircle(x + r, y + r, r);
+			g.fillCircle(x + w - r, y + r, r);
+			g.fillCircle(x + r, y + h - r, r);
+			g.fillCircle(x + w - r, y + h - r, r);
+		} else {
+            g.drawRect(x, y, w, h); 
+		}
 	}
 
 	function isVisible(elemH: Float): Bool {
