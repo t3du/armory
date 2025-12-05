@@ -516,7 +516,10 @@ class ArmoryGenerateNavmeshButton(bpy.types.Operator):
         proc = subprocess.Popen(args, cwd=nav_full_path)
         proc.wait()
 
-        navmesh = bpy.ops.import_scene.obj(filepath=mesh_path)
+        if bpy.app.version[0] >= 4:
+            navmesh = bpy.ops.wm.obj_import(filepath=mesh_path)
+        else:
+            navmesh = bpy.ops.import_scene.obj(filepath=mesh_path)
         navmesh = bpy.context.selected_objects[0]
 
         # NavMesh preview settings, cleanup
