@@ -1,8 +1,5 @@
 package armory.logicnode;
 
-import iron.data.SceneFormat;
-import iron.object.Object;
-
 class GetObjectByUidNode extends LogicNode {
 
 	public function new(tree: LogicTree) {
