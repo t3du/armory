@@ -1,10 +1,12 @@
 from arm.logicnode.arm_nodes import *
 
 class NavigableLocationNode(ArmLogicTreeNode):
-    """TO DO."""
+    """A random navigable location in the navmesh."""
     bl_idname = 'LNNavigableLocationNode'
-    bl_label = 'Navigable Location'
-    arm_version = 1
+    bl_label = 'Random Navigable Location'
+    arm_version = 2
 
     def arm_init(self, context):
-        self.add_output('ArmDynamicSocket', 'Location')
+        self.add_input('ArmNodeSocketObject', 'NavMesh')
+
+        self.add_output('ArmVectorSocket', 'Location')

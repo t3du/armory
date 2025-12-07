@@ -18,7 +18,7 @@ class GoToLocationNode(ArmLogicTreeNode):
     @output Tick Rotation: Executed at every step of navigation rotation.
     """
     bl_idname = 'LNGoToLocationNode'
-    bl_label = 'Go to Location'
+    bl_label = 'Agent Go to Location'
     arm_version = 2
 
     def arm_init(self, context):

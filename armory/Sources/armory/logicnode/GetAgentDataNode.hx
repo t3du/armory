@@ -8,7 +8,7 @@ class GetAgentDataNode extends LogicNode {
 		super(tree);
 	}
 
-	override function get(from: Int): Float {
+	override function get(from: Int): Dynamic {
 		var object: Object = inputs[0].get();
 
 		assert(Error, object != null, "The object to naviagte should not be null");
@@ -16,8 +16,12 @@ class GetAgentDataNode extends LogicNode {
 #if arm_navigation
 		var agent: armory.trait.NavAgent = object.getTrait(armory.trait.NavAgent);
 		assert(Error, agent != null, "The object does not have NavAgent Trait");
-		if(from == 0) return agent.speed;
-		else return agent.turnDuration;
+		return switch(from){
+			case 0: agent.speed;
+			case 1: agent.turnDuration;
+			case 2: @:privateAccess agent.path;
+			default: null;
+		}
 #else
 		return null;
 #end
