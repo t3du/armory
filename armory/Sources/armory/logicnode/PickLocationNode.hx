@@ -17,7 +17,7 @@ class PickLocationNode extends LogicNode {
 
 		if (object == null || coords == null) return null;
 
-#if arm_physics
+		#if arm_physics
 		var physics = armory.trait.physics.PhysicsWorld.active;
 		var b = physics.pickClosest(coords.x, coords.y);
 		var rb = object.getTrait(armory.trait.physics.RigidBody);
@@ -27,7 +27,10 @@ class PickLocationNode extends LogicNode {
 			loc.set(p.x, p.y, p.z);
 			return loc;
 		}
-#end
-		return null;
+		#end
+		
+		var v = new Vec4();
+		v = iron.math.RayCaster.boxIntersectObject(object, coords.x, coords.y, iron.Scene.active.camera);
+		return v;
 	}
 }

@@ -1,11 +1,10 @@
 package armory.logicnode;
 
-import iron.math.Vec4;
 import armory.trait.navigation.Navigation;
+import iron.object.Object;
+import iron.math.Vec4;
 
 class NavigableLocationNode extends LogicNode {
-
-	var loc: Vec4;
 
 	public function new(tree: LogicTree) {
 		super(tree);
@@ -13,13 +12,26 @@ class NavigableLocationNode extends LogicNode {
 	}
 
 	override function get(from: Int): Dynamic {
-#if arm_navigation
+		#if arm_navigation
+		
+		var object: Object = inputs[0].get();
+
+		var v = new iron.math.Vec4();
+
+		var centerLoc: Vec4 = object.transform.world.getLoc();
+		var dim: Vec4 = object.transform.dim;
+
+		var v = new Vec4(
+		    centerLoc.x + dim.x * 0.5 * (Math.random() * 2.0 - 1.0),
+		    centerLoc.y + dim.y * 0.5 * (Math.random() * 2.0 - 1.0),
+		    centerLoc.z + dim.z * 0.5 * (Math.random() * 2.0 - 1.0)
+		);
 	
 		assert(Error, Navigation.active.navMeshes.length > 0, "No Navigation Mesh Present");
-		Navigation.active.navMeshes[0].getRandomPoint(function(p: Vec4) {
-			loc = p;
-		});
-#end
-		return loc;
+		return Navigation.active.navMeshes[0].getClosestPoint(v);
+		#end
+		return null;
 	}
 }
+
+

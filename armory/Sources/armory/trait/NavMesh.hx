@@ -124,6 +124,12 @@ class NavMesh extends Trait {
 	@prop
 	public var maxCrowdAgentRadius: Float = 3.0;
 
+	@prop
+	public var defaultAgentQueryExtent: Vec4 = new Vec4(1, 1, 1);
+
+	@prop
+	public var defaultCrowdQueryExtent: Vec4 = new Vec4(1, 1, 1);
+
 	var recastNavMesh: recast.Recast.NavMesh = null;
 	var recastCrowd: recast.Recast.Crowd = null;
 	public var ready(default, null) = false;
@@ -155,6 +161,8 @@ class NavMesh extends Trait {
 
 		recastNavMesh = new recast.Recast.NavMesh();
 		var recastConfig = new recast.Recast.RcConfig();
+
+    	recastNavMesh.setDefaultQueryExtent(RecastConversions.recastVec3FromVec4(defaultAgentQueryExtent));
 
 		recastConfig.width = width;
 		recastConfig.height = height;
@@ -259,6 +267,32 @@ class NavMesh extends Trait {
 		done(pathVec);
 	}
 
+	public function getClosestPoint(position: Vec4): Vec4 {
+		if (!ready) return null;
+		var closestPoint = recastNavMesh.getClosestPoint(RecastConversions.recastVec3FromVec4(position));
+		return RecastConversions.vec4FromRecastVec3(closestPoint);
+	}
+
+	public function crowdGetAgentState(agentID: Int): Int {
+	if (!ready) return -1;
+	if (recastCrowd == null) return -1;
+	return recastCrowd.getAgentState(agentID);
+	}
+
+	public function moveAlong(position: Vec4, destination: Vec4): Vec4 {
+	if (!ready) return null;
+	var start = RecastConversions.recastVec3FromVec4(position);
+	var end = RecastConversions.recastVec3FromVec4(destination);
+
+	var finalPosition = recastNavMesh.moveAlong(start, end);
+	var armPos = RecastConversions.vec4FromRecastVec3(finalPosition);
+	#if hl
+	finalPosition.delete();
+	#end
+	
+	return armPos;
+	}
+
 	public function getRandomPointAround(position: Vec4, radius: Float):Vec4 {
 		if (!ready) return null;
 		var randomPoint = recastNavMesh.getRandomPointAround(RecastConversions.recastVec3FromVec4(position), radius);
@@ -268,6 +302,7 @@ class NavMesh extends Trait {
 	public function initCrowd(maxAgents: Int, maxAgentRadius: Float) {
 		if (!ready) return;
 		recastCrowd = new recast.Recast.Crowd(maxAgents, maxAgentRadius, recastNavMesh.getNavMesh());
+		recastCrowd.setDefaultQueryExtent(RecastConversions.recastVec3FromVec4(defaultCrowdQueryExtent));
 		notifyOnUpdate(crowdUpdate);
 	}
 
@@ -367,6 +402,31 @@ class NavMesh extends Trait {
 		var obstacleRef = recastObstacleMap.get(obstacleID);
 		recastNavMesh.removeObstacle(obstacleRef);
 		recastObstacleMap.remove(obstacleID);
+	}
+
+	public function updateObstaclePosition(obstacleID: Int) {
+		if(!ready) return;
+		if(!tiledMesh) return;
+		
+		var navObstacle = tempObstacleMap.get(obstacleID);
+		if (navObstacle == null) return;
+		
+		recastNavMesh.removeObstacle(recastObstacleMap.get(obstacleID)); 
+		
+		var newObstacleRef: recast.Recast.DtObstacleRef;
+		
+		if (Std.is(navObstacle, NavCylinderObstacle)) {
+			var cylinder = cast(navObstacle, NavCylinderObstacle);
+			var pos = RecastConversions.recastVec3FromVec4(cylinder.object.transform.world.getLoc());
+			newObstacleRef = recastNavMesh.addCylinderObstacle(pos, cylinder.radius, cylinder.height);	
+		} else {
+			var box = cast(navObstacle, NavBoxObstacle);
+			var pos = RecastConversions.recastVec3FromVec4(box.object.transform.world.getLoc());
+			var dim = RecastConversions.recastVec3FromVec4(box.dimensions);
+			newObstacleRef = recastNavMesh.addBoxObstacle(pos, dim, box.angle);
+		}
+
+		recastObstacleMap.set(obstacleID, newObstacleRef);
 	}
 
 	function fromI16(ar: kha.arrays.Int16Array, scalePos: Float): haxe.ds.Vector<Float> {
@@ -503,3 +563,5 @@ typedef MeshData = {
 	var indices: haxe.ds.Vector<Int>;
 	var maxIndex:Int;
 }
+
+typedef NavObstacle = iron.Trait;

@@ -6,17 +6,20 @@ import armory.trait.navigation.Navigation;
 #end
 import iron.Trait;
 
-class NavObstacle extends Trait {
+class NavBoxObstacle extends Trait {
 
 	#if !arm_navigation
 	public function new() { super(); }
 	#else
 
 	@prop
-	public var radius: Float = 1.0;
+	public var dimensions: Vec4 = new Vec4(1.0, 1.0, 1.0);
 
 	@prop
-	public var height: Float = 1.0;
+	public var angle: Float = 0;
+
+	@prop 
+    public var isStatic: Bool = true;
 
 	var obstacleID: Int = -1;
 
@@ -41,9 +44,10 @@ class NavObstacle extends Trait {
 		activeNavMesh = Navigation.active.navMeshes[0];
 
 		initialPosition = object.transform.world.getLoc();
-		obstacleID = activeNavMesh.addCylinderObstacle(this, initialPosition, radius, height);
+		obstacleID = activeNavMesh.addBoxObstacle(this, initialPosition, dimensions, angle);
 
-		notifyOnUpdate(updateObstaclePosition);
+		if (!isStatic)
+			notifyOnUpdate(updateObstaclePosition);
 		removeUpdate(addObstacle);
 		obstacleReady = true;
 	}
@@ -53,8 +57,10 @@ class NavObstacle extends Trait {
 	}
 
 	function updateObstaclePosition() {
-		object.transform.loc.setFrom(initialPosition);
-		object.transform.buildMatrix();
+		if (!object.transform.world.getLoc().almostEquals(initialPosition, 0.01))
+			activeNavMesh.updateObstaclePosition(obstacleID);
+		//object.transform.loc.setFrom(initialPosition);
+		//object.transform.buildMatrix();
 	}
 	#end
 }
