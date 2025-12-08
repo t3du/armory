@@ -4,12 +4,6 @@ import iron.Trait;
 import iron.math.Vec4;
 import iron.math.Quat;
 import iron.system.Tween;
-}
-
-
-#if arm_navigation
-import armory.trait.navigation.Navigation;
-#end
 
 #if arm_navigation
 import armory.trait.navigation.Navigation;
