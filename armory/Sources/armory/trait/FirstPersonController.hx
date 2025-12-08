@@ -42,12 +42,10 @@ class FirstPersonController extends Trait {
     @prop public var staRecoverTime:Float = 2.0;
     @prop public var staDecreasePerJump:Float = 5.0;
     @prop public var enableFatigue:Bool = false;
-    @prop public var fatigueSpeed:Float = 0.5;  // the reduction of movement when fatigue is activated... 
-    @prop public var fatigueThreshold:Float = 30.0; // Tiempo corriendo sin parar para la activacion // Time running non-stop for activation...
-    @prop public var fatRecoveryThreshold:Float = 7.5; // Tiempo sin correr/saltar para salir de fatiga // Time without running/jumping to get rid of fatigue...
+    @prop public var fatigueSpeed:Float = 0.5;
+    @prop public var fatigueThreshold:Float = 30.0;
+    @prop public var fatRecoveryThreshold:Float = 7.5;
     
-
-    // Var Privadas 
     var head:CameraObject;
     var pitch:Float = 0.0;
     var body:RigidBody;
@@ -132,14 +130,13 @@ class FirstPersonController extends Trait {
         }
         #end
 
-        // Dejo establecido el salto para tener en cuenta la (enableFatigue) si es que es false/true....
 		if (isGrounded && !isFatigued()) {
 		    canJump = true;
 		}
-        // Saltar con estamina
+
         if (enableJump && kb.started(jumpKey) && canJump) {
             var jumpPower = jumpForce;
-            // Disminuir el salto al 50% si la (stamina) esta por debajo o en el 20%.
+
             if (stamina) {
                 if (staminaValue <= 0) {
                     jumpPower = 0;
@@ -158,7 +155,6 @@ class FirstPersonController extends Trait {
             }
         }
 
-        // Control de estamina y correr
         if (canRun && kb.down(runKey) && isMoving) {
             if (stamina) {
                 if (staminaValue > 0.0) {
@@ -183,24 +179,20 @@ class FirstPersonController extends Trait {
             fatigueCooldown += deltaTime;
         }
 
-        // Evitar correr y saltar al estar fatigado...
         if (isFatigued()) {
    			 isRunning = false;
    			 canJump = false;
 		}
 
-        // Activar fatiga después de correr continuamente durante cierto umbral
         if (enableFatigue && fatigueTimer >= fatigueThreshold) {
             isFatigueActive = true;
         }
 
-        // Eliminar la fatiga despues de recuperarse
         if (enableFatigue && isFatigueActive && fatigueCooldown >= fatRecoveryThreshold) {
             isFatigueActive = false;
             fatigueTimer = 0.0;
         }
 
-        // Recuperar estamina si no está corriendo
         if (stamina && !isRunning && staminaValue < staminaBase && !isFatigued()) {
             if (timeSinceStop >= staRecoverTime) {
                 staminaValue += staRecoverPerSec * deltaTime;
@@ -208,7 +200,6 @@ class FirstPersonController extends Trait {
             }
         }
 
-        // Movimiento
         dir.set(0, 0, 0);
         if (moveForward) dir.add(object.transform.look());
         if (moveBackward) dir.add(object.transform.look().mult(-1));
@@ -237,6 +228,3 @@ class FirstPersonController extends Trait {
 
     #end
 }
-
-
-// Stamina and fatigue system.....
