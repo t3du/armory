@@ -11,6 +11,10 @@ import iron.system.Tween;
 import armory.trait.navigation.Navigation;
 #end
 
+#if arm_navigation
+import armory.trait.navigation.Navigation;
+#end
+
 class NavAgent extends Trait {
 
 	@prop
