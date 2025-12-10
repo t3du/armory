@@ -18,8 +18,6 @@ class LookAtNode extends LogicNode {
 		var vfrom: Vec4 = inputs[0].get();
 		var vto: Vec4 = inputs[1].get();
 
-		if (vfrom == null || vto == null) return null;
-
 		switch (property0) {
 			case "X":
 				v1.set(1, 0, 0);

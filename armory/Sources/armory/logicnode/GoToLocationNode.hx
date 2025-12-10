@@ -32,36 +32,32 @@ class GoToLocationNode extends LogicNode {
 		rayCastDepth = inputs[7].get();
 		rayCastMask = inputs[8].get();
 
-		assert(Error, object != null, "The object input not be null");
-		assert(Error, location != null, "The location to navigate to must not be null");
-		assert(Error, speed != null, "Speed of Nav Agent should not be null");
 		assert(Warning, speed >= 0, "Speed of Nav Agent should be positive");
-		assert(Error, turnDuration != null, "Turn Duration of Nav Agent should not be null");
 		assert(Warning, turnDuration >= 0, "Turn Duration of Nav Agent should be positive");
 
-#if arm_navigation
-		var from = object.transform.world.getLoc();
-		var to = location;
+		#if arm_navigation
+			var from = object.transform.world.getLoc();
+			var to = location;
 
-		assert(Error, Navigation.active.navMeshes.length > 0, "No Navigation Mesh Present");
-		Navigation.active.navMeshes[0].findPath(from, to, function(path: Array<iron.math.Vec4>) {
-			var agent: armory.trait.NavAgent = object.getTrait(armory.trait.NavAgent);
-			assert(Error, agent != null, "Object does not have a NavAgent trait");
-			agent.speed = speed;
-			agent.turnDuration = turnDuration;
-			agent.heightOffset = heightOffset;
-			agent.tickPos = tickPos;
-			agent.tickRot = tickRot;
-			agent.setPath(path);
-		});
-#end
+			assert(Error, Navigation.active.navMeshes.length > 0, "No Navigation Mesh Present");
+			Navigation.active.navMeshes[0].findPath(from, to, function(path: Array<iron.math.Vec4>) {
+				var agent: armory.trait.NavAgent = object.getTrait(armory.trait.NavAgent);
+				assert(Error, agent != null, "Object does not have a NavAgent trait");
+				agent.speed = speed;
+				agent.turnDuration = turnDuration;
+				agent.heightOffset = heightOffset;
+				agent.tickPos = tickPos;
+				agent.tickRot = tickRot;
+				agent.setPath(path);
+			});
+		#end
 
 		runOutput(0);
 	}
 
 	function tickPos(){
 		#if arm_physics
-		if(useRaycast) setAgentHeight();
+			if(useRaycast) setAgentHeight();
 		#end
 		runOutput(1);
 	}
@@ -72,11 +68,11 @@ class GoToLocationNode extends LogicNode {
 
 	function setAgentHeight(){
 		#if arm_physics
-		var fromLoc = object.transform.world.getLoc();
-		var toLoc = fromLoc.clone();
-		toLoc.z += rayCastDepth;
-		var hit = PhysicsWorld.active.rayCast(fromLoc, toLoc, rayCastMask);
-		if(hit != null) object.transform.loc.z = hit.pos.z + heightOffset;
+			var fromLoc = object.transform.world.getLoc();
+			var toLoc = fromLoc.clone();
+			toLoc.z += rayCastDepth;
+			var hit = PhysicsWorld.active.rayCast(fromLoc, toLoc, rayCastMask);
+			if(hit != null) object.transform.loc.z = hit.pos.z + heightOffset;
 		#end
 	}
 }

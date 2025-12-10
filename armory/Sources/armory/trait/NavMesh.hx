@@ -235,7 +235,7 @@ class NavMesh extends Trait {
 
 	public function reconstructNavMesh() {
 		removeUpdate(updateNavMesh);
-		if(recastCrowd != null) {
+		/*if(recastCrowd != null) {
 			for(agent in crowdAgentMap.keys()) {
 				removeCrowdAgent(agent);
 			}
@@ -243,7 +243,7 @@ class NavMesh extends Trait {
 		}
 		for(obstacle in tempObstacleMap.keys()) {
 			removeTempObstacle(obstacle);
-		}
+		}*/
 		ready = false;
 		initNavMesh();
 	}
@@ -273,24 +273,18 @@ class NavMesh extends Trait {
 		return RecastConversions.vec4FromRecastVec3(closestPoint);
 	}
 
-	public function crowdGetAgentState(agentID: Int): Int {
-	if (!ready) return -1;
-	if (recastCrowd == null) return -1;
-	return recastCrowd.getAgentState(agentID);
-	}
-
 	public function moveAlong(position: Vec4, destination: Vec4): Vec4 {
-	if (!ready) return null;
-	var start = RecastConversions.recastVec3FromVec4(position);
-	var end = RecastConversions.recastVec3FromVec4(destination);
+		if (!ready) return null;
+		var start = RecastConversions.recastVec3FromVec4(position);
+		var end = RecastConversions.recastVec3FromVec4(destination);
 
-	var finalPosition = recastNavMesh.moveAlong(start, end);
-	var armPos = RecastConversions.vec4FromRecastVec3(finalPosition);
-	#if hl
-	finalPosition.delete();
-	#end
-	
-	return armPos;
+		var finalPosition = recastNavMesh.moveAlong(start, end);
+		var armPos = RecastConversions.vec4FromRecastVec3(finalPosition);
+		#if hl
+		finalPosition.delete();
+		#end
+		
+		return armPos;
 	}
 
 	public function getRandomPointAround(position: Vec4, radius: Float):Vec4 {
@@ -304,6 +298,9 @@ class NavMesh extends Trait {
 		recastCrowd = new recast.Recast.Crowd(maxAgents, maxAgentRadius, recastNavMesh.getNavMesh());
 		recastCrowd.setDefaultQueryExtent(RecastConversions.recastVec3FromVec4(defaultCrowdQueryExtent));
 		notifyOnUpdate(crowdUpdate);
+		
+		//recastCrowd.setDefaultQueryExtent(RecastConversions.recastVec3FromVec4(new Vec4(3, 3, 1)));
+		//trace(RecastConversions.vec4FromRecastVec3(recastCrowd.getDefaultQueryExtent()));
 	}
 
 	public function addCrowdAgent(agent: NavCrowd, position: Vec4, radius: Float, height: Float, maxAcceleration: Float, maxSpeed: Float, updateFlags: Int = 7, separationWeight: Float = 1.0, collisionQueryRange: Float = 1.0): Int {
@@ -356,6 +353,32 @@ class NavMesh extends Trait {
 		vel.delete();
 		#end
 		return armVel;
+	}
+
+	public function crowdGetAgentState(agentID: Int): Int {
+		if (!ready) return -1;
+		if (recastCrowd == null) return -1;
+		return recastCrowd.getAgentState(agentID);
+	}
+
+	public function crowdGetCorners(agentID: Int): Array<Vec4> {
+		if (!ready) return null;
+		if (recastCrowd == null) return null;
+
+		var navPath = recastCrowd.getCorners(agentID);
+
+		var pathVec = new Array<Vec4>();
+		for(i in 0...navPath.getPointCount()) {
+			pathVec.push(RecastConversions.vec4FromRecastVec3(navPath.getPoint(i)));
+		}
+
+		return pathVec;
+	}
+
+	public function crowdGetAgentNextTargetPath(agentID: Int): Vec4 {
+		if (!ready) return null;
+		if (recastCrowd == null) return null;
+		return RecastConversions.vec4FromRecastVec3(recastCrowd.getAgentNextTargetPath(agentID));
 	}
 
 	public function crowdAgentGoto(agentID: Int, destination: Vec4) {
@@ -535,6 +558,29 @@ class NavMesh extends Trait {
 
 		return { positions: positionsVector, indices: vecindVector, maxIndex: maxIndex};
 
+	}
+
+	public function getNavMeshNormal(position: Vec4): Vec4 {
+		var Epsilon: Float = 0.01;
+		var P = position;
+		var h = getClosestPoint(P).z; 
+		var Px = P.clone();
+		Px.x += Epsilon;
+		var hx = getClosestPoint(Px).z;
+		var Py = P.clone();
+		Py.y += Epsilon;
+
+		var hy = getClosestPoint(Py).z;
+
+		var Tx = new Vec4(Epsilon, 0, hx - h); 
+		var Ty = new Vec4(0, Epsilon, hy - h);
+		var normal = new Vec4();
+		normal.setFrom(Tx);
+		normal.cross(Ty);
+
+		normal.normalize();
+
+		return normal;
 	}
 
 	public function drawDebugMesh(helper: DebugDrawHelper) {
