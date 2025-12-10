@@ -6,7 +6,7 @@ import iron.object.Object;
 import armory.trait.navigation.Navigation;
 #end
 
-class StopAgentNode extends LogicNode {
+class StopCrowdNode extends LogicNode {
 
 	public function new(tree: LogicTree) {
 		super(tree);
@@ -19,9 +19,9 @@ class StopAgentNode extends LogicNode {
 
 		#if arm_navigation
 			assert(Error, Navigation.active.navMeshes.length > 0, "No Navigation Mesh Present");
-			var agent: armory.trait.NavAgent = object.getTrait(armory.trait.NavAgent);
-			assert(Error, agent != null, "Object does not have a NavAgent trait");
-			agent.stop();
+			var crowdAgent: armory.trait.NavCrowd = object.getTrait(armory.trait.NavCrowd);
+			assert(Error, crowdAgent != null, "Object does not have a NavCrowd trait");
+			crowdAgent.crowdAgentTeleport(object.transform.world.getLoc());
 		#end
 
 		runOutput(0);

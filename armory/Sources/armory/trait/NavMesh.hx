@@ -235,7 +235,7 @@ class NavMesh extends Trait {
 
 	public function reconstructNavMesh() {
 		removeUpdate(updateNavMesh);
-		if(recastCrowd != null) {
+		/*if(recastCrowd != null) {
 			for(agent in crowdAgentMap.keys()) {
 				removeCrowdAgent(agent);
 			}
@@ -243,7 +243,7 @@ class NavMesh extends Trait {
 		}
 		for(obstacle in tempObstacleMap.keys()) {
 			removeTempObstacle(obstacle);
-		}
+		}*/
 		ready = false;
 		initNavMesh();
 	}
