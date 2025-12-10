@@ -560,6 +560,29 @@ class NavMesh extends Trait {
 
 	}
 
+	public function getNavMeshNormal(position: Vec4): Vec4 {
+		var Epsilon: Float = 0.01;
+		var P = position;
+		var h = getClosestPoint(P).z; 
+		var Px = P.clone();
+		Px.x += Epsilon;
+		var hx = getClosestPoint(Px).z;
+		var Py = P.clone();
+		Py.y += Epsilon;
+
+		var hy = getClosestPoint(Py).z;
+
+		var Tx = new Vec4(Epsilon, 0, hx - h); 
+		var Ty = new Vec4(0, Epsilon, hy - h);
+		var normal = new Vec4();
+		normal.setFrom(Tx);
+		normal.cross(Ty);
+
+		normal.normalize();
+
+		return normal;
+	}
+
 	public function drawDebugMesh(helper: DebugDrawHelper) {
 		var recastDebugNavMesh = recastNavMesh.getDebugNavMesh();
 		var triangleCount = recastDebugNavMesh.getTriangleCount();
