@@ -273,24 +273,18 @@ class NavMesh extends Trait {
 		return RecastConversions.vec4FromRecastVec3(closestPoint);
 	}
 
-	public function crowdGetAgentState(agentID: Int): Int {
-	if (!ready) return -1;
-	if (recastCrowd == null) return -1;
-	return recastCrowd.getAgentState(agentID);
-	}
-
 	public function moveAlong(position: Vec4, destination: Vec4): Vec4 {
-	if (!ready) return null;
-	var start = RecastConversions.recastVec3FromVec4(position);
-	var end = RecastConversions.recastVec3FromVec4(destination);
+		if (!ready) return null;
+		var start = RecastConversions.recastVec3FromVec4(position);
+		var end = RecastConversions.recastVec3FromVec4(destination);
 
-	var finalPosition = recastNavMesh.moveAlong(start, end);
-	var armPos = RecastConversions.vec4FromRecastVec3(finalPosition);
-	#if hl
-	finalPosition.delete();
-	#end
-	
-	return armPos;
+		var finalPosition = recastNavMesh.moveAlong(start, end);
+		var armPos = RecastConversions.vec4FromRecastVec3(finalPosition);
+		#if hl
+		finalPosition.delete();
+		#end
+		
+		return armPos;
 	}
 
 	public function getRandomPointAround(position: Vec4, radius: Float):Vec4 {
@@ -304,6 +298,9 @@ class NavMesh extends Trait {
 		recastCrowd = new recast.Recast.Crowd(maxAgents, maxAgentRadius, recastNavMesh.getNavMesh());
 		recastCrowd.setDefaultQueryExtent(RecastConversions.recastVec3FromVec4(defaultCrowdQueryExtent));
 		notifyOnUpdate(crowdUpdate);
+		
+		//recastCrowd.setDefaultQueryExtent(RecastConversions.recastVec3FromVec4(new Vec4(3, 3, 1)));
+		//trace(RecastConversions.vec4FromRecastVec3(recastCrowd.getDefaultQueryExtent()));
 	}
 
 	public function addCrowdAgent(agent: NavCrowd, position: Vec4, radius: Float, height: Float, maxAcceleration: Float, maxSpeed: Float, updateFlags: Int = 7, separationWeight: Float = 1.0, collisionQueryRange: Float = 1.0): Int {
@@ -356,6 +353,18 @@ class NavMesh extends Trait {
 		vel.delete();
 		#end
 		return armVel;
+	}
+
+	public function crowdGetAgentState(agentID: Int): Int {
+		if (!ready) return -1;
+		if (recastCrowd == null) return -1;
+		return recastCrowd.getAgentState(agentID);
+	}
+
+	public function crowdGetAgentNextTargetPath(agentID: Int): Vec4 {
+		if (!ready) return null;
+		if (recastCrowd == null) return null;
+		return RecastConversions.vec4FromRecastVec3(recastCrowd.getAgentNextTargetPath(agentID));
 	}
 
 	public function crowdAgentGoto(agentID: Int, destination: Vec4) {
