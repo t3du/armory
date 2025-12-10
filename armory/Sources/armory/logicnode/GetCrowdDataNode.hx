@@ -19,15 +19,18 @@ class GetCrowdDataNode extends LogicNode {
 			assert(Error, Navigation.active.navMeshes.length > 0, "No Navigation Mesh Present");
 			var crowdAgent: armory.trait.NavCrowd = object.getTrait(armory.trait.NavCrowd);
 			assert(Error, crowdAgent != null, "Object does not have a NavCrowd trait");
+
 			return switch(from){
 				case 0: crowdAgent.crowdAgentVelocity();
 				case 1: crowdAgent.crowdAgentPosition();
 				case 2: crowdAgent.crowdAgentNextPath();
 				case 3: @:privateAccess crowdAgent.agentID;
+				case 4: crowdAgent.crowdAgentPath();
 				default: null;
 			}
 		#else
 			return null;
+
 		#end
 	}
 }

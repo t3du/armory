@@ -361,6 +361,20 @@ class NavMesh extends Trait {
 		return recastCrowd.getAgentState(agentID);
 	}
 
+	public function crowdGetCorners(agentID: Int): Array<Vec4> {
+		if (!ready) return null;
+		if (recastCrowd == null) return null;
+
+		var navPath = recastCrowd.getCorners(agentID);
+
+		var pathVec = new Array<Vec4>();
+		for(i in 0...navPath.getPointCount()) {
+			pathVec.push(RecastConversions.vec4FromRecastVec3(navPath.getPoint(i)));
+		}
+
+		return pathVec;
+	}
+
 	public function crowdGetAgentNextTargetPath(agentID: Int): Vec4 {
 		if (!ready) return null;
 		if (recastCrowd == null) return null;

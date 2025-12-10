@@ -125,6 +125,12 @@ class NavCrowd extends Trait {
 		return activeNavMesh.crowdGetAgentNextTargetPath(agentID);
 	}
 
+	public function crowdAgentPath(): Array<Vec4> {
+		if(!agentReady) return null;
+
+		return activeNavMesh.crowdGetCorners(agentID);
+	}
+
 	public function crowdAgentGoto(position: Vec4) {
 		if(!agentReady) return;
 
