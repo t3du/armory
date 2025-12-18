@@ -89,6 +89,10 @@ def make(context_id, rpasses):
     elif rid == 'Raytracer':
         make_raytracer(con_mesh)
 
+    if mat_state.material.arm_solid:
+        if rid == 'Forward':
+            con_mesh.frag.write('fragColor[0].rgb = mix(basecol, fragColor[0].rgb, mixColor);')
+
     make_finalize.make(con_mesh)
 
     assets.vs_equal(con_mesh, assets.shader_cons['mesh_vert'])
@@ -105,6 +109,10 @@ def make_base(con_mesh, parse_opacity):
     geom = None
     tesc = None
     tese = None
+
+    if mat_state.material.arm_solid:
+        if arm.utils.get_rp().rp_renderer == 'Forward':
+            frag.add_uniform('float mixColor', '_mixColor')
 
     billboard = mat_state.material.arm_billboard
     if billboard == 'spherical':
