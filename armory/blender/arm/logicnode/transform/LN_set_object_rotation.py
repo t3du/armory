@@ -6,7 +6,7 @@ class SetRotationNode(ArmLogicTreeNode):
     bl_idname = 'LNSetRotationNode'
     bl_label = 'Set Object Rotation'
     arm_section = 'rotation'
-    arm_version = 2
+    arm_version = 3
     
 
     def arm_init(self, context):
@@ -16,9 +16,45 @@ class SetRotationNode(ArmLogicTreeNode):
 
         self.add_output('ArmNodeSocketAction', 'Out')
 
+    def draw_buttons(self, context, layout):
+        layout.prop(self, 'property0_proxy')
+
+        
+    # this property swaperoo is kinda janky-looking, but listen out:
+    # - when you reload an old file, the properties of loaded nodes can be mangled if the node class drops the property or the specific value within the property.
+    # -> to fix this, 'property0' needs to contain the old values so that node replacement can be done decently.
+    # - "but", I hear you ask, "why not make property0 a simple blender property, and create a property0v2 HaxeProperty to be bound to the haxe-time property0?"
+    # -> well, at the time of writing, a HaxeProperty's prop_name is only used for livepatching, not at initial setup, so a freshly-compiled game would get completely borked properties.
+    # solution: have a property0 HaxeProperty contain every possible value, and have a property0_proxy Property be in the UI.
+
+    # NOTE FOR FUTURE MAINTAINERS: the value of the proxy property does **not** matter, only the value of property0 does. When eventually editing this class, you can safely drop the values in the proxy property, and *only* the proxy property.
+
+    def on_proxyproperty_update(self, context=None):
+        self.property0 = self.property0_proxy
+        print(self.property0)
+
+    property0_proxy: EnumProperty(
+        items = [('Local', 'Local F.O.R.', 'Frame of reference oriented with the object'),
+                 ('Global', 'Global/Parent F.O.R.',
+                  'Frame of reference oriented with the object\'s parent or the world')],
+        name='', default='Local',
+        update = on_proxyproperty_update
+    )
+    property0: HaxeEnumProperty(
+        'property0',
+        items=[('Euler Angles', 'NODE REPLACEMENT ONLY', ''),
+               ('Angle Axies (Radians)', 'NODE REPLACEMENT ONLY', ''),  
+               ('Angle Axies (Degrees)', 'NODE REPLACEMENT ONLY', ''),
+               ('Quaternion', 'NODE REPLACEMENT ONLY', ''),
+               ('Local', 'Local F.O.R.', 'Frame of reference oriented with the object'),
+                 ('Global', 'Global/Parent F.O.R.',
+                  'Frame of reference oriented with the object\'s parent or the world')
+               ],
+        name='', default='Local')
+
 
     def get_replacement_node(self, node_tree: bpy.types.NodeTree):
-        if self.arm_version not in (0, 1):
+        if self.arm_version not in (0, 1, 2):
             raise LookupError()
 
         
@@ -66,11 +102,3 @@ class SetRotationNode(ArmLogicTreeNode):
         )
         newself.inputs[2].default_value_raw = quat
         return [newself, inputnode]
-
-    # note: this is unused, but kept here so that the 'property0' field can be read during node replacement
-    property0: EnumProperty(
-        items = [('Euler Angles', '',''),
-                 ('Angle Axies (Radians)', '', ''),
-                 ('Angle Axies (Degrees)', '', ''),
-                 ('Quaternion', '', '')],
-        name='', default='Euler Angles')

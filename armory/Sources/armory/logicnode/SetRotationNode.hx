@@ -2,12 +2,14 @@
 package armory.logicnode;
 
 import iron.object.Object;
+import iron.math.Mat4;
+import iron.math.Vec4;
 import iron.math.Quat;
 import armory.trait.physics.RigidBody;
 
 class SetRotationNode extends LogicNode {
 
-	public var property0: String; // UNUSED
+	public var property0 = "Local";
 
 	public function new(tree: LogicTree) {
 		super(tree);
@@ -20,7 +22,25 @@ class SetRotationNode extends LogicNode {
 		if (_q == null) return;
 
 		final q = new Quat(_q.x, _q.y, _q.z, _q.w).normalize();
-		object.transform.rot.setFrom(q);
+
+		switch (property0){
+		case "Local":
+			object.transform.rot.setFrom(q);			
+		case "Global":
+			var newLocalRot = new Quat();
+			if (object.parent != null) {
+				var parentGlobalRot = new Quat();
+				var tempPos = new Vec4();
+				var tempScale = new Vec4();
+				object.parent.transform.world.decompose(tempPos, parentGlobalRot, tempScale);
+				var invParentRot = new Quat().inverse(parentGlobalRot);
+				newLocalRot.multquats(invParentRot, q);
+			} else {
+				newLocalRot.setFrom(q);
+			}
+			object.transform.rot.setFrom(newLocalRot);
+		}
+
 		object.transform.buildMatrix();
 
 		#if arm_physics
