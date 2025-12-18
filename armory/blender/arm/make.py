@@ -689,6 +689,22 @@ def build_success():
     log.clear()
     wrd = bpy.data.worlds['Arm']
 
+    sdk_path = arm.utils.get_sdk_path()
+    target_name = arm.utils.get_kha_target(state.target)
+
+    files_path = os.path.join(arm.utils.get_fp_build(), 'debug' if state.is_play else '', target_name)
+
+    if target_name in ('html5', 'krom') and wrd.arm_minify_js:
+        # Minify JS
+        minifier_path = sdk_path + '/lib/armory_tools/uglifyjs/bin/uglifyjs'
+        if target_name == 'html5':
+            jsfile = files_path + '/kha.js'
+        else:
+            jsfile = files_path + '/krom.js'
+        args = [arm.utils.get_node_path(), minifier_path, jsfile, '-o', jsfile]
+        proc = subprocess.Popen(args)
+        proc.wait()
+
     if state.is_play:
         cmd = []
         width, height = arm.utils.get_render_resolution(arm.utils.get_active_scene())
@@ -775,21 +791,6 @@ def build_success():
                 open_private(url)
 
     elif state.is_publish:
-        sdk_path = arm.utils.get_sdk_path()
-        target_name = arm.utils.get_kha_target(state.target)
-        files_path = os.path.join(arm.utils.get_fp_build(), target_name)
-
-        if target_name in ('html5', 'krom') and wrd.arm_minify_js:
-            # Minify JS
-            minifier_path = sdk_path + '/lib/armory_tools/uglifyjs/bin/uglifyjs'
-            if target_name == 'html5':
-                jsfile = files_path + '/kha.js'
-            else:
-                jsfile = files_path + '/krom.js'
-            args = [arm.utils.get_node_path(), minifier_path, jsfile, '-o', jsfile]
-            proc = subprocess.Popen(args)
-            proc.wait()
-
         if target_name == 'krom':
             # Copy Krom binaries
             if state.target == 'krom-windows':
