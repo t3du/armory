@@ -420,6 +420,8 @@ def init_properties():
     bpy.types.Material.arm_depth_read = BoolProperty(name="Read Depth", description="Allow this material to read from a depth texture which is copied from the depth buffer. The meshes using this material will be drawn after all meshes that don't read from the depth texture", default=False)
     bpy.types.Material.arm_overlay = BoolProperty(name="Overlay", description="Renders the material, unshaded, over other shaded materials", default=False)
     bpy.types.Material.arm_decal = BoolProperty(name="Decal", default=False)
+    bpy.types.Material.arm_solid = BoolProperty(name="Solid", default=False, description="Renders material as RGB Color (Only Forward)")
+    bpy.types.Material.arm_solid_factor = FloatProperty(name="Factor", default=0.0, description="mix RGB Color and Shader, values in range [0, 1]. Can be accessed with shader uniform _mixColor.")
     bpy.types.Material.arm_compare_mode = EnumProperty(
         items=[
             ('always', 'Always', 'Always'),
