@@ -106,7 +106,7 @@ class NavAgent extends Trait {
 		var p = path[index];
 		var dist = Vec4.distance(object.transform.loc, p);
 
-		orient.subvecs(p, object.transform.loc).normalize;
+		orient.subvecs(p, object.transform.loc).normalize();
 		var targetAngle = Math.atan2(orient.y, orient.x);
         
 		locAnim = Tween.to({ target: object.transform.loc, props: { x: p.x, y: p.y, z: p.z + heightOffset }, duration: dist / speed, tick: tickPos, done: function() {

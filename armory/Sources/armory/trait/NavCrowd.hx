@@ -157,23 +157,25 @@ class NavCrowd extends Trait {
 	}
 
 	function turnAgent() {
-	    var pos = activeNavMesh.crowdGetAgentPosition(agentID);
-	    var vel = activeNavMesh.crowdGetAgentVelocity(agentID);
-	    vel.z = 0;
+		var pos = activeNavMesh.crowdGetAgentPosition(agentID);
+		var vel = activeNavMesh.crowdGetAgentVelocity(agentID);
+		var normal = activeNavMesh.getNavMeshNormal(pos);
+		var currentRot = new Quat().setFrom(object.transform.rot);
 
-	    if(vel.length() < turnVelocityThreshold) return;
-	    vel.normalize();
+		var up = new Vec4(0, 0, 1, 0);
+		up.applyQuat(currentRot);
+		object.transform.rot = new Quat().fromTo(up, normal).mult(currentRot);
 
-	    var targetRotBase = new Quat().fromTo(new Vec4(1, 0, 0, 1), vel);
-	    var normal = activeNavMesh.getNavMeshNormal(pos); 
-	    var up = new Vec4(0, 0, 1, 0);
-	    up.applyQuat(targetRotBase); 
-	    var normalRot = new Quat().fromTo(up, normal);
-	    var targetRot = normalRot.mult(targetRotBase); 
+		vel.z = 0;
+		if (vel.length() < turnVelocityThreshold) return;
+		vel.normalize();
 
-	    var currentRot = new Quat().setFrom(object.transform.rot);
-	    var res = new Quat().lerp(currentRot, targetRot, turnSpeed);
-	    object.transform.rot = res;
+		var targetRotBase = new Quat().fromTo(new Vec4(1, 0, 0, 1), vel);
+		var upVec = new Vec4(0, 0, 1, 0);
+		upVec.applyQuat(targetRotBase);
+		var targetRot = new Quat().fromTo(upVec, normal).mult(targetRotBase);
+
+		object.transform.rot = new Quat().lerp(new Quat().setFrom(object.transform.rot), targetRot, turnSpeed);
 	}
 	#end
 }
