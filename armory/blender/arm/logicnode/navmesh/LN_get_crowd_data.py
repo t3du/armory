@@ -10,7 +10,7 @@ class GetCrowdDataNode(ArmLogicTreeNode):
         self.add_input('ArmNodeSocketObject', 'Object')
 
         self.add_output('ArmVectorSocket', 'Speed')
-        self.add_output('ArmVectorSocket', 'Position')
-        self.add_output('ArmVectorSocket', 'Target Position')
+        self.add_output('ArmVectorSocket', 'Location')
+        self.add_output('ArmVectorSocket', 'Target Location')
         self.add_output('ArmIntSocket', 'Id')
         self.add_output('ArmNodeSocketArray', 'Path')

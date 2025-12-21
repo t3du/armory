@@ -33,7 +33,7 @@ class GoToLocationNode(ArmLogicTreeNode):
         self.add_input('ArmIntSocket', 'Ray Cast Mask', 1)
 
         self.add_output('ArmNodeSocketAction', 'Out')
-        self.add_output('ArmNodeSocketAction', 'Tick Position')
+        self.add_output('ArmNodeSocketAction', 'Tick Location')
         self.add_output('ArmNodeSocketAction', 'Tick Rotation')
 
     def get_replacement_node(self, node_tree: bpy.types.NodeTree):

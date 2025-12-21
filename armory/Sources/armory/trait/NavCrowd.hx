@@ -35,7 +35,7 @@ class NavCrowd extends Trait {
 	@prop
 	public var turnSpeed: Float = 0.1;
 
-	// Threshold to avoid turning at low velocities which might causer jittering.
+	// Threshold to avoid turning at low velocities which might cause jittering.
 	@prop 
 	public var turnVelocityThreshold: Float = 0.1;
 
@@ -156,24 +156,24 @@ class NavCrowd extends Trait {
 		object.transform.buildMatrix();
 	}
 
-function turnAgent() {
-    var pos = activeNavMesh.crowdGetAgentPosition(agentID);
-    var vel = activeNavMesh.crowdGetAgentVelocity(agentID);
-    vel.z = 0;
+	function turnAgent() {
+	    var pos = activeNavMesh.crowdGetAgentPosition(agentID);
+	    var vel = activeNavMesh.crowdGetAgentVelocity(agentID);
+	    vel.z = 0;
 
-    if(vel.length() < turnVelocityThreshold) return;
-    vel.normalize();
+	    if(vel.length() < turnVelocityThreshold) return;
+	    vel.normalize();
 
-    var targetRotBase = new Quat().fromTo(new Vec4(1, 0, 0, 1), vel);
-    var normal = activeNavMesh.getNavMeshNormal(pos); 
-    var up = new Vec4(0, 0, 1, 0);
-    up.applyQuat(targetRotBase); 
-    var normalRot = new Quat().fromTo(up, normal);
-    var targetRot = normalRot.mult(targetRotBase); 
+	    var targetRotBase = new Quat().fromTo(new Vec4(1, 0, 0, 1), vel);
+	    var normal = activeNavMesh.getNavMeshNormal(pos); 
+	    var up = new Vec4(0, 0, 1, 0);
+	    up.applyQuat(targetRotBase); 
+	    var normalRot = new Quat().fromTo(up, normal);
+	    var targetRot = normalRot.mult(targetRotBase); 
 
-    var currentRot = new Quat().setFrom(object.transform.rot);
-    var res = new Quat().lerp(currentRot, targetRot, turnSpeed);
-    object.transform.rot = res;
+	    var currentRot = new Quat().setFrom(object.transform.rot);
+	    var res = new Quat().lerp(currentRot, targetRot, turnSpeed);
+	    object.transform.rot = res;
 	}
 	#end
 }

@@ -1,5 +1,9 @@
 package armory.logicnode;
 
+#if arm_navigation
+import armory.trait.navigation.Navigation;
+#end
+
 import iron.object.Object;
 import iron.math.Vec4;
 
@@ -15,8 +19,6 @@ class PickLocationNode extends LogicNode {
 		var object: Object = inputs[0].get();
 		var coords: Vec4 = inputs[1].get();
 
-		if (object == null || coords == null) return null;
-
 		#if arm_physics
 		var physics = armory.trait.physics.PhysicsWorld.active;
 		var b = physics.pickClosest(coords.x, coords.y);
@@ -28,9 +30,12 @@ class PickLocationNode extends LogicNode {
 			return loc;
 		}
 		#end
-		
-		var v = new Vec4();
-		v = iron.math.RayCaster.boxIntersectObject(object, coords.x, coords.y, iron.Scene.active.camera);
-		return v;
+
+		#if arm_navigation
+		assert(Error, Navigation.active.navMeshes.length > 0, "No Navigation Mesh Present");
+		loc = iron.math.RayCaster.boxIntersectObject(object, coords.x, coords.y, iron.Scene.active.camera);
+		return Navigation.active.navMeshes[0].getClosestPoint(loc);
+		#end
+		return null;
 	}
 }

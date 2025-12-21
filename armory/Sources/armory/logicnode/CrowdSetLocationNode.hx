@@ -7,7 +7,7 @@ import armory.trait.navigation.Navigation;
 import iron.object.Object;
 import iron.math.Vec4;
 
-class CrowdGoToLocationNode extends LogicNode {
+class CrowdSetLocationNode extends LogicNode {
 
 	var object: Object;
 	var location: Vec4;
@@ -24,7 +24,7 @@ class CrowdGoToLocationNode extends LogicNode {
 			assert(Error, Navigation.active.navMeshes.length > 0, "No Navigation Mesh Present");
 			var crowdAgent: armory.trait.NavCrowd = object.getTrait(armory.trait.NavCrowd);
 			assert(Error, crowdAgent != null, "Object does not have a NavCrowd trait");
-			crowdAgent.crowdAgentGoto(location);
+			crowdAgent.crowdAgentTeleport(location);
 		#end
 		runOutput(0);
 	}
