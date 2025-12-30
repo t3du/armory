@@ -1967,6 +1967,43 @@ class ARM_PT_RenderPathPostProcessPanel(bpy.types.Panel):
         if rpdat.arm_chromatic_aberration_type == "Spectral":
             col.prop(rpdat, 'arm_chromatic_aberration_samples')
 
+class ARM_OT_EditCustomCompositor(bpy.types.Operator):
+    bl_idname = 'arm.edit_custom_compositor'
+    bl_label = 'Edit'
+    bl_options = {'INTERNAL'}
+
+    file_name: bpy.props.StringProperty()
+
+    def execute(self, context):
+        import os
+        target_file = os.path.join(arm.utils.get_fp(), 'Compositor', self.file_name)
+        arm.utils.open_editor(target_file)
+        return {'FINISHED'}
+
+def init_custom_compositor():
+    import os
+    import shutil
+    
+    fp = arm.utils.get_fp()
+    if fp == "":
+        return
+
+    custom_dir = os.path.join(fp, 'Compositor')
+    if not os.path.exists(custom_dir):
+        os.makedirs(custom_dir)
+
+    sdk_path = arm.utils.get_sdk_path()
+    source_dir = os.path.join(sdk_path, 'armory', 'Shaders', 'compositor_pass')
+    
+    files = ['compositor_pass.json', 'compositor_pass.frag.glsl', 'compositor_pass.vert.glsl']
+    
+    for f in files:
+        target = os.path.join(custom_dir, f)
+        if not os.path.exists(target):
+            source = os.path.join(source_dir, f)
+            if os.path.exists(source):
+                shutil.copy(source, target)
+
 class ARM_PT_RenderPathCompositorPanel(bpy.types.Panel):
     bl_label = "Compositor"
     bl_space_type = "PROPERTIES"
@@ -1991,7 +2028,19 @@ class ARM_PT_RenderPathCompositorPanel(bpy.types.Panel):
             return
         rpdat = wrd.arm_rplist[wrd.arm_rplist_index]
 
+        if rpdat.arm_custom_compositor:
+            init_custom_compositor()
+
         layout.enabled = rpdat.rp_compositornodes
+
+        row_custom = layout.row(align=True)
+        row_custom.prop(rpdat, 'arm_custom_compositor', text="Custom")
+        sub = row_custom.row(align=True)
+        sub.enabled = rpdat.arm_custom_compositor
+        sub.operator("arm.edit_custom_compositor", icon='EDITMODE_HLT', text="Frag").file_name = "compositor_pass.frag.glsl"
+        sub.operator("arm.edit_custom_compositor", icon='FILE_TEXT', text="Json").file_name = "compositor_pass.json"
+        layout.separator()
+
         layout.prop(rpdat, 'arm_tonemap')
         layout.separator()
 
@@ -2954,6 +3003,7 @@ __REG_CLASSES = (
     scene.TLM_PT_Encoding,
     scene.TLM_PT_Utility,
     scene.TLM_PT_Additional,
+    ARM_OT_EditCustomCompositor,
 )
 __reg_classes, __unreg_classes = bpy.utils.register_classes_factory(__REG_CLASSES)
 
