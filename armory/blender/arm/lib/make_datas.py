@@ -1,3 +1,5 @@
+import os
+import bpy
 import arm.utils
 from arm import assets
 
@@ -9,6 +11,14 @@ def parse_context(
     vert: list[str] = None,
     frag: list[str] = None,
 ):
+    if c["name"] == "compositor_pass":
+        wrd = bpy.data.worlds['Arm']
+        rpdat = wrd.arm_rplist[wrd.arm_rplist_index]
+        if rpdat.arm_custom_compositor:
+            custom_path = arm.utils.get_fp().replace("\\", "/") + "/Compositor"
+            c["vertex_shader"] = custom_path + "/compositor_pass.vert.glsl"
+            c["fragment_shader"] = custom_path + "/compositor_pass.frag.glsl"
+
     con = {
         "name": c["name"],
         "constants": [],

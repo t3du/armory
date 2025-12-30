@@ -309,6 +309,7 @@ class ArmRPListItem(bpy.types.PropertyGroup):
         name="Map Size", description="Prefiltered map size", default='1024', update=assets.invalidate_envmap_data)
     rp_autoexposure: BoolProperty(name="Auto Exposure", description="Adjust exposure based on luminance", default=False, update=update_renderpath)
     rp_compositornodes: BoolProperty(name="Compositor", description="Draw compositor nodes", default=True, update=update_renderpath)
+    arm_custom_compositor: BoolProperty(name="Custom Compositor", description="Enable custom compositor pass in project folder", default=False, update=update_renderpath)
     rp_shadows: BoolProperty(name="Shadows", description="Enable shadow casting", default=True, update=update_renderpath)
     rp_max_lights: EnumProperty(
         items=[('4', '4', '4'),

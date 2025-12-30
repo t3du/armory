@@ -99,7 +99,16 @@ def run_proc(cmd, done: Callable) -> subprocess.Popen:
 
 
 def compile_shader_pass(res, raw_shaders_path, shader_name, defs, make_variants):
-    os.chdir(raw_shaders_path + '/' + shader_name)
+    if shader_name == 'compositor_pass':
+        wrd = bpy.data.worlds['Arm']
+        rpdat = wrd.arm_rplist[wrd.arm_rplist_index]
+        if rpdat.arm_custom_compositor:
+            raw_shaders_path = os.path.join(arm.utils.get_fp(), 'Compositor').replace('\\', '/')
+            os.chdir(raw_shaders_path)
+        else:
+            os.chdir(raw_shaders_path + '/' + shader_name)
+    else:
+        os.chdir(raw_shaders_path + '/' + shader_name)
 
     # Open json file
     json_name = shader_name + '.json'
