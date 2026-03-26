@@ -85,6 +85,8 @@ class App {
 			time -= iron.system.Time.fixedStep;
 		}
 
+		@:privateAccess iron.system.Time._fixedStepInterpolation = time / iron.system.Time.fixedStep;
+
 		var i = 0;
 		var l = traitUpdates.length;
 		while (i < l) {

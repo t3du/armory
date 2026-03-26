@@ -17,31 +17,53 @@ class PhysicsBreak extends Trait {
 	public function new() { super(); }
 #else
 
-	static var physics: PhysicsWorld = null;
-	static var breaker: ConvexBreaker = null;
+	// Track all debris for cleanup on scene change
+	static var allDebris: Array<MeshObject> = [];
+	static var sceneCallbackRegistered = false;
 
+	var breaker: ConvexBreaker;
+	var physics: PhysicsWorld;
 	var body: RigidBody;
 
 	public function new() {
 		super();
 
-		if (breaker == null) breaker = new ConvexBreaker();
+		breaker = new ConvexBreaker();
 		notifyOnInit(init);
 	}
 
 	function init() {
-		if (physics == null) physics = armory.trait.physics.PhysicsWorld.active;
+		physics = armory.trait.physics.PhysicsWorld.active;
+		if (physics == null) return;
 
 		body = object.getTrait(RigidBody);
 		breaker.initBreakableObject(cast object, body.mass, body.friction, new Vec4(), new Vec4(), true);
 
+		// Register scene removal callback once
+		if (!sceneCallbackRegistered) {
+			sceneCallbackRegistered = true;
+			iron.Scene.active.notifyOnRemove(cleanupAllDebris);
+		}
+
 		notifyOnUpdate(update);
 	}
 
+	static function cleanupAllDebris() {
+		// Make a copy since remove() modifies the array
+		var toRemove = allDebris.copy();
+		for (debris in toRemove) {
+			if (debris != null) debris.remove();
+		}
+		allDebris = [];
+		sceneCallbackRegistered = false;
+	}
+
 	function update() {
+		if (body == null || !body.ready || physics == null) return;
+
 		var ar = physics.getContactPairs(body);
 		if (ar != null) {
-			var maxImpulse = 0.0;
+			var maxImpulse: Float = 0.0;
 			var impactPoint: Vec4 = null;
 			var impactNormal: Vec4 = null;
 			for (p in ar) {
@@ -60,6 +82,7 @@ class PhysicsBreak extends Trait {
 				// var numObjects = debris.length;
 				for (o in debris) {
 					var ud = breaker.userDataMap.get(cast o);
+					if (ud == null) continue;
 					var params: RigidBodyParams = {
 						linearDamping: 0.04,
 						angularDamping: 0.1,
@@ -72,14 +95,19 @@ class PhysicsBreak extends Trait {
 						angularFactorsZ: 1.0,
 						collisionMargin: 0.04,
 						linearDeactivationThreshold: 0.0,
-						angularDeactivationThrshold: 0.0,
+						angularDeactivationThreshold: 0.0,
 						deactivationTime: 0.0
 					};
 					o.addTrait(new RigidBody(Shape.ConvexHull, ud.mass, ud.friction, 0, 1, params));
 					if (cast(o, MeshObject).data.geom.positions.values.length < 600) {
 						o.addTrait(new PhysicsBreak());
 					}
+					// Track debris for cleanup on scene change
+					allDebris.push(cast o);
 				}
+
+				// Remove self from update before removing object
+				remove();
 				object.remove();
 			}
 		}
@@ -475,22 +503,26 @@ class ConvexBreaker {
 		var numObjects = 0;
 		if (numPoints1 > 4) {
 			var data1 = makeMeshData(points1);
-			object1 = new MeshObject(data1, object.materials);
-			object1.transform.loc.setFrom(tempCM1);
-			object1.transform.rot.setFrom(object.transform.rot);
-			object1.transform.buildMatrix();
-			initBreakableObject(object1, newMass, userData.friction, userData.velocity, userData.angularVelocity, 2 * radius1 > minSizeForBreak);
-			numObjects++;
+			if (data1 != null) {
+				object1 = new MeshObject(data1, object.materials);
+				object1.transform.loc.setFrom(tempCM1);
+				object1.transform.rot.setFrom(object.transform.rot);
+				object1.transform.buildMatrix();
+				initBreakableObject(object1, newMass, userData.friction, userData.velocity, userData.angularVelocity, 2 * radius1 > minSizeForBreak);
+				numObjects++;
+			}
 		}
 
 		if (numPoints2 > 4) {
 			var data2 = makeMeshData(points2);
-			object2 = new MeshObject(data2, object.materials);
-			object2.transform.loc.setFrom(tempCM2);
-			object2.transform.rot.setFrom(object.transform.rot);
-			object2.transform.buildMatrix();
-			initBreakableObject(object2, newMass, userData.friction, userData.velocity, userData.angularVelocity, 2 * radius2 > minSizeForBreak);
-			numObjects++;
+			if (data2 != null) {
+				object2 = new MeshObject(data2, object.materials);
+				object2.transform.loc.setFrom(tempCM2);
+				object2.transform.rot.setFrom(object.transform.rot);
+				object2.transform.buildMatrix();
+				initBreakableObject(object2, newMass, userData.friction, userData.velocity, userData.angularVelocity, 2 * radius2 > minSizeForBreak);
+				numObjects++;
+			}
 		}
 
 		output.object1 = object1;
@@ -500,8 +532,14 @@ class ConvexBreaker {
 
 	static var meshIndex = 0;
 	function makeMeshData(points: Array<Vec4>): MeshData {
+		// Need at least 4 points for a 3D hull
+		if (points.length < 4) return null;
+
 		while (points.length > 50) points.pop();
 		var cm = new ConvexHull(points);
+
+		// Validate hull has enough geometry for a mesh
+		if (cm.vertices.length < 4 || cm.face3s.length < 4) return null;
 
 		var maxdim = 1.0;
 		var pa = new Array<Float>();
@@ -570,6 +608,7 @@ class ConvexBreaker {
 
 		var rawmesh: TMeshData = {
 			name: "TempMesh" + (meshIndex++),
+			sorting_index: 0,
 			vertex_arrays: [pos, nor],
 			index_arrays: [indices],
 			scale_pos: maxdim

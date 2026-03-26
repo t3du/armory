@@ -27,16 +27,34 @@ class PhysicsDrag extends Trait {
 	var rayFrom: bullet.Bt.Vector3;
 	var rayTo: bullet.Bt.Vector3;
 
-	static var v = new Vec4();
-	static var m = Mat4.identity();
-	static var first = true;
+	var v = new Vec4();
+	var m = Mat4.identity();
+	var first = true;
 
 	public function new() {
 		super();
 		if (first) {
 			first = false;
 			notifyOnUpdate(update);
+			notifyOnRemove(onRemove);
 		}
+	}
+
+	function onRemove() {
+		removeConstraint();
+	}
+
+	function removeConstraint() {
+		var physics = PhysicsWorld.active;
+		if (pickConstraint != null && physics != null) {
+			physics.world.removeConstraint(pickConstraint);
+			pickConstraint = null;
+		}
+		if (pickedBody != null) {
+			pickedBody.activate();
+			pickedBody = null;
+		}
+		Input.occupied = false;
 	}
 
 	function update() {
