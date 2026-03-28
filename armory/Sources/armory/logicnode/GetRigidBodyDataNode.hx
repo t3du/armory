@@ -36,13 +36,13 @@ class GetRigidBodyDataNode extends LogicNode {
 				rb.friction;
 			case 8:
 				rb.mass;
-			//case 9: ; // collision shape
-			//case 10: ; // activation state
-			//case 11: ; // is gravity enabled
-			//case 12: ; // angular factor
-			//case 13: ; // linear factor
-			default: 
-				null;
+			case 9: 
+				(rb.body.getCollisionFlags() & 4) != 0;
+			case 10: 
+				rb.restitution;
+			case 11: 
+				rb.body.getGravity().length() > 0.0001;
+			default: null;
 		}
 #end
 

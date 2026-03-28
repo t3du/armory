@@ -15,7 +15,7 @@ class AddRigidBodyNode(ArmLogicTreeNode):
 
     @input Animated: Rigid body follows animation and will affect other active non-animated rigid bodies.
 
-    @input Trigger: Rigid body behaves as a trigger and detects collision. However, rigd body does not contribute to or receive collissions.
+    @input Trigger: Rigid body behaves as a trigger and detects collision. However, rigid body does not contribute to or receive collissions.
 
     @input Friction: Surface friction of the rigid body. Minimum value = 0, Preferred max value = 1.
 
@@ -114,7 +114,7 @@ class AddRigidBodyNode(ArmLogicTreeNode):
             self.add_input('ArmFloatSocket', 'Linear Damping', 0.04)
             self.add_input('ArmFloatSocket', 'Angular Damping', 0.1)
             self.add_input('ArmFloatSocket', 'Angular Friction', 0.1)
-            self.add_input('ArmBoolSocket', 'Use Deacivation')
+            self.add_input('ArmBoolSocket', 'Use Deactivation')
             self.add_input('ArmFloatSocket', 'Linear Velocity Threshold', 0.4)
             self.add_input('ArmFloatSocket', 'Angular Velocity Threshold', 0.5)
             self.add_input('ArmIntSocket', 'Collision Group', 1)
