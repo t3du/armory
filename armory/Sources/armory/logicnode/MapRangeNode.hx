@@ -6,17 +6,18 @@ class MapRangeNode extends LogicNode {
 		super(tree);
 	}
 
-	override function get(from: Int): kha.FastFloat {
-		var value = inputs[0].get();
-		var fromMin = inputs[1].get();
-		var fromMax = inputs[2].get();
-		var toMin = inputs[3].get();
-		var toMax = inputs[4].get();
+	override function get(from: Int): Dynamic {
+		var value: Float = inputs[0].get();
+		var fromMin: Float = inputs[1].get();
+		var fromMax: Float = inputs[2].get();
+		var toMin: Float = inputs[3].get();
+		var toMax: Float = inputs[4].get();
 
-		//if (value == null || fromMin == null || fromMax == null || toMin == null || toMax == null) return null;
+		var deltaFrom = fromMax - fromMin;
+		if (deltaFrom == 0) return (toMin + toMax) / 2.0;
 
-		//Implements https://stackoverflow.com/a/5732390
-		var slope = (toMax - toMin) / (fromMax - fromMin);
+		//https://stackoverflow.com/a/5732390
+		var slope = (toMax - toMin) / deltaFrom;
 		return toMin + slope * (value - fromMin);
 	}
 }
