@@ -209,7 +209,7 @@ class SoftBody extends Trait {
 		var cfg = body.get_m_cfg();
 		cfg.set_viterations(physics.solverIterations);
 		cfg.set_piterations(physics.solverIterations);
-		// cfg.set_collisions(0x0001 + 0x0020 + 0x0040); // self collision
+		//cfg.set_collisions(0x0001 | 0x0020 | 0x0040); // self collision
 		cfg.set_collisions(0x11); // Soft-rigid, soft-soft
 		if (shape == SoftShape.Volume) {
 			cfg.set_kDF(0.1);
@@ -221,8 +221,9 @@ class SoftBody extends Trait {
 		var cfg = body.m_cfg;
 		cfg.viterations = physics.solverIterations;
 		cfg.piterations = physics.solverIterations;
-		// body.m_cfg.collisions = 0x0001 + 0x0020 + 0x0040;
-		cfg.collisions = 0x11; // Soft-rigid, soft-soft
+		//body.m_cfg.collisions = 0x0001 + 0x0020 + 0x0040;
+		//cfg.collisions = 0x0001 | 0x0020 | 0x0040;
+		//cfg.collisions = 0x11; // Soft-rigid, soft-soft
 		if (shape == SoftShape.Volume) {
 			cfg.kDF = 0.1;
 			cfg.kDP = 0.01;
