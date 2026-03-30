@@ -31,6 +31,8 @@ class WorldToScreenSpaceNode extends LogicNode {
 		var w = App.w();
 		var h = App.h();
 
-		return new Vec2((v.x + 1) * 0.5 * w, (-v.y + 1) * 0.5 * h);
+		if (from == 0) return new Vec2((v.x + 1) * 0.5 * w, (-v.y + 1) * 0.5 * h);
+		else if (from == 1) return (v.x + 1) * 0.5 * w;
+		else return (-v.y + 1) * 0.5 * h;
 	}
 }

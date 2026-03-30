@@ -24,6 +24,8 @@ class WorldToScreenSpaceNode(ArmLogicTreeNode):
         self.add_input('ArmVectorSocket', 'World')
 
         self.add_output('ArmVectorSocket', 'Screen')
+        self.add_output('ArmIntSocket', 'X')
+        self.add_output('ArmIntSocket', 'Y')
 
     def draw_buttons(self, context, layout):
         layout.prop(self, 'property0')
