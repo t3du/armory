@@ -10,6 +10,7 @@ class SetFrictionNode (ArmLogicTreeNode):
     def arm_init(self, context):
         self.inputs.new('ArmNodeSocketAction', 'In')
         self.inputs.new('ArmNodeSocketObject', 'RB')
-        self.inputs.new('ArmFloatSocket', 'Friction')
+        self.inputs.new('ArmFloatSocket', 'Friction', default_value=0.5)
+        self.add_input('ArmFloatSocket', 'Angular Friction', default_value=0.1)
 
         self.outputs.new('ArmNodeSocketAction', 'Out')

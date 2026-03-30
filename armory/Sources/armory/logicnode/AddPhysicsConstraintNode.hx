@@ -108,6 +108,9 @@ class AddPhysicsConstraintNode extends LogicNode {
 					}
 				}
 			}
+
+			con.name = property0;
+			
 			pivotObject.addTrait(con);
 		}
 #elseif arm_oimo
