@@ -70,6 +70,22 @@ def write_arm(filepath, output):
             with open(filepath_json, 'w') as f:
                 f.write(json.dumps(output, sort_keys=True, indent=4, cls=NumpyEncoder))
 
+    if getattr(bpy.data.worlds['Arm'], 'arm_export_debug_json', False):
+        try:
+            base_dir = os.path.dirname(filepath)
+            debug_dir = os.path.join(base_dir, 'debug_json')
+            
+            if not os.path.exists(debug_dir):
+                os.makedirs(debug_dir)
+            
+            clean_name = os.path.basename(filepath).replace('.arm', '').replace('.lz4', '')
+            debug_path = os.path.join(debug_dir, clean_name + '.json')
+            
+            with open(debug_path, 'w', encoding='utf-8') as f:
+                f.write(json.dumps(output, sort_keys=True, indent=4, cls=NumpyEncoder))
+        except Exception as e:
+            print("Error en el volcado de Debug JSON: " + str(e))
+
 def unpack_image(image, path, file_format='JPEG'):
     print('Armory Info: Unpacking to ' + path)
     image.filepath_raw = path

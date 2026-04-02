@@ -884,7 +884,11 @@ class ARM_PT_ArmoryExporterPanel(bpy.types.Panel):
         col.prop(wrd, 'arm_no_traces')
 
         col = layout.column(heading='Data', align=True)
-        col.prop(wrd, 'arm_minimize')
+        sub = col.column()
+        sub.enabled = False
+        sub.prop(wrd, 'arm_minimize')
+
+        col.prop(wrd, 'arm_export_debug_json')
         col.prop(wrd, 'arm_optimize_data')
         col.prop(wrd, 'arm_asset_compression')
         col.prop(wrd, 'arm_single_data_file')
