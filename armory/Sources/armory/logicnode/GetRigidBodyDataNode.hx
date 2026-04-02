@@ -34,11 +34,11 @@ class GetRigidBodyDataNode extends LogicNode {
 			case 11: rb.restitution;
 			case 12: rb.body.getGravity().length() > 0.0001;
 			case 13:
-				var v = rb.body.getLinearFactor();
-				return new Vec4(v.x(), v.y(), v.z());
+				var lf = @:privateAccess rb.linearFactors;
+				return new Vec4(lf[0], lf[1], lf[2]);
 			case 14:
-				var v = rb.body.getAngularFactor();
-				return new Vec4(v.x(), v.y(), v.z());
+				var af = @:privateAccess rb.angularFactors;
+				return new Vec4(af[0], af[1], af[2]);
 			default: null;
 		}
 #end
