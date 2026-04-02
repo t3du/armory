@@ -1,81 +1,96 @@
 package armory.logicnode;
 
 import iron.math.Vec4;
-import iron.object.Object;
-import iron.data.MaterialData;
 import kha.Color;
 import kha.Image;
-import armory.trait.internal.UniformsManager;
 
 class GetImageColorNode extends LogicNode {
 
 	public var property0: String;
-	var internalRT: Image = null;
+	var renderTarget: Image = null;
 
 	public function new(tree: LogicTree) {
 		super(tree);
+		renderTarget = Image.createRenderTarget(iron.App.w(), iron.App.h(), kha.graphics4.TextureFormat.RGBA32,
+			kha.graphics4.DepthStencilFormat.NoDepthAndStencil);
 	}
 
 	override function get(from: Int): Dynamic {
-		var x: Int;
-		var y: Int;
-		var sourceImg: Image = null;
 
-		if (property0 == 'Image') {
-			var imageName = inputs[0].get();
-			x = inputs[1].get();
-			y = inputs[2].get();
-			iron.data.Data.getImage(imageName, (image: Image) -> { sourceImg = image; });
-		} 
-		else if (property0 == 'RenderTarget') {
-			var obj: Object = inputs[0].get();
-			var mat: MaterialData = inputs[1].get();
-			var link: String = inputs[2].get();
-			x = inputs[3].get();
-			y = inputs[4].get();
-			
-			sourceImg = UniformsManager.textureLink(obj, mat, link);
-		}
-		else {
-			x = inputs[0].get();
-			y = inputs[1].get();
-			if (internalRT == null) {
-				internalRT = Image.createRenderTarget(iron.App.w(), iron.App.h(), kha.graphics4.TextureFormat.RGBA32, NoDepthAndStencil);
-			}
-			sourceImg = internalRT;
-			prepareInternalRender();
+		var i: Int;
+		var j: Int;
+
+		if (property0 == 'Image'){
+			i = inputs[1].get();
+			j = inputs[2].get();
+		} else {
+			i = inputs[0].get();
+			j = inputs[1].get();
 		}
 
-		if (sourceImg == null || x < 0 || y < 0 || x >= sourceImg.width || y >= sourceImg.height) return null;
+		if (i < 0 || j < 0) return null;
 
-		var pixels = sourceImg.getPixels();
-		var index: Int;
+		if (property0 != 'Image')
+			if (i > renderTarget.width || j > renderTarget.height) return null;
 
-		//#if kha_html5
-		index = (sourceImg.height - 1 - y) * sourceImg.width + x;
-		//#else
-		index = y * sourceImg.width + x;
-		//#end
+		renderTarget.g2.begin(true, Color.Transparent);
 
-		var r = pixels.get(index * 4 + 0) / 255;
-		var g = pixels.get(index * 4 + 1) / 255;
-		var b = pixels.get(index * 4 + 2) / 255;
-		var a = pixels.get(index * 4 + 3) / 255;
+		renderTarget.g2.color = Color.White;
 
-		return new Vec4(r, g, b, a);
-	}
-
-	function prepareInternalRender() {
-		internalRT.g2.begin(true, Color.Transparent);
-		if (property0 == 'Render' || property0 == 'Render&Render2D') {
-			if (armory.renderpath.RenderPathCreator.finalTarget != null) {
+		if (property0 == 'Render' || property0 == 'Render&Render2D'){
+			if (armory.renderpath.RenderPathCreator.finalTarget != null){
 				var img: Image = iron.RenderPath.active.renderTargets.get("buf").image;
-				internalRT.g2.drawScaledImage(img, 0, 0, internalRT.width, internalRT.height);
+				renderTarget.g2.drawScaledImage(img, 0, 0, iron.App.w(), iron.App.h());
 			}
 		}
-		if (property0.indexOf('2D') >= 0) {
-			for (f in @:privateAccess iron.App.traitRenders2D) f(internalRT.g2);
+
+		if (Image.renderTargetsInvertedY()){
+			renderTarget.g2.scale(1, -1);
+			renderTarget.g2.translate(0, renderTarget.height);
 		}
-		internalRT.g2.end();
+
+		if (property0 == 'Image'){
+			var img: Image;
+			iron.data.Data.getImage(inputs[0].get(), (image: Image) -> {
+				img = image;
+			});
+			if (img == null || i > img.width || j > img.height){
+				renderTarget.g2.end();
+				return null;
+			} else
+				renderTarget.g2.drawScaledImage(img, 0, 0, img.width, img.height);
+		}
+
+		if (property0.indexOf('2D') > 0)
+			for (f in @:privateAccess iron.App.traitRenders2D)
+		    	f(renderTarget.g2);
+
+		if (Image.renderTargetsInvertedY()){
+			renderTarget.g2.scale(1, -1);
+			renderTarget.g2.translate(0, renderTarget.height);
+		}
+
+	    renderTarget.g2.end();
+
+	    var pixels = renderTarget.getPixels();
+
+		var k = j * renderTarget.width + i;
+		
+		#if kha_krom
+		var l = k;
+		#elseif kha_html5
+		var l = (renderTarget.height - j) * renderTarget.width + i;
+		#end
+
+		var r = pixels.get(l * 4 + 0)/255;
+		var g = pixels.get(l * 4 + 1)/255;
+		var b =	pixels.get(l * 4 + 2)/255;
+		var a = pixels.get(l * 4 + 3)/255;
+
+		var v = new Vec4(r, g, b, a);
+		
+		return v;
+
 	}
+
 }

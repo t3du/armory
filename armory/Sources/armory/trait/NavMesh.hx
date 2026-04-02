@@ -299,6 +299,8 @@ class NavMesh extends Trait {
 		recastCrowd.setDefaultQueryExtent(RecastConversions.recastVec3FromVec4(defaultCrowdQueryExtent));
 		notifyOnUpdate(crowdUpdate);
 		
+		//recastCrowd.setDefaultQueryExtent(RecastConversions.recastVec3FromVec4(new Vec4(3, 3, 1)));
+		//trace(RecastConversions.vec4FromRecastVec3(recastCrowd.getDefaultQueryExtent()));
 	}
 
 	public function addCrowdAgent(agent: NavCrowd, position: Vec4, radius: Float, height: Float, maxAcceleration: Float, maxSpeed: Float, updateFlags: Int = 7, separationWeight: Float = 1.0, collisionQueryRange: Float = 1.0): Int {
