@@ -84,7 +84,7 @@ def write_arm(filepath, output):
             with open(debug_path, 'w', encoding='utf-8') as f:
                 f.write(json.dumps(output, sort_keys=True, indent=4, cls=NumpyEncoder))
         except Exception as e:
-            print("Error en el volcado de Debug JSON: " + str(e))
+            print("Error with Debug JSON: " + str(e))
 
 def unpack_image(image, path, file_format='JPEG'):
     print('Armory Info: Unpacking to ' + path)
