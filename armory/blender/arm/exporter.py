@@ -335,7 +335,7 @@ class ArmoryExporter:
         o['transform'] = {'values': ArmoryExporter.write_matrix(bobject.matrix_local)}
 
         # Animated transform
-        if bobject.animation_data is not None and bobject.type != "ARMATURE":
+        if bobject.animation_data is not None and bobject.type != "ARMATURE" and bobject.arm_animation_enabled:
             action = bobject.animation_data.action
 
             if action is not None:
