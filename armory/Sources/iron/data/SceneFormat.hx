@@ -502,7 +502,7 @@ typedef TVertex_groups = {
 @:structInit class TVertex_groups {
 #end
 	public var name: String;
-	public var value: Dynamic;
+	public var value: Float32Array;
 }
 
 #if js

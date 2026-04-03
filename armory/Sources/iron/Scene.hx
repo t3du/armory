@@ -853,13 +853,15 @@ class Scene {
 
 			if (o.vertex_groups != null) {
 				object.vertex_groups = new Map();
-				for (p in o.vertex_groups){
-					var verts = [];
-					for(i in 0...Std.int(p.value.length/3)){
-						var x = Std.parseFloat(p.value[i*3]);
-						var y = Std.parseFloat(p.value[i*3+1]);
-						var z = Std.parseFloat(p.value[i*3+2]);
-						verts.push(new iron.math.Vec4(x, y, z, 1));
+				for (p in o.vertex_groups) {
+					var verts:Array<iron.math.Vec4> = [];
+					
+					var data:kha.arrays.Float32Array = cast p.value;
+
+					if (data != null) {
+						for (i in 0...Std.int(data.length / 3)) {
+							verts.push(new iron.math.Vec4(data[i * 3], data[i * 3 + 1], data[i * 3 + 2], 1.0));
+						}
 					}
 					object.vertex_groups.set(p.name, verts);
 				}

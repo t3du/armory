@@ -825,9 +825,9 @@ class ArmoryExporter:
                     for v in bobject.data.vertices:
                         for g in v.groups:
                             if g.group == group.index:
-                                verts.append(str(v.co.x))
-                                verts.append(str(v.co.y))
-                                verts.append(str(v.co.z))
+                                verts.append(float(v.co.x))
+                                verts.append(float(v.co.y))
+                                verts.append(float(v.co.z))
 
                     out_vertex_groups = {
                         'name': group.name,
