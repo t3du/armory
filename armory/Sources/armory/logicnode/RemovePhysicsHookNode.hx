@@ -19,6 +19,7 @@ class RemovePhysicsHookNode extends LogicNode {
 #if arm_bullet
 		var hook = obj.getTrait(PhysicsHook);
 		if (hook != null) {
+			hook.removePhysicsHook();
 			obj.removeTrait(hook);
 		}
 #end

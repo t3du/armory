@@ -182,6 +182,43 @@ class PhysicsHook extends Trait {
 		// }
 	}
 
+	public function removePhysicsHook() {
+		var physics = PhysicsWorld.active;
+		if (physics == null) return;
+
+		if (constraint != null) {
+			physics.world.removeConstraint(constraint);
+			constraint = null;
+		}
+
+		#if arm_physics_soft
+		var sb = object.getTrait(SoftBody);
+		if (sb != null && sb.ready) {
+			#if js
+			var anchors = sb.body.get_m_anchors();
+			while (anchors.size() > 0) {
+				anchors.pop_back();
+			}
+			#else
+			sb.body.m_anchors.clear();
+			#end
+
+			var cfg = sb.body.get_m_cfg();
+			cfg.set_collisions(0x0001 | 0x0010 | 0x0020 | 0x0040);
+			
+			sb.body.activate(true);
+			
+			physics.world.updateSingleAabb(sb.body);
+
+			if (hookRB != null) {
+				physics.world.removeRigidBody(hookRB);
+				hookRB = null;
+			}
+		}
+		#end
+		
+	}
+
 }
 
 #end

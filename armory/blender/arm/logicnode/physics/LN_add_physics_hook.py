@@ -1,7 +1,7 @@
 from arm.logicnode.arm_nodes import *
 
 class AddPhysicsHookNode(ArmLogicTreeNode):
-    bl_idname = 'AddPhysicsHookNode'
+    bl_idname = 'LNAddPhysicsHookNode'
     bl_label = 'Add Physics Hook'
     arm_version = 1
 
@@ -9,5 +9,5 @@ class AddPhysicsHookNode(ArmLogicTreeNode):
         self.inputs.new('ArmNodeSocketAction', 'In')
         self.inputs.new('ArmNodeSocketObject', 'Object')
         self.inputs.new('ArmNodeSocketObject', 'Target')
-        self.inputs.new('ArmNodeSocketArray', 'Vertices (Float)')
+        self.inputs.new('ArmNodeSocketArray', 'Vertices')
         self.outputs.new('ArmNodeSocketAction', 'Out')

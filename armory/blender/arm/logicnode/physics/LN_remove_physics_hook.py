@@ -1,7 +1,7 @@
 from arm.logicnode.arm_nodes import *
 
 class RemovePhysicsHookNode(ArmLogicTreeNode):
-    bl_idname = 'RemovePhysicsHookNode'
+    bl_idname = 'LNRemovePhysicsHookNode'
     bl_label = 'Remove Physics Hook'
     arm_version = 1
 
