@@ -19,6 +19,8 @@ class OnContactArrayNode(ArmLogicTreeNode):
         self.add_input('ArmNodeSocketArray', 'RBs')
 
         self.add_output('ArmNodeSocketAction', 'Out')
+        self.add_output('ArmNodeSocketArray', 'RBs')
+        self.add_output('ArmNodeSocketObject', 'RB')
 
     def draw_buttons(self, context, layout):
         layout.prop(self, 'property0')

@@ -7,6 +7,7 @@ class OnContactArrayNode extends LogicNode {
 
 	public var property0: String;
 	var lastContact = false;
+	var contactObjects: Array<Object> = [];
 
 	public function new(tree: LogicTree) {
 		super(tree);
@@ -19,9 +20,9 @@ class OnContactArrayNode extends LogicNode {
 		var objects: Array<Object> = inputs[1].get();
 
 		if (object1 == null) object1 = tree.object;
-		if (objects == null)return;
+		if (objects == null) return;
 
-		var contact = false;
+		var currentContacts: Array<Object> = [];
 
 #if arm_physics
 		var physics = armory.trait.physics.PhysicsWorld.active;
@@ -32,15 +33,15 @@ class OnContactArrayNode extends LogicNode {
 				var rb2 = object2.getTrait(RigidBody);
 				for (rb in rbs) {
 					if (rb == rb2) {
-						contact = true;
+						currentContacts.push(object2);
 						break;
 					}
 				}
-				if (contact) break;
 			}
 		}
 #end
 
+		var contact = currentContacts.length > 0;
 		var b = false;
 		switch (property0) {
 		case "begin":
@@ -52,7 +53,13 @@ class OnContactArrayNode extends LogicNode {
 		}
 
 		lastContact = contact;
+		contactObjects = currentContacts;
 
 		if (b) runOutput(0);
+	}
+
+	override function get(from: Int): Dynamic {
+		if (from == 1) return contactObjects;
+		return contactObjects.length > 0 ? contactObjects[0] : null;
 	}
 }
