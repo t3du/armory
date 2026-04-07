@@ -1,7 +1,7 @@
 from arm.logicnode.arm_nodes import *
 
 class RemovePhysicsConstraintNode(ArmLogicTreeNode):
-    bl_idname = 'RemovePhysicsConstraintNode'
+    bl_idname = 'LNRemovePhysicsConstraintNode'
     bl_label = 'Remove Physics Constraint'
     arm_version = 1
 
