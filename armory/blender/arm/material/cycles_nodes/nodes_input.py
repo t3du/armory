@@ -195,7 +195,8 @@ def parse_objectinfo(node: bpy.types.ShaderNodeObjectInfo, out_socket: bpy.types
     if out_socket == node.outputs[0]:
         if state.context == ParserContext.WORLD:
             return c.to_vec3((0.0, 0.0, 0.0))
-        return 'wposition'
+        state.curshader.add_uniform('mat4 W', link='_worldMatrix')
+        return 'vec3(W[3][0], W[3][1], W[3][2])'
 
     # Color
     elif out_socket == node.outputs[1]:
@@ -206,15 +207,18 @@ def parse_objectinfo(node: bpy.types.ShaderNodeObjectInfo, out_socket: bpy.types
                 return c.to_vec3((0.0, 0.0, 0.0))
             return c.to_vec3([background_node.inputs[1].default_value] * 3)
 
-        # TODO: Implement object color in Iron
-        # state.curshader.add_uniform('vec3 objectInfoColor', link='_objectInfoColor')
-        # return 'objectInfoColor'
-        return c.to_vec3((1.0, 1.0, 1.0))
+        state.curshader.add_uniform('float objRandom', link='_objectInfoRandom')
+        return "vec3(" \
+               "fract(sin(objRandom * 12.9898 + 78.233) * 43758.5453), " \
+               "fract(sin(objRandom * 39.3456 + 12.123) * 43758.5453), " \
+               "fract(sin(objRandom * 78.2330 + 45.678) * 43758.5453)" \
+               ")"
+        #return c.to_vec3((1.0, 1.0, 1.0))
 
     # Alpha
     elif out_socket == node.outputs[2]:
-        # TODO, see color output above
-        return '0.0'
+        state.curshader.add_uniform('float objAlphaRandom', link='_objectInfoRandom')
+        return 'fract(sin(objAlphaRandom * 12.9898) * 43758.5453)'
 
     # Object Index
     elif out_socket == node.outputs[3]:
@@ -314,7 +318,8 @@ def parse_texcoord(node: bpy.types.ShaderNodeTexCoord, out_socket: bpy.types.Nod
         state.dxdy_varying_input_value = True
         return 'mposition'
     elif out_socket == node.outputs[4]: # Camera
-        return 'vec3(0.0)' # 'vposition'
+        state.curshader.add_uniform('mat4 V', link='_viewMatrix')
+        return '(V * vec4(wposition, 1.0)).xyz'
     elif out_socket == node.outputs[5]: # Window
         # TODO: Don't use gl_FragCoord here, it uses different axes on different graphics APIs
         state.frag.add_uniform('vec2 screenSize', link='_screenSize')
@@ -324,7 +329,8 @@ def parse_texcoord(node: bpy.types.ShaderNodeTexCoord, out_socket: bpy.types.Nod
         if state.context == ParserContext.WORLD:
             state.dxdy_varying_input_value = True
             return 'n'
-        return 'vec3(0.0)'
+        state.curshader.add_uniform('vec3 cameraPos', link='_cameraPosition')
+        return 'reflect(normalize(wposition - cameraPos), n)'
 
 
 def parse_uvmap(node: bpy.types.ShaderNodeUVMap, out_socket: bpy.types.NodeSocket, state: ParserState) -> vec3str:
