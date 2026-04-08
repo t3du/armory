@@ -20,7 +20,6 @@ class AddRigidBodyNode extends LogicNode {
 
 	override function run(from: Int) {
 		object = inputs[1].get();
-		if (object == null) return;
 
 #if arm_physics
 
