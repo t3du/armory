@@ -6,6 +6,12 @@ import armory.trait.physics.bullet.SoftBody;
 
 class GetSoftBodyDataNode extends LogicNode {
 
+	var friction: Float;
+	var damping: Float;
+	var pressure: Float;
+	var linearStiffness: Float;
+	var angularStiffness: Float;
+
 	public function new(tree: LogicTree) {
 		super(tree);
 	}
@@ -24,6 +30,11 @@ class GetSoftBodyDataNode extends LogicNode {
 			case 3: @:privateAccess sb.shape;
 			case 4: @:privateAccess sb.margin;
 			case 5: new Vec4(sb.vertOffsetX, sb.vertOffsetY, sb.vertOffsetZ);
+			case 6: @:privateAccess sb.friction;
+			case 7: @:privateAccess sb.damping;
+			case 8: @:privateAccess sb.pressure;
+			case 9: @:privateAccess sb.linearStiffness;
+			case 10: @:privateAccess sb.angularStiffness;
 			default: null;
 		}
 	}

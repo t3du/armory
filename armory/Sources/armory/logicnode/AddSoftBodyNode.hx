@@ -11,15 +11,23 @@ class AddSoftBodyNode extends LogicNode {
 
 	override function run(from: Int) {
 		var obj: Object = inputs[1].get();
+		if (obj == null) return;
+
 		var shape: Int = inputs[2].get(); // 0: Cloth, 1: Volume
 		var bend: Float = inputs[3].get();
 		var mass: Float = inputs[4].get();
 		var margin: Float = inputs[5].get();
+		var friction: Float = inputs[6].get();
+		var damping: Float = inputs[7].get();
+		var pressure: Float = inputs[8].get();
+		var lStiff: Float = inputs[9].get();
+		var aStiff: Float = inputs[10].get();
 
-		if (obj == null) return;
-
-		var sb = new SoftBody(shape, bend, mass, margin);
-		obj.addTrait(sb);
+		var sb: SoftBody = obj.getTrait(SoftBody);
+		if (sb == null) {
+			sb = new SoftBody(shape, bend, mass, margin, friction, damping, lStiff, aStiff, pressure);
+			obj.addTrait(sb);
+		}
 
 		runOutput(0);
 	}

@@ -8,10 +8,14 @@ class AddSoftBodyNode(ArmLogicTreeNode):
     def arm_init(self, context):
         self.add_input('ArmNodeSocketAction', 'In')
         self.add_input('ArmNodeSocketObject', 'Object')
-        # 0: Cloth, 1: Volume
         self.add_input('ArmIntSocket', 'Shape', default_value=0)
         self.add_input('ArmFloatSocket', 'Bend', default_value=0.5)
         self.add_input('ArmFloatSocket', 'Mass', default_value=1.0)
         self.add_input('ArmFloatSocket', 'Margin', default_value=0.04)
+        self.add_input('ArmFloatSocket', 'Friction', default_value=0.5)
+        self.add_input('ArmFloatSocket', 'Damping', default_value=0.01)
+        self.add_input('ArmFloatSocket', 'Pressure', default_value=0.0)
+        self.add_input('ArmFloatSocket', 'Linear Stiffness', default_value=0.1)
+        self.add_input('ArmFloatSocket', 'Angular Stiffness', default_value=0.1)
         
         self.add_output('ArmNodeSocketAction', 'Out')

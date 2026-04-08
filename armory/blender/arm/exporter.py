@@ -2565,9 +2565,9 @@ Make sure the mesh only has tris/quads.""")
                 self.process_bobject(bobject)
                 # Softbody needs connected triangles, use optimized
                 # geometry export
-                for mod in bobject.modifiers:
+                """for mod in bobject.modifiers:
                     if mod.type in ('CLOTH', 'SOFT_BODY'):
-                        ArmoryExporter.optimize_enabled = True
+                        ArmoryExporter.optimize_enabled = True"""
 
         self.process_skinned_meshes()
 
@@ -2996,9 +2996,9 @@ Make sure the mesh only has tris/quads.""")
         # Phys traits
         if phys_enabled:
             for modifier in bobject.modifiers:
-                if modifier.type in ('CLOTH', 'SOFT_BODY'):
+                if modifier.type in ('CLOTH', 'SOFT_BODY') and modifier.show_render:
                     self.add_softbody_mod(o, bobject, modifier)
-                elif modifier.type == 'HOOK':
+                elif modifier.type == 'HOOK' and modifier.show_render:
                     self.add_hook_mod(o, bobject, modifier.object.name, modifier.vertex_group)
 
             # Rigid body constraint
@@ -3303,16 +3303,21 @@ Make sure the mesh only has tris/quads.""")
         # ClothModifier
         if modifier.type == 'CLOTH':
             bend = modifier.settings.bending_stiffness
+            friction = bobject.arm_soft_body_friction
+            damping = bobject.arm_soft_body_damping
             soft_type = 0
         # SoftBodyModifier
         elif modifier.type == 'SOFT_BODY':
-            bend = (modifier.settings.bend + 1.0) * 10
+            bend = modifier.settings.bend
+            friction = modifier.settings.friction
+            damping = modifier.settings.goal_friction
             soft_type = 1
         else:
             # Wrong modifier type
             return
-
-        out_trait['parameters'] = [str(soft_type), str(bend), str(modifier.settings.mass), str(bobject.arm_soft_body_margin)]
+        
+        out_trait['parameters'] = [str(soft_type), str(bend), str(modifier.settings.mass), str(bobject.arm_soft_body_margin), str(friction), str(damping),
+            str(bobject.arm_soft_body_linear_stiffness), str(bobject.arm_soft_body_angular_stiffness), str(bobject.arm_soft_body_pressure)]
         o['traits'].append(out_trait)
 
         if soft_type == 0:

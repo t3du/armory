@@ -28,9 +28,15 @@ class SoftBody extends Trait {
 
 	public var ready = false;
 	var shape: SoftShape;
-	var bend: Float;
+	var bend: Int;
 	var mass: Float;
 	var margin: Float;
+
+	var friction: Float;
+	var damping: Float;
+	var pressure: Float;
+	var linearStiffness: Float;
+	var angularStiffness: Float;
 
 	public var vertOffsetX = 0.0;
 	public var vertOffsetY = 0.0;
@@ -44,12 +50,19 @@ class SoftBody extends Trait {
 
 	var vertexIndexMap: Map<Int, Array<Int>>;
 
-	public function new(shape = SoftShape.Cloth, bend = 0.5, mass = 1.0, margin = 0.04) {
-		super();
+	public function new(shape = SoftShape.Cloth, bend = 0.5, mass = 1.0, margin = 0.04, 
+						friction = 0.5, damping = 0.01, lStiff = 0.9, aStiff = 0.9, pressure = 0.0) {
+							super();
+
 		this.shape = shape;
-		this.bend = bend;
+		this.bend = Std.int(Math.min(Math.ceil(bend), 5));
 		this.mass = mass;
 		this.margin = margin;
+		this.friction = friction;
+		this.damping = damping;
+		this.linearStiffness = lStiff;
+		this.angularStiffness = aStiff;
+		this.pressure = pressure;
 
 		//notifyOnAdd(init);
 		//The above line works as well, but the object transforms are not set
@@ -203,32 +216,53 @@ class SoftBody extends Trait {
 		floatArray.delete();
 		intArray.delete();
 		#end
-		// body.generateClusters(4);
+		
+		body.generateClusters(16);
 
 		#if js
 		var cfg = body.get_m_cfg();
 		cfg.set_viterations(physics.solverIterations);
 		cfg.set_piterations(physics.solverIterations);
-		//cfg.set_collisions(0x0001 | 0x0020 | 0x0040); // self collision
-		cfg.set_collisions(0x11); // Soft-rigid, soft-soft
-		if (shape == SoftShape.Volume) {
-			cfg.set_kDF(0.1);
-			cfg.set_kDP(0.01);
-			cfg.set_kPR(bend);
-		}
+		cfg.set_collisions(0x0001 | 0x0010 | 0x0020 | 0x0040); // self collision
+		//cfg.set_collisions(0x11); // Soft-rigid, soft-soft
+		cfg.set_kDF(this.friction);
+		cfg.set_kDP(this.damping);
+
+		if (shape == SoftShape.Volume)
+			cfg.set_kPR(this.pressure);
+		else
+			cfg.set_kPR(0.0);
+
+		var mat = body.get_m_materials().at(0);
+		mat.set_m_kLST(this.linearStiffness);
+		mat.set_m_kAST(this.angularStiffness);
+
+		if (this.bend > 0)
+    		body.generateBendingConstraints(bend, mat);
+
 		#else
 		//Not passed as refernece
 		var cfg = body.m_cfg;
 		cfg.viterations = physics.solverIterations;
 		cfg.piterations = physics.solverIterations;
 		//body.m_cfg.collisions = 0x0001 + 0x0020 + 0x0040;
-		//cfg.collisions = 0x0001 | 0x0020 | 0x0040;
+		cfg.collisions = 0x0001 | 0x0010 | 0x0020 | 0x0040;
 		//cfg.collisions = 0x11; // Soft-rigid, soft-soft
-		if (shape == SoftShape.Volume) {
-			cfg.kDF = 0.1;
-			cfg.kDP = 0.01;
-			cfg.kPR = bend;
-		}
+		cfg.kDF = this.friction;
+		cfg.kDP = this.damping;
+
+		if (shape == SoftShape.Volume)
+			cfg.kPR = this.pressure;
+		else
+			cfg.kPR = 0.0;
+
+		var mat = body.m_materials.at(0);
+		mat.m_kLST = this.linearStiffness;
+		mat.m_kAST = this.angularStiffness;
+				
+		if (this.bend > 0)
+    		body.generateBendingConstraints(bend, mat);
+
 		//Set config again in HL
 		body.m_cfg = cfg;
 		#end
@@ -241,6 +275,7 @@ class SoftBody extends Trait {
 
 		#if hl
 		cfg.delete();
+		mat.delete();
 		#end
 
 		notifyOnRemove(removeFromWorld);

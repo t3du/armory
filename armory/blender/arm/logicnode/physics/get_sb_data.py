@@ -14,3 +14,8 @@ class GetSoftBodyDataNode(ArmLogicTreeNode):
         self.add_output('ArmIntSocket', 'Shape')
         self.add_output('ArmFloatSocket', 'Margin')
         self.add_output('ArmVectorSocket', 'World Center')
+        self.add_output('ArmFloatSocket', 'Friction')
+        self.add_output('ArmFloatSocket', 'Damping')
+        self.add_output('ArmFloatSocket', 'Pressure')
+        self.add_output('ArmFloatSocket', 'Linear Stiffness')
+        self.add_output('ArmFloatSocket', 'Angular Stiffness')

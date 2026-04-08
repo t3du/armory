@@ -247,8 +247,16 @@ class ARM_PT_PhysicsPropsPanel(bpy.types.Panel):
             layout.prop(obj, 'arm_rb_ccd')
             layout.prop(obj, 'arm_rb_interpolate')
 
-        if obj.soft_body is not None:
+        is_cloth = any(m.type == 'CLOTH' for m in obj.modifiers)
+
+        if obj.soft_body is not None or is_cloth:
             layout.prop(obj, 'arm_soft_body_margin')
+            if is_cloth:
+                layout.prop(obj, 'arm_soft_body_friction')
+                layout.prop(obj, 'arm_soft_body_damping')
+            layout.prop(obj, 'arm_soft_body_linear_stiffness')
+            layout.prop(obj, 'arm_soft_body_angular_stiffness')
+            layout.prop(obj, 'arm_soft_body_pressure')
 
         if obj.rigid_body_constraint is not None:
             layout.prop(obj, 'arm_relative_physics_constraint')
