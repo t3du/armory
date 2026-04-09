@@ -41,6 +41,7 @@ typedef TSceneFormat = {
 	@:optional public var irradiance: Float32Array; // Blob with spherical harmonics, bands 0,1,2
 	@:optional public var terrain_datas: Array<TTerrainData>;
 	@:optional public var terrain_ref: String;
+	@:optional public var properties: Array<TProperty>;
 }
 
 #if js

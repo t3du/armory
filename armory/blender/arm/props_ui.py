@@ -332,6 +332,8 @@ class ARM_PT_ScenePropsPanel(bpy.types.Panel):
         row = layout.row()
         column = row.column()
         row.prop(scene, 'arm_export')
+        
+        arm.props_properties.draw_properties(layout, scene)
 
 class InvalidateCacheButton(bpy.types.Operator):
     """Delete cached mesh data"""

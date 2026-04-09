@@ -124,6 +124,14 @@ class Scene {
 
 			// Startup scene
 			active.addScene(format.name, null, function(sceneObject: Object) {
+
+				if (format.properties != null) {
+					sceneObject.properties = new Map();
+					for (p in format.properties) {
+						sceneObject.properties.set(p.name, cleanValue(p.value));
+					}
+				}
+				
 				for (object in sceneObject.getChildren(true)) {
 					createTraits(object.raw.traits, object);
 				}
@@ -845,7 +853,9 @@ class Scene {
 			#end
 			if (o.properties != null) {
 				object.properties = new Map();
-				for (p in o.properties) object.properties.set(p.name, p.value);
+				for (p in o.properties) {
+					object.properties.set(p.name, cleanValue(p.value));
+				}
 			}
 
 			if (o.vertex_groups != null) {
@@ -1016,5 +1026,17 @@ class Scene {
 
 	public function notifyOnRemove(f: Void->Void) {
 		traitRemoves.push(f);
+	}
+
+	static function cleanValue(val: Dynamic): Dynamic {
+		if (val == null) return null;
+		if (untyped val.buffer != null) {
+			var data: kha.arrays.Float32Array = cast val;
+			return [for (i in 0...data.length) data[i]];
+		}
+		if (Std.isOfType(val, Array)) {
+			return [for (item in (cast val: Array<Dynamic>)) cleanValue(item)];
+		}
+		return val;
 	}
 }

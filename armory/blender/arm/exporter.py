@@ -843,15 +843,24 @@ class ArmoryExporter:
             if len(bobject.arm_propertylist) > 0:
                 out_object['properties'] = []
                 for proplist_item in bobject.arm_propertylist:
-                    # Check if the property is a collection (array type).
                     if proplist_item.type_prop == 'array':
-                        # Convert the collection to a list.
                         array_type = proplist_item.array_item_type
                         collection_value = getattr(proplist_item, 'array_prop')
                         property_name = array_type + '_prop'
-                        value = [str(getattr(item, property_name)) for item in collection_value]
+                        
+                        if array_type == 'vector':
+                            value = []
+                            for item in collection_value:
+                                v = getattr(item, property_name)
+                                value.append([float(v[0]), float(v[1]), float(v[2])])
+                        else:
+                            value = [getattr(item, property_name) for item in collection_value]
+                    
+                    elif proplist_item.type_prop == 'vector':
+                        v = getattr(proplist_item, 'vector_prop')
+                        value = [float(v[0]), float(v[1]), float(v[2])]
+                    
                     else:
-                        # Handle other types of properties.
                         value = getattr(proplist_item, proplist_item.type_prop + '_prop')
 
                     out_property = {
@@ -2683,6 +2692,8 @@ Make sure the mesh only has tris/quads.""")
 
         self.export_scene_traits()
 
+        self.export_scene_properties()
+
         self.export_canvas_themes()
 
         # Write embedded data references
@@ -3215,6 +3226,36 @@ Make sure the mesh only has tris/quads.""")
         if 'traits' in self.output:
             for out_trait in self.output['traits']:
                 ArmoryExporter.import_traits.append(out_trait['class_name'])
+
+    def export_scene_properties(self) -> None:
+        bscene = self.scene
+        if len(bscene.arm_propertylist) > 0:
+            if 'properties' not in self.output:
+                self.output['properties'] = []
+                
+            for proplist_item in bscene.arm_propertylist:
+                if proplist_item.type_prop == 'array':
+                    array_type = proplist_item.array_item_type
+                    collection_value = getattr(proplist_item, 'array_prop')
+                    property_name = array_type + '_prop'
+                    
+                    if array_type == 'vector':
+                        value = [[v for v in getattr(item, property_name)] for item in collection_value]
+                    else:
+                        value = [getattr(item, property_name) for item in collection_value]
+                
+                elif proplist_item.type_prop == 'vector':
+                    value = [v for v in getattr(proplist_item, 'vector_prop')]
+                
+                else:
+                    value = getattr(proplist_item, proplist_item.type_prop + '_prop')
+
+                out_property = {
+                    'name': proplist_item.name_prop,
+                    'value': value
+                }
+                self.output['properties'].append(out_property)
+
 
     @staticmethod
     def export_canvas_themes():
