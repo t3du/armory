@@ -15,9 +15,10 @@ class RemovePhysicsNode extends LogicNode {
 		if (object == null) return;
 
 #if arm_physics
-		var rigidBody = object.getTrait(RigidBody);
+		var rb = object.getTrait(RigidBody);
 
-		rigidBody.remove();
+		if(rb != null)
+			rb.remove();
 #end
 
 		runOutput(0);
