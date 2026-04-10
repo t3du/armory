@@ -110,12 +110,10 @@ class Object {
 		@return	Object or null
 	**/
 	public function getChild(name: String): Object {
-		if (this.name == name) return this;
-		else {
-			for (c in children) {
-				var r = c.getChild(name);
-				if (r != null) return r;
-			}
+		for (c in children) {
+			if (c.name == name) return c;
+			var r = c.getChild(name);
+			if (r != null) return r;
 		}
 		return null;
 	}
@@ -141,12 +139,10 @@ class Object {
 	}
 
 	public function getChildOfType<T: Object>(type: Class<T>): T {
-		if (Std.isOfType(this, type)) return cast this;
-		else {
-			for (c in children) {
-				var r = c.getChildOfType(type);
-				if (r != null) return r;
-			}
+		for (c in children) {
+			if (Std.isOfType(c, type)) return cast c;
+			var r = c.getChildOfType(type);
+			if (r != null) return r;
 		}
 		return null;
 	}

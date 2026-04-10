@@ -1,10 +1,17 @@
 package armory.logicnode;
 
 import iron.object.Object;
+import iron.object.MeshObject;
+import iron.object.CameraObject;
+import iron.object.LightObject;
+import iron.object.SpeakerObject;
+import iron.object.DecalObject;
+import iron.object.ProbeObject;
 
 class GetChildNode extends LogicNode {
 
 	public var property0: String;
+	public var property1: String;
 
 	public function new(tree: LogicTree) {
 		super(tree);
@@ -12,22 +19,30 @@ class GetChildNode extends LogicNode {
 
 	override function get(from: Int): Dynamic {
 		var object: Object = inputs[0].get();
-		var childName: String = inputs[1].get();
+		if (object == null) return null;
 
-		if (object == null || childName == null) return null;
+		if (property0 != "By Type") {
+			var childName: String = inputs[1].get();
+			if (childName == null) return null;
 
-		switch (property0) {
-		case "By Name":
-			return object.getChild(childName);
-		case "Contains":
-			return contains(object, childName);
-		case "Starts With":
-			return startsWith(object, childName);
-		case "Ends With":
-			return endsWith(object, childName);
+			return switch (property0) {
+				case "By Name": object.getChild(childName);
+				case "Contains": contains(object, childName);
+				case "Starts With": startsWith(object, childName);
+				case "Ends With": endsWith(object, childName);
+				default: null;
+			}
 		}
 
-		return null;
+		return switch (property1) {
+			case "MeshObject": object.getChildOfType(MeshObject);
+			case "CameraObject": object.getChildOfType(CameraObject);
+			case "LightObject": object.getChildOfType(LightObject);
+			case "SpeakerObject": object.getChildOfType(SpeakerObject);
+			case "DecalObject": object.getChildOfType(DecalObject);
+			case "ProbeObject": object.getChildOfType(ProbeObject);
+			default: null;
+		}
 	}
 
 	function contains(o: Object, name: String): Object {
