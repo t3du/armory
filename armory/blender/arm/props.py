@@ -609,7 +609,7 @@ def update_armory_world():
         for rp in wrd.arm_rplist:  # TODO: deprecated
             if hasattr(rp, 'rp_gi') and rp.rp_gi != 'Off':
                 rp.rp_gi = 'Off'
-                rp.rp_voxels = rp.rp_gi
+                rp.rp_voxelao = True
 
         # For some breaking changes we need to use a special update
         # routine first before regularly replacing nodes
