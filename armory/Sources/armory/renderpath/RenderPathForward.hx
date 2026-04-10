@@ -105,7 +105,7 @@ class RenderPathForward {
 			t.depth_buffer = "main";
 			path.createRenderTarget(t);
 
-			#if rp_ssr
+			#if (rp_ssr || rp_ssrefr)
 			{
 				var t = new RenderTargetRaw();
 				t.name = "lbuffer1";
@@ -120,6 +120,7 @@ class RenderPathForward {
 
 			#if rp_ssrefr
 			{
+				//holds ior and opacity
 				var t = new RenderTargetRaw();
 				t.name = "gbuffer_refraction";
 				t.width = 0;
@@ -127,7 +128,6 @@ class RenderPathForward {
 				t.displayp = Inc.getDisplayp();
 				t.format = "RGBA64";
 				t.scale = Inc.getSuperSampling();
-				t.depth_buffer = "main";
 				path.createRenderTarget(t);
 
 				//holds colors before refractive meshes are drawn
@@ -138,6 +138,7 @@ class RenderPathForward {
 				t.displayp = Inc.getDisplayp();
 				t.format = "RGBA64";
 				t.scale = Inc.getSuperSampling();
+				t.depth_buffer = "main";
 				path.createRenderTarget(t);
 
 				//holds background depth
@@ -195,19 +196,12 @@ class RenderPathForward {
 			Inc.initGI("voxels");
 			Inc.initGI("voxelsOut");
 			Inc.initGI("voxelsOutB");
-			#if (arm_voxelgi_shadows || (rp_voxels == "Voxel GI"))
+			#if (arm_voxelgi_shadows || rp_voxels == "Voxel GI")
 			Inc.initGI("voxelsSDF");
 			Inc.initGI("voxelsSDFtmp");
 			#end
-			#if arm_voxelgi_shadows
-			Inc.initGI("voxels_shadows");
-			#end
 			#if (rp_voxels == "Voxel GI")
 			Inc.initGI("voxelsLight");
-			Inc.initGI("voxels_diffuse");
-			Inc.initGI("voxels_specular");
-			#else
-			Inc.initGI("voxels_ao");
 			#end
 			iron.RenderPath.clipmaps = new Array<Clipmap>();
 			for (i in 0...Main.voxelgiClipmapCount) {
@@ -301,7 +295,7 @@ class RenderPathForward {
 		}
 		#end
 
-		#if (rp_ssr_half || rp_ssgi_half || (rp_voxels != "Off"))
+		#if (rp_ssr_half || rp_ssgi_half)
 		{
 			path.loadShader("shader_datas/downsample_depth/downsample_depth");
 			var t = new RenderTargetRaw();
@@ -358,6 +352,7 @@ class RenderPathForward {
 	}
 
 	public static function commands() {
+
 		#if rp_shadowmap
 		{
 			#if arm_shadowmap_atlas
@@ -384,7 +379,7 @@ class RenderPathForward {
 				path.clearImage("voxels", 0x00000000);
 				path.clearImage("voxelsOut", 0x00000000);
 				path.clearImage("voxelsOutB", 0x00000000);
-				#if (arm_voxelgi_shadows || (rp_voxels == "Voxel GI"))
+				#if (arm_voxelgi_shadows || rp_voxels == "Voxel GI")
 				path.clearImage("voxelsSDF", 0x00000000);
 				path.clearImage("voxelsSDFtmp", 0x00000000);
 				#end
@@ -392,9 +387,6 @@ class RenderPathForward {
 			}
 			else
 			{
-				#if (rp_voxels == "Voxel GI")
-				path.clearImage("voxelsLight", 0x00000000);
-				#end
 				path.clearImage("voxels", 0x00000000);
 				Inc.computeVoxelsOffsetPrev();
 			}
@@ -411,23 +403,10 @@ class RenderPathForward {
 			#end
 			Inc.computeVoxelsTemporal();
 
-			#if (arm_voxelgi_shadows || (rp_voxels == "Voxel GI"))
+			#if (arm_voxelgi_shadows || rp_voxels == "Voxel GI")
 			Inc.computeVoxelsSDF();
 			#end
 
-			if (iron.RenderPath.res_pre_clear == true)
-			{
-				iron.RenderPath.res_pre_clear = false;
-				#if (rp_voxels == "Voxel GI")
-				path.clearImage("voxels_diffuse", 0x00000000);
-				path.clearImage("voxels_specular", 0x00000000);
-				#else
-				path.clearImage("voxels_ao", 0x00000000);
-				#end
-				#if arm_voxelgi_shadows
-				path.clearImage("voxels_shadows", 0x00000000);
-				#end
-			}
 		}
 		#end
 
@@ -446,10 +425,9 @@ class RenderPathForward {
 		#if rp_depthprepass
 		{
 			path.drawMeshes("depth");
+			RenderPathCreator.setTargetMeshes();
 		}
 		#end
-
-		RenderPathCreator.setTargetMeshes();
 
 		#if rp_shadowmap
 		{
@@ -465,18 +443,9 @@ class RenderPathForward {
 		#if (rp_voxels != "Off")
 		if (armory.data.Config.raw.rp_gi != false)
 		{
-			#if (rp_voxels == "Voxel AO")
-			Inc.resolveAO();
-			path.bindTarget("voxels_ao", "voxels_ao");
-			#else
-			Inc.resolveDiffuse();
-			Inc.resolveSpecular();
-			path.bindTarget("voxels_diffuse", "voxels_diffuse");
-			path.bindTarget("voxels_specular", "voxels_specular");
-			#end
-			#if arm_voxelgi_shadows
-			Inc.resolveShadows();
-			path.bindTarget("voxels_shadows", "voxels_shadows");
+			path.bindTarget("voxelsOut", "voxels");
+			#if (arm_voxelgi_shadows || rp_voxels == "Voxel GI")
+			path.bindTarget("voxelsSDF", "voxelsSDF");
 			#end
 		}
 		#end
@@ -491,9 +460,9 @@ class RenderPathForward {
 		}
 		#end
 
-		#if (rp_render_to_texture || rp_voxels != "Off")
+		#if rp_render_to_texture
 		{
-			#if (rp_ssr_half || rp_ssgi_half || rp_voxels != "Off")
+			#if (rp_ssr_half || rp_ssgi_half)
 			path.setTarget("half");
 			path.bindTarget("_main", "texdepth");
 			path.drawShader("shader_datas/downsample_depth/downsample_depth");
@@ -511,13 +480,7 @@ class RenderPathForward {
 					path.bindTarget("lbuffer0", "tex");
 					path.drawShader("shader_datas/copy_pass/copy_pass");
 
-					path.setTarget("lbuffer0", ["lbuffer1", "gbuffer_refraction"]);
-
-					#if (rp_voxels != "Off")
-					path.bindTarget("voxelsOut", "voxels");
-					path.bindTarget("voxelsSDF", "voxelsSDF");
-					#end
-
+					RenderPathCreator.setTargetMeshes();
 					path.drawMeshes("refraction");
 
 					path.setTarget("lbuffer0");

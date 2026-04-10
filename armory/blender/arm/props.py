@@ -357,7 +357,6 @@ def init_properties():
     bpy.types.Object.arm_spawn = BoolProperty(name="Spawn", description="Auto-add this object when creating scene", default=True, override={'LIBRARY_OVERRIDABLE'})
     bpy.types.Object.arm_mobile = BoolProperty(name="Mobile", description="Object moves during gameplay", default=False, override={'LIBRARY_OVERRIDABLE'})
     bpy.types.Object.arm_visible = BoolProperty(name="Visible", description="Render this object", default=True, override={'LIBRARY_OVERRIDABLE'})
-    bpy.types.Object.arm_lighting = BoolProperty(name="Lighting", description="Object contributes to the lighting", default=True, override={'LIBRARY_OVERRIDABLE'})
     bpy.types.Object.arm_soft_body_margin = FloatProperty(name="Soft Body Margin", description="Collision margin", default=0.04)
     bpy.types.Object.arm_soft_body_linear_stiffness = FloatProperty(name="Soft Body Linear Stiffness", description="Linear Stiffness", default=0.9)
     bpy.types.Object.arm_soft_body_friction = FloatProperty(name="Soft Body Friction", description="Friction", default=0.5)
