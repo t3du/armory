@@ -8,6 +8,9 @@
 #ifdef _Irr
 #include "std/shirr.glsl"
 #endif
+#ifdef _VoxelShadow
+#include "std/conetrace.glsl"
+#endif
 #ifdef _SSS
 #include "std/sss.glsl"
 #endif
@@ -34,7 +37,9 @@ uniform sampler2D voxels_specular;
 uniform sampler2D voxels_ao;
 #endif
 #ifdef _VoxelShadow
-uniform sampler2D voxels_shadows;
+uniform float clipmaps[voxelgiClipmapCount * 10];
+uniform sampler3D voxels;
+uniform sampler3D voxelsSDF;
 #endif
 
 uniform float envmapStrength;
@@ -125,7 +130,7 @@ uniform vec2 cameraPlane;
 		#ifndef _SingleAtlas
 		//!uniform sampler2DShadow shadowMapAtlasPoint;
 		#endif
-		//!uniform vec4 pointLightDataArray[maxLightsCluster * 6];
+		//!uniform vec4 pointLightDataArray[4];
 	#else
 		//!uniform samplerCubeShadow shadowMapPoint[4];
 	#endif
@@ -138,7 +143,7 @@ uniform vec2 cameraPlane;
 		#else
 		//!uniform sampler2DShadow shadowMapSpot[4];
 		#endif
-	//!uniform mat4 LWVPSpotArray[maxLightsCluster];
+	//!uniform mat4 LWVPSpotArray[4];
 	#endif
 #endif
 #endif
@@ -272,13 +277,13 @@ void main() {
 	envl.rgb *= envmapStrength * occspec.x;
 
 #ifdef _VoxelGI
-	fragColor.rgb = textureLod(voxels_diffuse, texCoord, 0.0).rgb * albedo * voxelgiDiff;
+	fragColor.rgb = textureLod(voxels_diffuse, texCoord, 0.0).rgb * voxelgiDiff * albedo;
 	if(roughness < 1.0 && occspec.y > 0.0)
-		fragColor.rgb += textureLod(voxels_specular, texCoord, 0.0).rgb * occspec.y * voxelgiRefl;
+		fragColor.rgb += textureLod(voxels_specular, texCoord, 0.0).rgb * voxelgiRefl * occspec.y;
 #endif
 
 #ifdef _VoxelAOvar
-	envl.rgb *= textureLod(voxels_ao, texCoord, 0.0).r;
+	envl.rgb *= 1.0 - textureLod(voxels_ao, texCoord, 0.0).r;
 #endif
 
 #ifndef _VoxelGI
@@ -348,25 +353,23 @@ void main() {
 			);
 		#else
 			vec4 lPos = LWVP * vec4(p + n * shadowsBias * 100, 1.0);
-			if (lPos.w > 0.0) {
-				svisibility = shadowTest(
-					#ifdef _ShadowMapAtlas
-						#ifndef _SingleAtlas
-						shadowMapAtlasSun
-						#else
-						shadowMapAtlas
-						#endif
+			if (lPos.w > 0.0) svisibility = shadowTest(
+				#ifdef _ShadowMapAtlas
+					#ifndef _SingleAtlas
+					shadowMapAtlasSun
 					#else
-					shadowMap
+					shadowMapAtlas
 					#endif
-					, lPos.xyz / lPos.w, shadowsBias
-				);
-			}
+				#else
+				shadowMap
+				#endif
+				, lPos.xyz / lPos.w, shadowsBias
+			);
 		#endif
 	#endif
 
 	#ifdef _VoxelShadow
-	svisibility *= textureLod(voxels_shadows, texCoord, 0.0).r * voxelgiShad;
+	svisibility *= 1.0 - traceShadow(p, n, voxels, voxelsSDF, sunDir, clipmaps);
 	#endif
 	
 	#ifdef _SSRS
@@ -385,7 +388,7 @@ void main() {
 	svisibility *= clamp(sdotNL + 2.0 * occspec.x * occspec.x - 1.0, 0.0, 1.0);
 	#endif
 
-	fragColor.rgb += sdirect * sunCol * svisibility;
+	fragColor.rgb += sdirect * svisibility * sunCol;
 
 //	#ifdef _Hair // Aniso
 // 	if (matid == 2) {
@@ -414,7 +417,7 @@ void main() {
 			#else
 			shadowMap
 			#endif
-		);//TODO implement transparent shadowmaps into the SSSSTransmittance()
+		);
 	}
 	#endif
 
@@ -431,7 +434,9 @@ void main() {
 		, true, spotData.x, spotData.y, spotDir, spotData.zw, spotRight
 		#endif
 		#ifdef _VoxelShadow
-		, texCoord
+		, voxels 
+		, voxelsSDF
+		, clipmaps
 		#endif
 		#ifdef _MicroShadowing
 		, occspec.x
@@ -489,7 +494,9 @@ void main() {
 			, lightsArraySpot[li * 2 + 1].xyz // right
 			#endif
 			#ifdef _VoxelShadow
-			, texCoord
+			, voxels
+			, voxelsSDF
+			, clipmaps
 			#endif
 			#ifdef _MicroShadowing
 			, occspec.x
