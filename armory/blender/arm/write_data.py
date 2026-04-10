@@ -453,7 +453,7 @@ def write_config(resx, resy):
         'rp_bloom': rpdat.rp_bloom != 'Off',
         'rp_chromatic_aberration': rpdat.rp_chromatic_aberration != 'Off',
         'rp_motionblur': rpdat.rp_motionblur != 'Off',
-        'rp_gi': rpdat.rp_voxels != "Off",
+        'rp_gi': rpdat.rp_voxelao,
         'rp_dynres': rpdat.rp_dynres
     }
 
@@ -488,8 +488,8 @@ class Main {
 
         if rpdat.rp_voxels == 'Voxel GI' or rpdat.rp_voxels == 'Voxel AO':
             f.write("""
-            public static inline var voxelgiClipmapCount = """ + str(rpdat.arm_voxelgi_clipmap_count) + """;
-            public static inline var voxelgiVoxelSize = """ + str(round(rpdat.arm_voxelgi_size * 100) / 100) + """;""")
+    public static inline var voxelgiVoxelSize = """ + str(rpdat.arm_voxelgi_dimensions) + " / " + str(rpdat.rp_voxelgi_resolution) + """;
+    public static inline var voxelgiHalfExtents = """ + str(round(rpdat.arm_voxelgi_dimensions / 2.0)) + """;""")
 
         if rpdat.rp_bloom:
 
@@ -797,22 +797,18 @@ const float compoDOFFstop = """ + str(round(fstop * 100) / 100) + """;
 const float compoDOFLength = """ + str(round(lens * 100) / 100) +""";
 """) #160.0;
 
-        if rpdat.rp_voxels != 'Off':
-            f.write("""const ivec3 voxelgiResolution = ivec3(""" + str(rpdat.rp_voxelgi_resolution) + """, """ + str(rpdat.rp_voxelgi_resolution) + """, """ + str(rpdat.rp_voxelgi_resolution) + """);
-const int voxelgiClipmapCount = """ + str(rpdat.arm_voxelgi_clipmap_count) + """;
+        if rpdat.rp_voxelao:
+            halfext = round(rpdat.arm_voxelgi_dimensions / 2.0)
+            f.write(
+"""const ivec3 voxelgiResolution = ivec3(""" + str(rpdat.rp_voxelgi_resolution) + """, """ + str(rpdat.rp_voxelgi_resolution) + """, """ + str(int(int(rpdat.rp_voxelgi_resolution) * float(rpdat.rp_voxelgi_resolution_z))) + """);
+const vec3 voxelgiHalfExtents = vec3(""" + str(halfext) + """, """ + str(halfext) + """, """ + str(round(halfext * float(rpdat.rp_voxelgi_resolution_z))) + """);
 const float voxelgiOcc = """ + str(round(rpdat.arm_voxelgi_occ * 100) / 100) + """;
-const float voxelgiVoxelSize = """ + str(round(rpdat.arm_voxelgi_size * 100) / 100) + """;
 const float voxelgiStep = """ + str(round(rpdat.arm_voxelgi_step * 100) / 100) + """;
 const float voxelgiRange = """ + str(round(rpdat.arm_voxelgi_range * 100) / 100) + """;
 const float voxelgiOffset = """ + str(round(rpdat.arm_voxelgi_offset * 100) / 100) + """;
 const float voxelgiAperture = """ + str(round(rpdat.arm_voxelgi_aperture * 100) / 100) + """;
 """)
-        if rpdat.rp_voxels == 'Voxel GI':
-            f.write("""
-const float voxelgiDiff = """ + str(round(rpdat.arm_voxelgi_diff * 100) / 100) + """;
-const float voxelgiRefl = """ + str(round(rpdat.arm_voxelgi_spec * 100) / 100) + """;
-const float voxelgiRefr = """ + str(round(rpdat.arm_voxelgi_refr * 100) / 100) + """;
-""")
+
         if rpdat.rp_sss:
             f.write(f"const float sssWidth = {rpdat.arm_sss_width / 10.0};\n")
 
