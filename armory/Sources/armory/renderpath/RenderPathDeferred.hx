@@ -466,13 +466,6 @@ class RenderPathDeferred {
 		}
 		#end
 
-		#if rp_ssrefr
-		{
-			path.setTarget("gbuffer_refraction");
-			path.clearTarget(0xffffff00);
-		}
-		#end
-
 		RenderPathCreator.setTargetMeshes();
 
 		#if rp_dynres
@@ -613,7 +606,7 @@ class RenderPathDeferred {
 
 			Inc.computeVoxelsTemporal();
 
-			#if (arm_voxelgi_shadows || rp_voxels == "Voxel GI")
+			#if (arm_voxelgi_shadows || (rp_voxels == "Voxel GI"))
 			Inc.computeVoxelsSDF();
 			#end
 
