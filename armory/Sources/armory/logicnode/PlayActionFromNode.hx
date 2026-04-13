@@ -6,7 +6,7 @@ import iron.Scene;
 import kha.arrays.Float32Array;
 import iron.object.ObjectAnimation;
 
-class PlayActionFromNode extends LogicNode {
+}class PlayActionFromNode extends LogicNode {
 
 	var animation: Animation;
 	var startFrame: Int;
@@ -47,7 +47,7 @@ class PlayActionFromNode extends LogicNode {
 
 		if (object == null) return;
 		animation = object.animation;
-		if (animation == null) animation = object.getParentArmature(object.name);
+		if (animation == null) animation = object.getBoneAnimation(object.uid);
 
 		if (reverse){
 			var isnew = true;
