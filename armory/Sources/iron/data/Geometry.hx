@@ -285,6 +285,8 @@ class Geometry {
 		return Std.int(arr.values.length / arr.size);
 	}
 
+// Skinned
+#if arm_skin
 	public function initSkeletonTransforms(transformsI: Array<Float32Array>) {
 		skeletonTransformsI = [];
 		for (t in transformsI) {

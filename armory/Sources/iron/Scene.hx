@@ -777,6 +777,12 @@ class Scene {
 
 	public function returnMeshObject(object_file: String, data_ref: String, sceneName: String, armature: #if arm_skin Armature #else Null<Int> #end, materials: Vector<MaterialData>, parent: Object, parentObject: TObj, o: TObj, done: Object->Void) {
 		Data.getMesh(object_file, data_ref, function(mesh: MeshData) {
+			var object = addMeshObject(mesh, materials, parent);
+			#if arm_batch
+			var lod = isLod(o) || (parent != null && isLod(parent.raw));
+			object.batch(lod);
+			#end
+
 			// Attach particle systems
 			#if arm_particles
 			if (o.particle_refs != null) {
