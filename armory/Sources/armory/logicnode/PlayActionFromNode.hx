@@ -6,7 +6,7 @@ import iron.Scene;
 import kha.arrays.Float32Array;
 import iron.object.ObjectAnimation;
 
-}class PlayActionFromNode extends LogicNode {
+class PlayActionFromNode extends LogicNode {
 
 	var animation: Animation;
 	var startFrame: Int;
