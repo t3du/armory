@@ -145,6 +145,11 @@ def build_node(node: bpy.types.Node, f: TextIO, name_prefix: str = None) -> Opti
     global parsed_nodes
     global parsed_ids
 
+    if node.mute:
+        if len(node.inputs) > 0 and node.inputs[0].is_linked:
+            return build_node(node.inputs[0].links[0].from_node, f, name_prefix)
+        return None
+
     use_live_patch = arm.utils.is_livepatch_enabled()
 
     link_group = False
@@ -249,11 +254,16 @@ def build_node(node: bpy.types.Node, f: TextIO, name_prefix: str = None) -> Opti
                         arm.log.warn(f'Sockets do not match in logic node tree "{group_name}": node "{node.name}", socket "{inp.name}"')
 
                 inp_name = build_node(n, f, name_prefix)
-                for i in range(0, len(n.outputs)):
-                    if n.outputs[i] == socket:
-                        inp_from = i
-                        from_type = arm.node_utils.get_socket_type(socket)
-                        break
+                if inp_name is None:
+                    inp_name = build_default_node(inp)
+                    inp_from = 0
+                    from_type = arm.node_utils.get_socket_type(inp)
+                else:
+                    for i in range(0, len(n.outputs)):
+                        if n.outputs[i] == socket:
+                            inp_from = i
+                            from_type = arm.node_utils.get_socket_type(socket)
+                            break
 
         # Not linked -> create node with default values
         else:
@@ -307,7 +317,9 @@ def collect_nodes_from_output(out, f):
             reroutes.append(n)
         else:
             # immediatly add the current node
-            outputs.append(build_node(n, f))
+            node_name = build_node(n, f)
+            if node_name is not None:
+                outputs.append(node_name)
     for reroute in reroutes:
         for o in reroute.outputs:
             outputs = outputs + collect_nodes_from_output(o, f)
@@ -320,6 +332,8 @@ def get_root_nodes(node_group):
             arm.log.warn('Undefined logic nodes in ' + node_group.name)
             return []
         if node.type == 'FRAME':
+            continue
+        if node.mute:
             continue
         linked = False
         for out in node.outputs:
