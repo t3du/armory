@@ -109,13 +109,38 @@ class Transform {
 		if (dirty) buildMatrix();
 	}
 
+	/**
+		Clear delta transforms. `dloc`, `drot` and `dscale` are set to `null`
+	**/
+	public function clearDelta() {
+
+		dloc = null;
+		drot = null;
+		dscale = null;
+	}
+
+	/**
+		Reset delta transforms. `dloc`, `drot` and `dscale` 
+		are set to `Vec4(0, 0, 0)`, `Quat(0, 0, 0, 0)` and `Vec4(1, 1, 1)` respectively
+	**/
+	public function resetDelta() {
+		dloc = new Vec4();
+		drot = new Quat();
+		_deulerX = _deulerY = _deulerZ = 0.0;
+		dscale = new Vec4().set(1, 1, 1);
+	}
+
 	function composeDelta() {
 		// Delta transform
-		dloc.addvecs(loc, dloc);
-		dscale.addvecs(dscale, scale);
-		drot.fromEuler(_deulerX, _deulerY, _deulerZ);
-		drot.multquats(rot, drot);
-		local.compose(dloc, drot, dscale);
+		var dl = new Vec4().addvecs(loc, dloc);
+		var ds = new Vec4().setFrom(scale);
+		ds.x *= dscale.x;
+		ds.y *= dscale.y;
+		ds.z *= dscale.z;
+		var dr = new Quat().fromEuler(_deulerX, _deulerY, _deulerZ);
+		dr.multquats(dr, rot);
+		dr.multquats(drot, dr);
+		local.compose(dl, dr, ds);
 	}
 
 	/**

@@ -108,11 +108,6 @@ class MeshData {
 				// Skinned
 				#if arm_skin
 				if (raw.skin != null) {
-					dat.geom.skinBoneCounts = raw.skin.bone_count_array;
-					dat.geom.skinBoneIndices = raw.skin.bone_index_array;
-					dat.geom.skinBoneWeights = raw.skin.bone_weight_array;
-					dat.geom.skeletonBoneRefs = raw.skin.bone_ref_array;
-					dat.geom.skeletonBoneLens = raw.skin.bone_len_array;
 					dat.geom.initSkeletonTransforms(raw.skin.transformsI);
 				}
 				#end

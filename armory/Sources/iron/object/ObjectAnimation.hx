@@ -1,5 +1,8 @@
 package iron.object;
 
+import iron.object.Animation.ActionSampler;
+
+import kha.arrays.Float32Array;
 import kha.FastFloat;
 import kha.arrays.Uint32Array;
 import iron.math.Vec4;
@@ -14,6 +17,21 @@ class ObjectAnimation extends Animation {
 	var oaction: TObj;
 	var s0: FastFloat = 0.0;
 	var bezierFrameIndex = -1;
+
+	var updateAnimation: Map<String, FastFloat> -> Void;
+
+	public var transformArr: Float32Array;
+
+	public var transformMap: Map<String, FastFloat>;
+
+	public static var trackNames: Array<String> = [	"xloc", "yloc", "zloc",
+											   		"xrot", "yrot", "zrot",
+											   		"qwrot", "qxrot", "qyrot", "qzrot",
+													"xscl", "yscl", "zscl",
+													"dxloc", "dyloc", "dzloc",
+													"dxrot", "dyrot", "dzrot",
+													"dqwrot", "dqxrot", "dqyrot", "dqzrot",
+													"dxscl", "dyscl", "dzscl"];
 
 	public function new(object: Object, oactions: Array<TSceneFormat>) {
 		this.object = object;
@@ -37,87 +55,76 @@ class ObjectAnimation extends Animation {
 	}
 
 	override public function update(delta: FastFloat) {
-		if (!object.visible || object.culled || oaction == null) return;
+		if (!object.visible || object.culled) return;
 
 		#if arm_debug
 		Animation.beginProfile();
 		#end
 
+		if(transformMap == null) transformMap = new Map();
+		transformMap = initTransformMap();
+
 		super.update(delta);
 		if (paused) return;
-		if (!isSkinned) updateObjectAnim();
+		if(updateAnimation == null) return;
+		if (!isSkinned) updateObjectAnimation();
 
 		#if arm_debug
 		Animation.endProfile();
 		#end
 	}
 
-	function updateObjectAnim() {
-		updateTransformAnim(oaction.anim, object.transform);
+	public override function getTotalFrames(sampler: ActionSampler): Int {
+		var track = getAction(sampler.action).anim.tracks[0];
+		return Std.int(track.frames[track.frames.length - 1] - track.frames[0]);
+	}
+
+	public function initTransformMap(){
+
+		var map = new Map<String, Null<FastFloat>>();
+		for (name in trackNames){
+			map.set(name, null);
+		}
+
+		return map;
+
+	}
+
+	public function animationLoop(f: Map<String, FastFloat>->Void){
+		
+		updateAnimation = f;
+	}
+
+	function updateObjectAnimation() {
+		updateAnimation(transformMap);
+		updateTransform(transformMap, object.transform);
 		object.transform.buildMatrix();
 	}
 
-	inline function interpolateLinear(t: FastFloat, t1: FastFloat, t2: FastFloat, v1: FastFloat, v2: FastFloat): FastFloat {
-		var s = (t - t1) / (t2 - t1);
-		return (1.0 - s) * v1 + s * v2;
-	}
+	override public function updateActionTrack(sampler: ActionSampler) {
+		if(sampler.paused) return;
 
-	// inline function interpolateTcb(): FastFloat { return 0.0; }
-
-	override function isTrackEnd(track: TTrack): Bool {
-		return speed > 0 ?
-			frameIndex >= track.frames.length - 2 :
-			frameIndex <= 0;
-	}
-
-	inline function checkFrameIndexT(frameValues: Uint32Array, t: FastFloat): Bool {
-		return speed > 0 ?
-			frameIndex < frameValues.length - 2 && t > frameValues[frameIndex + 1] * frameTime :
-			frameIndex > 1 && t > frameValues[frameIndex - 1] * frameTime;
-	}
-
-	@:access(iron.object.Transform)
-	function updateTransformAnim(anim: TAnimation, transform: Transform) {
-		if (anim == null) return;
-
-		var total = anim.end * frameTime - anim.begin * frameTime;
-
-		if (anim.has_delta) {
-			var t = transform;
-			if (t.dloc == null) {
-				t.dloc = new Vec4();
-				t.drot = new Quat();
-				t.dscale = new Vec4();
-			}
-			t.dloc.set(0, 0, 0);
-			t.dscale.set(0, 0, 0);
-			t._deulerX = t._deulerY = t._deulerZ = 0.0;
+		if(! sampler.actionDataInit) {
+			var objanim = getAction(sampler.action);
+			sampler.setObjectAction(objanim);
 		}
 
+		oaction = sampler.getObjectAction();
+		updateTrack(oaction.anim, sampler);
+
+	}
+
+	function updateAnimSampled(anim: TAnimation, transformMap: Map<String, FastFloat>, sampler: ActionSampler) {
+
 		for (track in anim.tracks) {
+			var sign = sampler.speed > 0 ? 1 : -1;
 
-			if (frameIndex == -1) rewind(track);
-			var sign = speed > 0 ? 1 : -1;
+			var t = sampler.time;
+			//t = t < 0 ? 0.1 : t;
 
-			// End of current time range
-			var t = time + anim.begin * frameTime;
-			while (checkFrameIndexT(track.frames, t)) frameIndex += sign;
+			var ti = sampler.offset;
+			//ti = ti < 0 ? 1 : ti;
 
-			// No data for this track at current time
-			if (frameIndex >= track.frames.length) continue;
-
-			// End of track
-			if (time > total) {
-				if (onComplete != null) onComplete();
-				if (loop) rewind(track);
-				else {
-					frameIndex -= sign;
-					paused = true;
-				}
-				return;
-			}
-
-			var ti = frameIndex;
 			var t1 = track.frames[ti] * frameTime;
 			var t2 = track.frames[ti + sign] * frameTime;
 			var v1 = track.values[ti];
@@ -125,7 +132,58 @@ class ObjectAnimation extends Animation {
 
 			var value = interpolateLinear(t, t1, t2, v1, v2);
 
-			switch (track.target) {
+			if(value == null) continue;
+
+			transformMap.set(track.target, value);
+		}
+	}
+
+	public function sampleAction(sampler: ActionSampler, transformMap: Map<String, FastFloat>){
+
+		if(! sampler.actionDataInit) {
+			var objanim = getAction(sampler.action);
+			sampler.setObjectAction(objanim);
+		}
+
+		var objanim = sampler.getObjectAction();
+		updateAnimSampled(objanim.anim, transformMap, sampler);
+	}
+
+	public function blendActionObject(transformMap1: Map<String, FastFloat>, transformMap2: Map<String, FastFloat>, transformMapRes: Map<String, FastFloat>, factor: FastFloat ) {
+
+		for(track in transformMapRes.keys()){
+
+			var v1 = transformMap1.get(track);
+			var v2 = transformMap2.get(track);
+
+			if(v1 == null || v2 == null) continue;
+
+			var maxVal: FastFloat = 1.0;
+			var tempValue = (maxVal - factor) * v1 + factor * v2;
+			transformMapRes.set(track, tempValue);
+		}
+		
+	}
+
+	inline function interpolateLinear(t: FastFloat, t1: FastFloat, t2: FastFloat, v1: FastFloat, v2: FastFloat): Null<FastFloat> {
+		var s = (t - t1) / (t2 - t1);
+		return (1.0 - s) * v1 + s * v2;
+	}
+
+	@:access(iron.object.Transform)
+	function updateTransform(transformMap: Map<String, FastFloat>, transform: Transform) {
+
+		var t = transform;
+		t.resetDelta();
+
+		for (track in transformMap.keys()){
+
+			var value = transformMap.get(track);
+
+			if(value == null) continue;
+
+			switch (track) {
+
 				case "xloc": transform.loc.x = value;
 				case "yloc": transform.loc.y = value;
 				case "zloc": transform.loc.z = value;
@@ -154,11 +212,6 @@ class ObjectAnimation extends Animation {
 				case "dyscl": transform.dscale.y = value;
 				case "dzscl": transform.dscale.z = value;
 			}
-		}
-	}
-
-	override public function totalFrames(): Int {
-		if (oaction == null || oaction.anim == null) return 0;
-		return oaction.anim.end - oaction.anim.begin;
+		}		
 	}
 }

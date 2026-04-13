@@ -748,13 +748,6 @@ class Scene {
 						}
 						// Create new one
 						if (armature == null) {
-							// Unique name if armature was already instantiated for different object
-							for (a in armatures) {
-								if (a.name == parent.name) {
-									parent.name += "." + parent.uid;
-									break;
-								}
-							}
 							armature = new Armature(parent.uid, parent.name, bactions);
 							armatures.push(armature);
 						}
@@ -784,18 +777,6 @@ class Scene {
 
 	public function returnMeshObject(object_file: String, data_ref: String, sceneName: String, armature: #if arm_skin Armature #else Null<Int> #end, materials: Vector<MaterialData>, parent: Object, parentObject: TObj, o: TObj, done: Object->Void) {
 		Data.getMesh(object_file, data_ref, function(mesh: MeshData) {
-			#if arm_skin
-			if (mesh.isSkinned) {
-				var g = mesh.geom;
-				armature != null ? g.addArmature(armature) : g.addAction(mesh.format.objects, "none");
-			}
-			#end
-			var object = addMeshObject(mesh, materials, parent);
-			#if arm_batch
-			var lod = isLod(o) || (parent != null && isLod(parent.raw));
-			object.batch(lod);
-			#end
-
 			// Attach particle systems
 			#if arm_particles
 			if (o.particle_refs != null) {

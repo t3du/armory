@@ -98,9 +98,9 @@ class MeshObject extends Object {
 		#if arm_skin
 		var hasAction = parent != null && parent.raw != null && parent.raw.bone_actions != null;
 		if (hasAction) {
-			var armatureName = parent.name;
-			animation = getParentArmature(armatureName);
-			if (animation == null) animation = new BoneAnimation(armatureName);
+			var armatureUid = parent.uid;
+			animation = getBoneAnimation(armatureUid);
+			if (animation == null) animation = new BoneAnimation(armatureUid, parent);
 			if (data.isSkinned) cast(animation, BoneAnimation).setSkin(this);
 		}
 		#end
