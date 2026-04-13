@@ -899,7 +899,7 @@ class DebugConsole extends Trait {
 					ui.indent();
 					var t = ui.textInput(Id.handle());
 					if (ui.button("Run")) {
-						try { trace("> " + t); js.Lib.eval(t); }
+						try { trace("> " + t + " : " + Std.string(js.Lib.eval(t))); }
 						catch (e: Dynamic) { trace(e); }
 					}
 					ui.unindent();
