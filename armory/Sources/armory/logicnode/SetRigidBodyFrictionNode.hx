@@ -15,6 +15,8 @@ class SetRigidBodyFrictionNode extends LogicNode {
 		var angFriction: Float = inputs[3].get();
 
 		if (obj == null) return;
+		
+		#if arm_physics
 		var rb = obj.getTrait(RigidBody);
 		if (rb != null) {
 			rb.friction = friction;
@@ -24,6 +26,7 @@ class SetRigidBodyFrictionNode extends LogicNode {
 			rb.body.setRollingFriction(angFriction);
 			rb.activate();
 		}
+		#end
 
 		runOutput(0);
 	}

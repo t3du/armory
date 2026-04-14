@@ -20,6 +20,7 @@ class GetSoftBodyDataNode extends LogicNode {
 		var obj: Object = inputs[0].get();
 		if (obj == null) return null;
 
+		#if arm_physics_soft
 		var sb = obj.getTrait(SoftBody);
 		if (sb == null) return null;
 
@@ -37,5 +38,8 @@ class GetSoftBodyDataNode extends LogicNode {
 			case 10: @:privateAccess sb.angularStiffness;
 			default: null;
 		}
+		#end
+
+		return null;
 	}
 }

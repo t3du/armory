@@ -23,11 +23,13 @@ class AddSoftBodyNode extends LogicNode {
 		var lStiff: Float = inputs[9].get();
 		var aStiff: Float = inputs[10].get();
 
+		#if arm_physics_soft
 		var sb: SoftBody = obj.getTrait(SoftBody);
 		if (sb == null) {
 			sb = new SoftBody(shape, bend, mass, margin, friction, damping, lStiff, aStiff, pressure);
 			obj.addTrait(sb);
 		}
+		#end
 
 		runOutput(0);
 	}

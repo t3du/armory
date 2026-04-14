@@ -13,11 +13,12 @@ class RemoveSoftBodyNode extends LogicNode {
 		var obj: Object = inputs[1].get();
 		if (obj == null) return;
 
-		// Buscar el trait específico
+		#if arm_physics_soft
 		var sb = obj.getTrait(SoftBody);
 		if (sb != null) {
 			obj.removeTrait(sb);
 		}
+		#end
 
 		runOutput(0);
 	}
