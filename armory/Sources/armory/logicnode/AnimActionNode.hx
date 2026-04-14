@@ -36,7 +36,7 @@ class AnimActionNode extends LogicNode {
 			#if arm_skin
 			animationBone = object.getBoneAnimation(object.uid);
 			animationBone.registerAction(property0, sampler);
-			func = sampleBonaAction;
+			func = sampleBoneAction;
 			#end
 		}
 		else{
@@ -50,7 +50,7 @@ class AnimActionNode extends LogicNode {
 	}
 
 	#if arm_skin
-	public function sampleBonaAction(animMats: Array<Mat4>){
+	public function sampleBoneAction(animMats: Array<Mat4>){
 		animationBone.sampleAction(sampler, animMats);
 	}
 	#end
