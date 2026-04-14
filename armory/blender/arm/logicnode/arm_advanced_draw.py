@@ -6,6 +6,12 @@ from gpu_extras.batch import batch_for_shader
 from gpu_extras.presets import *
 from math import pi, cos, sin
 
+def get_shader_name(name_2d):
+    if bpy.app.version >= (4, 0, 0):
+        if name_2d == '2D_UNIFORM_COLOR':
+            return 'UNIFORM_COLOR'
+    return name_2d
+
 def getDpiFactor():
     return getDpi() / 72
 
@@ -71,9 +77,9 @@ class Rectangle:
 
     def resetPosition(self, x1 = 0, y1 = 0, x2 = 0, y2 = 0):
         self.x1 = float(x1)
-        self.y1 =  float(y1)
-        self.x2 =  float(x2)
-        self.y2 =  float(y2)
+        self.y1 = float(y1)
+        self.x2 = float(x2)
+        self.y2 = float(y2)
 
     def copy(self):
         return Rectangle(self.x1, self.y1, self.x2, self.y2)
@@ -126,14 +132,12 @@ class Rectangle:
             (self.x2, self.y1),
             (self.x1, self.y2),
             (self.x2, self.y2))
-        shader = gpu.shader.from_builtin('2D_UNIFORM_COLOR')
+        shader = gpu.shader.from_builtin(get_shader_name('2D_UNIFORM_COLOR'))
         batch = batch_for_shader(shader, 'TRI_STRIP', {"pos": locations})
 
         shader.bind()
         shader.uniform_float("color", color)
-
         batch.draw(shader)
-
 
         if borderThickness == 0: return
 
@@ -144,19 +148,14 @@ class Rectangle:
             (self.x2 + offset, self.y1 + bWidth), (self.x2 + offset, self.y2 - bWidth),
             (self.x2 + bWidth, self.y2 - offset), (self.x1 - bWidth, self.y2 - offset),
             (self.x1 - offset, self.y2 - bWidth), (self.x1 - offset, self.y1 + bWidth))
-        batch = batch_for_shader(shader, 'LINES',{"pos": borderLocations})
+        batch = batch_for_shader(shader, 'LINES', {"pos": borderLocations})
 
         shader.bind()
         shader.uniform_float("color", borderColor)
         gpu.state.line_width_set(abs(borderThickness))
-
         batch.draw(shader)
 
-    def __repr__(self):
-        return "({}, {}) - ({}, {})".format(self.x1, self.y1, self.x2, self.y2)
-
 class Points:
-
     def __init__(self, points = []):
         self.points = points
         self.point_size = 0.025
@@ -177,14 +176,6 @@ class Points:
         self.visible = []
         self.show_numbers = False
     
-    def get_points_list(self):
-        p = []
-        for p1 in self.points:
-            for p2 in p1:
-                p.append(p2)
-        
-        return p
-
     def calcPoints(self, points, visible, x1, y1, width, show_numbers):
         self.width = width
         self.points = []
@@ -198,189 +189,98 @@ class Points:
             self.points.append(point)
 
     def reset_circle(self, point):
-        new_coords = []
-        for coord in self.circle_coords:
-            x = coord[0] * self.width + point[0]
-            y = coord[1] * self.width + point[1]
-            new_coords.append((x, y))
-        return new_coords
+        return [(coord[0] * self.width + point[0], coord[1] * self.width + point[1]) for coord in self.circle_coords]
     
     def reset_square(self, point):
-        new_coords = []
-        for coord in self.square_coord:
-            x = coord[0] * self.width + point[0]
-            y = coord[1] * self.width + point[1]
-            new_coords.append((x, y))
-        return new_coords
+        return [(coord[0] * self.width + point[0], coord[1] * self.width + point[1]) for coord in self.square_coord]
     
     def circle(self, x, y, radius, segments):
         coords = []
         m = (1.0 / (segments - 1)) * (pi * 2)
-
         for p in range(segments):
-            p1 = x + cos(m * p) * radius
-            p2 = y + sin(m * p) * radius
-            coords.append((p1, p2))
+            coords.append((x + cos(m * p) * radius, y + sin(m * p) * radius))
         return coords
     
     def drawPointCirc(self):
-        shader = gpu.shader.from_builtin('2D_UNIFORM_COLOR')
+        shader = gpu.shader.from_builtin(get_shader_name('2D_UNIFORM_COLOR'))
+        
+        # Primero dibujamos todas las figuras GPU
         for i in range(len(self.points) - 1):
             if(self.visible[i]):
                 pos = self.points[i]
-                circle_co = self.reset_circle(pos)
-                batch = batch_for_shader(shader, 'TRI_FAN',{"pos": circle_co})
+                batch = batch_for_shader(shader, 'TRI_FAN', {"pos": self.reset_circle(pos)})
                 shader.bind()
-                col = self.colors[i]
-                shader.uniform_float("color", col)
+                shader.uniform_float("color", self.colors[i])
                 batch.draw(shader)
-                if self.show_numbers:
-                    blf.color(0, col[0], col[1], col[2], col[3])
-                    blf.size(0, self.width/10, int(getDpi()))
-                    blf.position(0, pos[0], pos[1], 0)
-                    blf.draw(0, str(i + 1))
+
         square_co = self.reset_square(self.points[len(self.points) - 1])
-        batch = batch_for_shader(shader, 'TRI_FAN',{"pos": square_co})
+        batch = batch_for_shader(shader, 'TRI_FAN', {"pos": square_co})
         shader.bind()
         shader.uniform_float("color", self.colors[len(self.points) - 1])
         batch.draw(shader)
-        
 
-    
+        # Al final dibujamos el texto para que no desaparezcan las figuras en 4.0+
+        if self.show_numbers:
+            for i in range(len(self.points) - 1):
+                if(self.visible[i]):
+                    pos = self.points[i]
+                    col = self.colors[i]
+                    blf.color(0, col[0], col[1], col[2], col[3])
+                    blf.size(0, int(self.width/10)) 
+                    blf.position(0, pos[0], pos[1], 0)
+                    blf.draw(0, str(i + 1))
+
 class RectangleWithGrid:
     def __init__(self, x1 = 0, y1 = 0, x2 = 0, y2 = 0):
         self.resetPosition(x1, y1, x2, y2)
         self.numGrids = 21
 
-    @classmethod
-    def fromRegionDimensions(cls, region):
-        return cls(0, 0, region.width, region.height)
-
     def resetPosition(self, x1 = 0, y1 = 0, x2 = 0, y2 = 0):
-        self.x1 = float(x1)
-        self.y1 =  float(y1)
-        self.x2 =  float(x2)
-        self.y2 =  float(y2)
-
-    def copy(self):
-        return Rectangle(self.x1, self.y1, self.x2, self.y2)
+        self.x1, self.y1, self.x2, self.y2 = float(x1), float(y1), float(x2), float(y2)
 
     @property
-    def width(self):
-        return abs(self.x1 - self.x2)
-    
+    def width(self): return abs(self.x1 - self.x2)
     @property
-    def widthInner(self):
-        return abs(self.width - (2 * self.width/self.numGrids))
-
+    def widthInner(self): return abs(self.width - (2 * self.width/self.numGrids))
     @property
-    def offsetInner(self):
-        return abs(self.width/self.numGrids)
-
-
+    def offsetInner(self): return abs(self.width/self.numGrids)
     @property
-    def height(self):
-        return abs(self.y1 - self.y2)
-
+    def height(self): return abs(self.y1 - self.y2)
     @property
-    def left(self):
-        return min(self.x1, self.x2)
-
+    def centerX(self): return (self.x1 + self.x2) / 2
     @property
-    def right(self):
-        return max(self.x1, self.x2)
-
-    @property
-    def top(self):
-        return max(self.y1, self.y2)
-
-    @property
-    def bottom(self):
-        return min(self.y1, self.y2)
-
-    @property
-    def center(self):
-        return Vector((self.centerX, self.centerY))
-
-    @property
-    def centerX(self):
-        return (self.x1 + self.x2) / 2
-
-    @property
-    def centerY(self):
-        return (self.y1 + self.y2) / 2
-
-    def getInsetRectangle(self, amount):
-        return Rectangle(self.left + amount, self.top - amount, self.right - amount, self.bottom + amount)
-
-    def contains(self, point):
-        return self.left <= point[0] <= self.right and self.bottom <= point[1] <= self.top
+    def centerY(self): return (self.y1 + self.y2) / 2
 
     def draw(self, color = (0.5, 0.5, 0.5, 1.0), borderColor = (0.3, 0.3, 0.3, 1.0), gridColor = (0.5, 0.5, 0.5, 1.0), borderThickness = 3, gridLineThickness = 1):
-        locations = (
-            (self.x1, self.y1),
-            (self.x2, self.y1),
-            (self.x1, self.y2),
-            (self.x2, self.y2))
-        shader = gpu.shader.from_builtin('2D_UNIFORM_COLOR')
-        batch = batch_for_shader(shader, 'TRI_STRIP', {"pos": locations})
+        shader = gpu.shader.from_builtin(get_shader_name('2D_UNIFORM_COLOR'))
+        
+        # Fondo y Rectángulo interior
+        for locs, col in [([(self.x1, self.y1), (self.x2, self.y1), (self.x1, self.y2), (self.x2, self.y2)], color),
+                          ([(self.x1 + self.width/self.numGrids, self.y1 - self.height/self.numGrids),
+                            (self.x2 - self.width/self.numGrids, self.y1 - self.height/self.numGrids),
+                            (self.x1 + self.width/self.numGrids, self.y2 + self.height/self.numGrids),
+                            (self.x2 - self.width/self.numGrids, self.y2 + self.height/self.numGrids)], borderColor)]:
+            batch = batch_for_shader(shader, 'TRI_STRIP', {"pos": locs})
+            shader.bind()
+            shader.uniform_float("color", col)
+            batch.draw(shader)
 
-        shader.bind()
-        shader.uniform_float("color", color)
-
-        batch.draw(shader)
-
-        locations = (
-            (self.x1 + self.width/self.numGrids, self.y1 - self.height/self.numGrids),
-            (self.x2 - self.width/self.numGrids, self.y1 - self.height/self.numGrids),
-            (self.x1 + self.width/self.numGrids, self.y2 + self.height/self.numGrids),
-            (self.x2 - self.width/self.numGrids, self.y2 + self.height/self.numGrids))
-        shader = gpu.shader.from_builtin('2D_UNIFORM_COLOR')
-        batch = batch_for_shader(shader, 'TRI_STRIP', {"pos": locations})
-
-        shader.bind()
-        shader.uniform_float("color", borderColor)
-
-        batch.draw(shader)
-
-        if borderThickness == 0: return
-
-        offset = borderThickness // 2
-        borderLocations = (
-            (self.x1, self.y1), (self.x2, self.y1),
-            (self.x2, self.y1), (self.x2, self.y2),
-            (self.x2, self.y2), (self.x1, self.y2),
-            (self.x1, self.y2), (self.x1, self.y1),
-            (self.centerX, self.y1), (self.centerX, self.y2),
-            (self.x1, self.centerY), (self.x2, self.centerY))
-        batch = batch_for_shader(shader, 'LINES',{"pos": borderLocations})
-
+        # Bordes y ejes
+        borderLocs = [(self.x1, self.y1), (self.x2, self.y1), (self.x2, self.y1), (self.x2, self.y2),
+                      (self.x2, self.y2), (self.x1, self.y2), (self.x1, self.y2), (self.x1, self.y1),
+                      (self.centerX, self.y1), (self.centerX, self.y2), (self.x1, self.centerY), (self.x2, self.centerY)]
+        batch = batch_for_shader(shader, 'LINES', {"pos": borderLocs})
         shader.bind()
         shader.uniform_float("color", gridColor)
         gpu.state.line_width_set(abs(borderThickness))
-
         batch.draw(shader)
 
+        # Grilla
         offset = (self.x2 - self.x1) / (self.numGrids + 1)
         gridPoints = []
         for l in range(21):
-            p1 = (self.x1 + (offset * (l + 1)), self.y1)
-            p2 = (self.x1 + (offset * (l + 1)), self.y2)
-            gridPoints.append(p1)
-            gridPoints.append(p2)
-        for l in range(21):
-            p1 = (self.x1, self.y1 - (offset * (l + 1)))
-            p2 = (self.x2, self.y1 - (offset * (l + 1)))
-            gridPoints.append(p1)
-            gridPoints.append(p2)
-        
-        batch = batch_for_shader(shader, 'LINES',{"pos": gridPoints})
-
-        shader.bind()
-        shader.uniform_float("color", gridColor)
+            gridPoints.extend([(self.x1 + (offset * (l + 1)), self.y1), (self.x1 + (offset * (l + 1)), self.y2),
+                               (self.x1, self.y1 - (offset * (l + 1))), (self.x2, self.y1 - (offset * (l + 1)))])
+        batch = batch_for_shader(shader, 'LINES', {"pos": gridPoints})
         gpu.state.line_width_set(abs(gridLineThickness))
-
         batch.draw(shader)
-
-    def __repr__(self):
-        return "({}, {}) - ({}, {})".format(self.x1, self.y1, self.x2, self.y2)

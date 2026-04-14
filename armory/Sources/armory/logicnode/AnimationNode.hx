@@ -17,7 +17,7 @@ class AnimationNode extends LogicNode {
 			return from == 0 ? null : 0;
 
 		var animation: Animation = object.animation;
-		if (animation == null) animation = object.getParentArmature(object.name);
+		if (animation == null) animation = object.getBoneAnimation(object.uid);
 
 		var actions: Array<String> = [];
 
