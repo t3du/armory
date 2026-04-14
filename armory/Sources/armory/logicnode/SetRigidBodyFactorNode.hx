@@ -3,7 +3,9 @@ package armory.logicnode;
 import iron.object.Object;
 import iron.math.Vec4;
 import armory.trait.physics.RigidBody;
+#if arm_bullet
 import bullet.Bt.Vector3;
+#end
 
 class SetRigidBodyFactorNode extends LogicNode {
 
@@ -17,6 +19,8 @@ class SetRigidBodyFactorNode extends LogicNode {
 		var angFac: Vec4 = inputs[3].get();
 
 		if (obj == null) return;
+
+		#if arm_physics
 		var rb = obj.getTrait(RigidBody);
 		if (rb != null) {
 			var lf = new Vector3(linFac.x, linFac.y, linFac.z);
@@ -26,6 +30,7 @@ class SetRigidBodyFactorNode extends LogicNode {
 			rb.body.setAngularFactor(af);
 			rb.activate();
 		}
+		#end
 
 		runOutput(0);
 	}
