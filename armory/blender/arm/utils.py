@@ -435,10 +435,8 @@ def fetch_script_props(filename: str):
 
         # Property type is annotated
         if p_type is not None:
-            if p_type.startswith("iron.object.") or p_type == "iron.data.SceneFormat.TSceneFormat":
-                p_type = p_type[12:]
-            elif p_type.startswith("iron.math."):
-                p_type = p_type[10:]
+            if "." in p_type:
+                p_type = p_type.split(".")[-1]
 
             type_default_val = get_type_default_value(p_type)
             if type_default_val is None:
