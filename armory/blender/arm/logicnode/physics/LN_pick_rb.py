@@ -19,10 +19,11 @@ class PickObjectNode(ArmLogicTreeNode):
     bl_idname = 'LNPickObjectNode'
     bl_label = 'Pick RB'
     arm_section = 'ray'
-    arm_version = 2
+    arm_version = 3
 
     def arm_init(self, context):
-        self.add_input('ArmVectorSocket', 'Screen Coords')
+        self.add_input('ArmIntSocket', 'X')
+        self.add_input('ArmIntSocket', 'Y')
         self.add_input('ArmIntSocket', 'Mask', default_value=1)
 
         self.add_output('ArmNodeSocketObject', 'RB')
