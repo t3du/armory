@@ -814,8 +814,8 @@ const float voxelgiDiff = """ + str(round(rpdat.arm_voxelgi_diff * 100) / 100) +
 const float voxelgiRefl = """ + str(round(rpdat.arm_voxelgi_spec * 100) / 100) + """;
 const float voxelgiRefr = """ + str(round(rpdat.arm_voxelgi_refr * 100) / 100) + """;
 """)
-        if rpdat.rp_sss:
-            f.write(f"const float sssWidth = {rpdat.arm_sss_width / 10.0};\n")
+        val = rpdat.arm_sss_width / 10.0 if rpdat.rp_sss else 0.0
+        f.write(f"const float sssWidth = {val};\n")
 
         # Skinning
         if rpdat.arm_skin == 'On':
