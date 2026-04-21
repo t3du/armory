@@ -312,8 +312,9 @@ def parse_math(node: bpy.types.ShaderNodeMath, out_socket: bpy.types.NodeSocket,
         out_val = 'trunc({0})'.format(val1)
     elif op == 'FRACT':
         out_val = 'fract({0})'.format(val1)
-    elif op == 'MODULO':
-        # out_val = 'float({0} % {1})'.format(val1, val2)
+    elif op == 'MODULO': #TRUNCATED MODULO
+        out_val = '({0} - {1} * trunc({0} / {1}))'.format(val1, val2)
+    elif op == 'FLOORED_MODULO':
         out_val = 'mod({0}, {1})'.format(val1, val2)
     elif op == 'WRAP':
         val3 = c.parse_value_input(node.inputs[2])
