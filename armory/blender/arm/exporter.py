@@ -996,6 +996,15 @@ class ArmoryExporter:
                     self.curve_array[objref]["objectTable"].append(bobject)
                 out_object['data_ref'] = arm.utils.safestr(self.curve_array[objref]["structName"])
 
+                out_object['material_refs'] = []
+                for i in range(len(bobject.material_slots)):
+                    mat = self.slot_to_material(bobject, bobject.material_slots[i])
+                    # Export ref
+                    self.export_material_ref(bobject, mat, i, out_object)
+                    # Decal flag
+                    if mat is not None and mat.arm_decal:
+                        out_object['type'] = 'decal_object'
+
 
             # Export the transform. If object is animated, then animation tracks are exported here
             if bobject.type != 'ARMATURE' and bobject.animation_data is not None:
@@ -1922,58 +1931,9 @@ Make sure the mesh only has tris/quads.""")
 
         out_curve = {
             'name': curve_id,
-            'splines': [], # Tu lógica de splines aquí
-            'material_refs': [slot.material.name for slot in bobject.material_slots if slot.material],
-            'mesh_data': {
-                'name': curve_id + "_mesh",
-                'sorting_index': 0,
-                'vertex_arrays': [],
-                'index_arrays': []
-            }
+            'splines': []
         }
         
-        try:
-            depsgraph = bpy.context.evaluated_depsgraph_get()
-            temp_mesh = bobject.evaluated_get(depsgraph).to_mesh()
-            
-            if temp_mesh:
-                import bmesh
-                bm = bmesh.new()
-                bm.from_mesh(temp_mesh)
-                bmesh.ops.triangulate(bm, faces=bm.faces)
-                
-                # Vertex Array (Posiciones)
-                verts = []
-                for v in bm.verts:
-                    verts.extend([v.co.x, v.co.y, v.co.z])
-                
-                out_curve['mesh_data']['vertex_arrays'].append({
-                    'attrib': 'pos',
-                    'values': verts, # Se convertirá en Float32Array en Haxe
-                    'data': 'float3',
-                    'size': 3
-                })
-                
-                # Index Arrays por Material
-                slots = len(bobject.material_slots) if len(bobject.material_slots) > 0 else 1
-                for i in range(slots):
-                    indices = []
-                    for f in bm.faces:
-                        if f.material_index == i:
-                            indices.extend([v.index for v in f.verts])
-                    
-                    if len(indices) > 0:
-                        out_curve['mesh_data']['index_arrays'].append({
-                            'values': indices, # Se convertirá en Uint32Array
-                            'material': i
-                        })
-                
-                bm.free()
-                bobject.evaluated_get(depsgraph).to_mesh_clear()
-                
-        except Exception as e:
-            print(f"Error: {e}")
-
         curve_data = bobject.data
 
         for spline in curve_data.splines:
@@ -1994,9 +1954,29 @@ Make sure the mesh only has tris/quads.""")
                 
                 out_curve['splines'].append(current_spline)
 
-        #print(out_curve)
+        temp_obj = bobject.to_mesh()
 
+        if len(temp_obj.polygons) > 0:
+
+            mesh_obj = bpy.data.objects.get(temp_obj.name)
+
+            if mesh_obj is not None:
+                temp_ref = [object_ref[0], {
+                    "objectTable": [mesh_obj], 
+                    "structName": arm.utils.safestr(mesh_obj.name)
+                }]
+
+                self.export_mesh(temp_ref)
+
+            out_curve['material_refs'] = []
+            for i in range(len(bobject.material_slots)):
+                mat = self.slot_to_material(bobject, bobject.material_slots[i])
+                self.export_material_ref(bobject, mat, i, out_curve)
+    
+        bobject.to_mesh_clear()
+        
         self.output['curve_datas'].append(out_curve)
+
 
     def export_light(self, object_ref):
         """Exports a single light object."""

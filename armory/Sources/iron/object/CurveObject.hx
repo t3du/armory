@@ -3,10 +3,14 @@ package iron.object;
 import iron.data.SceneFormat;
 import iron.math.Vec4;
 
+import iron.data.Data;
 import iron.data.MeshData;
 import iron.data.MaterialData;
 import kha.arrays.Float32Array;
 import kha.arrays.Uint32Array;
+
+import haxe.ds.Vector;
+import iron.Scene;
 
 class CurveObject extends Object {
 
@@ -22,13 +26,44 @@ class CurveObject extends Object {
 
 	public function new(data: TCurveData) {
 		super();
-		this.data = data;
-		//trace(data);
+		this.name = data.name;
+		this.data = data;		
 		draw();
 
-		//var obj: Object = cast createMeshObject(data);
-		//obj.setParent(iron.Scene.active.root);
+		if (data.material_refs != null){
+			Data.getMesh("mesh_" + data.name, data.name, function(meshData: MeshData) {
+				
+				var materials = new Vector<MaterialData>(data.material_refs.length);
+				var materialsLoaded = 0;
+				
+				for (i in 0...data.material_refs.length) {
+					var ref = data.material_refs[i];
+					
+					Data.getMaterial(Scene.active.raw.name, ref, function(mat: MaterialData) {
+						materials[i] = mat;
+						materialsLoaded++;
 
+						if (materialsLoaded == data.material_refs.length) {
+							addMeshObject(meshData, materials);
+						}
+					});
+				}
+			});
+		}
+
+	}
+
+	function addMeshObject(meshData: MeshData, materials: Vector<MaterialData>) {
+		var meshObject = new MeshObject(meshData, materials);
+	    
+	   	meshObject.name = this.name + "_mesh";
+	    meshObject.raw = cast {
+		    name: data.name + "_mesh",
+		    type: "mesh_object",
+		};
+
+    	meshObject.setParent(this);
+	
 	}
 
 	public function getPoint(t: Float, splineIndex: Int = 0): Vec4 {
