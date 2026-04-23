@@ -12,6 +12,7 @@ import shutil
 import subprocess
 from typing import Any, Dict, Iterable, List, Optional, Tuple, Union
 import webbrowser
+import unicodedata
 
 import numpy as np
 
@@ -82,7 +83,7 @@ def write_arm(filepath, output):
             debug_path = os.path.join(debug_dir, clean_name + '.json')
             
             with open(debug_path, 'w', encoding='utf-8') as f:
-                f.write(json.dumps(output, sort_keys=True, indent=4, cls=NumpyEncoder))
+                f.write(json.dumps(output, sort_keys=True, ensure_ascii=False, indent=4, cls=NumpyEncoder))
         except Exception as e:
             print("Error with Debug JSON: " + str(e))
 
@@ -741,6 +742,8 @@ def safesrc(s):
 def safestr(s: str) -> str:
     """Outputs a string where special characters have been replaced with
     '_', which can be safely used in file and path names."""
+    s = unicodedata.normalize('NFD', s)
+    s = "".join([c for c in s if not unicodedata.combining(c)])
     for c in r'''[]/\;,><&*:§$%=+@!#^()|?^'"''':
         s = s.replace(c, '_')
     return ''.join([i if ord(i) < 128 else '_' for i in s])

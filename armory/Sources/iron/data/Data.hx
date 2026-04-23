@@ -405,6 +405,13 @@ class Data {
 	}
 	#end
 
+	public static function getCurveRawByName(datas: Array<TCurveData>, name: String): TCurveData {
+		if (datas == null || datas.length == 0) return null;
+		if (name == "") return datas[0];
+		for (dat in datas) if (dat.name == name) return dat;
+		return null;
+	}
+
 	// Raw assets
 	public static function getBlob(file: String, done: kha.Blob->Void) {
 		var cached = cachedBlobs.get(file); // Is already cached

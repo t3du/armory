@@ -42,6 +42,7 @@ typedef TSceneFormat = {
 	@:optional public var terrain_datas: Array<TTerrainData>;
 	@:optional public var terrain_ref: String;
 	@:optional public var properties: Array<TProperty>;
+	@:optional public var curve_datas: Array<TCurveData>;
 }
 
 #if js
@@ -597,4 +598,35 @@ typedef TTrack = {
 	public var frames: Uint32Array;
 	public var values: Float32Array; // sampled - full matrix transforms, non-sampled - values
 	@:optional public var ref_values: Array<Array<String>>; // ref values
+}
+
+#if js
+typedef TBezierPoint = {
+#else
+@:structInit class TBezierPoint {
+#end
+	public var co: Float32Array;
+	public var handle_left: Float32Array;
+	public var handle_right: Float32Array;
+}
+
+#if js
+typedef TSpline = {
+#else
+@:structInit class TSpline {
+#end
+	public var closed: Bool;
+	public var resolution: Int;
+	public var points: Array<TBezierPoint>;
+}
+
+#if js
+typedef TCurveData = {
+#else
+@:structInit class TCurveData {
+#end
+	public var name: String;
+	public var splines: Array<TSpline>;
+	@:optional var mesh_data: TMeshData;
+    @:optional var material_refs: Array<String>;
 }

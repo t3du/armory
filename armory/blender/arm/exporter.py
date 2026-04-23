@@ -54,6 +54,7 @@ class NodeType(Enum):
     SPEAKER = 5
     DECAL = 6
     PROBE = 7
+    CURVE = 8
 
     @classmethod
     def get_bobject_type(cls, bobject: bpy.types.Object) -> "NodeType":
@@ -72,12 +73,14 @@ class NodeType(Enum):
             return cls.SPEAKER
         elif bobject.type == "LIGHT_PROBE":
             return cls.PROBE
+        elif bobject.type == "CURVE":
+            return cls.CURVE
         return cls.EMPTY
 
 
 STRUCT_IDENTIFIER = ("object", "bone_object", "mesh_object",
                      "light_object", "camera_object", "speaker_object",
-                     "decal_object", "probe_object")
+                     "decal_object", "probe_object", "curve_object")
 
 # Internal target names for single FCurve data paths
 FCURVE_TARGET_NAMES = {
@@ -155,6 +158,8 @@ class ArmoryExporter:
         self.object_to_arm_object_dict: Dict[bpy.types.Object, Dict] = {}
 
         self.bone_tracks = []
+
+        self.curve_array = {}
 
         ArmoryExporter.preprocess()
 
@@ -786,7 +791,7 @@ class ArmoryExporter:
 
             out_object = self.object_to_arm_object_dict[bobject]
             out_object['type'] = STRUCT_IDENTIFIER[object_type.value]
-            out_object['name'] = bobject_ref["structName"]
+            out_object['name'] = arm.utils.safestr(bobject_ref["structName"])
 
             if bobject.parent_type == "BONE":
                 out_object['parent_bone'] = bobject.parent_bone
@@ -983,6 +988,14 @@ class ArmoryExporter:
                 else:
                     self.speaker_array[objref]["objectTable"].append(bobject)
                 out_object['data_ref'] = self.speaker_array[objref]["structName"]
+
+            elif object_type is NodeType.CURVE:
+                if objref not in self.curve_array:
+                    self.curve_array[objref] = {"structName" : objname, "objectTable" : [bobject]}
+                else:
+                    self.curve_array[objref]["objectTable"].append(bobject)
+                out_object['data_ref'] = arm.utils.safestr(self.curve_array[objref]["structName"])
+
 
             # Export the transform. If object is animated, then animation tracks are exported here
             if bobject.type != 'ARMATURE' and bobject.animation_data is not None:
@@ -1897,6 +1910,94 @@ Make sure the mesh only has tris/quads.""")
         if hasattr(bobject, 'evaluated_get'):
             bobject_eval.to_mesh_clear()
 
+    def export_curve(self, object_ref):
+        """Exports a single curve object."""
+        table = object_ref[1]["objectTable"]
+        bobject = table[0]
+        curve_id = arm.utils.safestr(object_ref[1]["structName"])
+
+        world = bpy.data.worlds['Arm']
+        if world.arm_verbose_output:
+            print('Exporting curve ' + arm.utils.asset_name(bobject.data))
+
+        out_curve = {
+            'name': curve_id,
+            'splines': [], # Tu lógica de splines aquí
+            'material_refs': [slot.material.name for slot in bobject.material_slots if slot.material],
+            'mesh_data': {
+                'name': curve_id + "_mesh",
+                'sorting_index': 0,
+                'vertex_arrays': [],
+                'index_arrays': []
+            }
+        }
+        
+        try:
+            depsgraph = bpy.context.evaluated_depsgraph_get()
+            temp_mesh = bobject.evaluated_get(depsgraph).to_mesh()
+            
+            if temp_mesh:
+                import bmesh
+                bm = bmesh.new()
+                bm.from_mesh(temp_mesh)
+                bmesh.ops.triangulate(bm, faces=bm.faces)
+                
+                # Vertex Array (Posiciones)
+                verts = []
+                for v in bm.verts:
+                    verts.extend([v.co.x, v.co.y, v.co.z])
+                
+                out_curve['mesh_data']['vertex_arrays'].append({
+                    'attrib': 'pos',
+                    'values': verts, # Se convertirá en Float32Array en Haxe
+                    'data': 'float3',
+                    'size': 3
+                })
+                
+                # Index Arrays por Material
+                slots = len(bobject.material_slots) if len(bobject.material_slots) > 0 else 1
+                for i in range(slots):
+                    indices = []
+                    for f in bm.faces:
+                        if f.material_index == i:
+                            indices.extend([v.index for v in f.verts])
+                    
+                    if len(indices) > 0:
+                        out_curve['mesh_data']['index_arrays'].append({
+                            'values': indices, # Se convertirá en Uint32Array
+                            'material': i
+                        })
+                
+                bm.free()
+                bobject.evaluated_get(depsgraph).to_mesh_clear()
+                
+        except Exception as e:
+            print(f"Error: {e}")
+
+        curve_data = bobject.data
+
+        for spline in curve_data.splines:
+            if spline.type == 'BEZIER':
+                current_spline = {
+                    'closed': spline.use_cyclic_u,
+                    'resolution': spline.resolution_u,
+                    'points': []
+                }
+                
+                for bezier_point in spline.bezier_points:
+                    point_data = {
+                        'co': [bezier_point.co.x, bezier_point.co.y, bezier_point.co.z],
+                        'handle_left': [bezier_point.handle_left.x, bezier_point.handle_left.y, bezier_point.handle_left.z],
+                        'handle_right': [bezier_point.handle_right.x, bezier_point.handle_right.y, bezier_point.handle_right.z]
+                    }
+                    current_spline['points'].append(point_data)
+                
+                out_curve['splines'].append(current_spline)
+
+        #print(out_curve)
+
+        self.output['curve_datas'].append(out_curve)
+
     def export_light(self, object_ref):
         """Exports a single light object."""
         rpdat = arm.utils.get_rp()
@@ -2525,6 +2626,7 @@ Make sure the mesh only has tris/quads.""")
             self.output['light_datas'] = []
             self.output['camera_datas'] = []
             self.output['speaker_datas'] = []
+            self.output['curve_datas'] = []
 
             for light_ref in self.light_array.items():
                 self.export_light(light_ref)
@@ -2544,6 +2646,9 @@ Make sure the mesh only has tris/quads.""")
                 self.output['probe_datas'] = []
                 for lightprobe_object in self.probe_array.items():
                     self.export_probe(lightprobe_object)
+
+            for curve_ref in self.curve_array.items():
+                self.export_curve(curve_ref)
 
         self.output['mesh_datas'] = []
         for mesh_ref in self.mesh_array.items():
