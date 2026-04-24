@@ -283,6 +283,8 @@ class ARM_PT_DataPropsPanel(bpy.types.Panel):
         elif obj.type == 'MESH' or obj.type == 'FONT' or obj.type == 'META':
             layout.prop(obj.data, 'arm_dynamic_usage')
             layout.operator("arm.invalidate_cache")
+        elif obj.type == 'CURVE':
+            layout.prop(obj.data, 'arm_strength')
         elif obj.type == 'LIGHT':
             layout.prop(obj.data, 'arm_clip_start')
             layout.prop(obj.data, 'arm_clip_end')

@@ -628,4 +628,5 @@ typedef TCurveData = {
 	public var name: String;
 	public var splines: Array<TSpline>;
 	@:optional public var material_refs: Array<String>;
+	@:optional public var strength: Float;
 }

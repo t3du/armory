@@ -390,6 +390,8 @@ def init_properties():
     bpy.types.Mesh.arm_cached = BoolProperty(name="Mesh Cached", description="No need to reexport mesh data", default=False)
     bpy.types.Mesh.arm_aabb = FloatVectorProperty(name="AABB", size=3, default=[0,0,0])
     bpy.types.Mesh.arm_dynamic_usage = BoolProperty(name="Dynamic Usage", description="Mesh data can change at runtime", default=False)
+
+    bpy.types.Curve.arm_strength = FloatProperty(name="Draw Strength", default=0.005)
     bpy.types.Curve.arm_cached = BoolProperty(name="Mesh Cached", description="No need to reexport curve data", default=False)
     bpy.types.Curve.arm_aabb = FloatVectorProperty(name="AABB", size=3, default=[0,0,0])
     bpy.types.Curve.arm_dynamic_usage = BoolProperty(name="Dynamic Data Usage", description="Curve data can change at runtime", default=False)

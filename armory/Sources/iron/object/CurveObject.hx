@@ -15,6 +15,7 @@ import iron.Scene;
 class CurveObject extends Object {
 
 	public var data: TCurveData;
+	public var splinesLength: Int;
 
 	static var _p0 = new Vec4();
 	static var _p1 = new Vec4();
@@ -27,9 +28,9 @@ class CurveObject extends Object {
 	public function new(data: TCurveData) {
 		super();
 		this.name = data.name;
-		this.data = data;		
-		draw();
-
+		this.data = data;
+		splinesLength = data.splines.length;
+		
 		if (data.material_refs != null){
 			Data.getMesh("mesh_" + data.name, data.name, function(meshData: MeshData) {
 				
@@ -49,7 +50,8 @@ class CurveObject extends Object {
 					});
 				}
 			});
-		}
+		} else
+			draw(data.strength);
 
 	}
 
@@ -67,7 +69,7 @@ class CurveObject extends Object {
 	}
 
 	public function getPoint(t: Float, splineIndex: Int = 0): Vec4 {
-		if (data.splines == null || data.splines.length <= splineIndex) return new Vec4();
+		if (data.splines == null || splinesLength <= splineIndex) return new Vec4();
     
     	var spline = data.splines[splineIndex];
 		var points = spline.points;
@@ -151,12 +153,13 @@ class CurveObject extends Object {
 	public function draw(strength: Float = 0.005) {
 		#if arm_debug
 		armory.trait.internal.DebugDraw.notifyOnRender(function(draw: armory.trait.internal.DebugDraw) {
+			if (!visible) return;
 			draw.color = 0xffffffff;
 			draw.strength = strength;
 
 			var worldMat = this.transform.world;
 			
-			for (s in 0...data.splines.length) {
+			for (s in 0...splinesLength) {
 				var spline = data.splines[s];
 				var segments = spline.closed ? spline.points.length : spline.points.length - 1;
 				var totalSteps = spline.resolution * segments;
@@ -197,6 +200,11 @@ class CurveObject extends Object {
 
 		obj.transform.rot.fromTo(_v1, _v2);
 		obj.transform.buildMatrix();
+	}
+
+	override public function remove() {
+	    visible = false;
+	    super.remove();
 	}
 
 }

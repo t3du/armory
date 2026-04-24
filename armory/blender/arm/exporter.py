@@ -1929,13 +1929,14 @@ Make sure the mesh only has tris/quads.""")
         if world.arm_verbose_output:
             print('Exporting curve ' + arm.utils.asset_name(bobject.data))
 
-        out_curve = {
-            'name': curve_id,
-            'splines': []
-        }
-        
         curve_data = bobject.data
 
+        out_curve = {
+            'name': curve_id,
+            'splines': [],
+            'strength': curve_data.arm_strength
+        }
+        
         for spline in curve_data.splines:
             if spline.type == 'BEZIER':
                 current_spline = {
