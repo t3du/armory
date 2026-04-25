@@ -37,6 +37,15 @@ class PhysicsBreak extends Trait {
 	@prop
 	var traitName: String = '';
 
+	@prop
+	var subdivideByPlane: Bool = false;
+	
+	@prop
+	var plane: Vec4 = new Vec4(1, 1, 1);
+
+	@prop
+	var randomPlane: Bool = true;
+
 	public function new() {
 		super();
 
@@ -90,7 +99,8 @@ class PhysicsBreak extends Trait {
 			if (maxImpulse > fractureImpulse) {
 				var radialIter = 1;
 				var randIter = 1;
-				var debris = breaker.subdivideByImpact(cast object, impactPoint, impactNormal, radialIter, randIter);
+				var debris = subdivideByPlane ? breaker.subdivideByPlane(cast object, plane, randomPlane) :
+					breaker.subdivideByImpact(cast object, impactPoint, impactNormal, radialIter, randIter);
 				for (o in debris) {
 					var obj: Object = cast o;
 					obj.name = o.data.raw.name;
@@ -278,6 +288,36 @@ class ConvexBreaker {
 		userData.vertices = verts;
 		userData.faces = faces;
 		userDataMap.set(object, userData);
+	}
+
+	public function subdivideByPlane(object: MeshObject, plane: Vec4 = null, random: Bool = true): Array<MeshObject> {
+		var debris: Array<MeshObject> = [];
+		var scope = this;
+
+		if (plane == null) plane = new Vec4(1, 1, 1);
+
+		if (random)
+			tempPlane2.normal.setFrom(new Vec4(
+				plane.x > 0 ? Math.random() - 0.5 : plane.x,
+				plane.y > 0 ? Math.random() - 0.5 : plane.y,
+				plane.z > 0 ? Math.random() - 0.5 : plane.z
+			).normalize());
+		else
+			tempPlane2.normal.setFrom(new Vec4(plane.x, plane.y, plane.z).normalize());
+
+		tempPlane2.constant = -(object.transform.loc.dot(tempPlane2.normal));
+
+		scope.cutByPlane(object, tempPlane2, scope.tempCutResult);
+
+	    var object1 = scope.tempCutResult.object1;
+	    var object2 = scope.tempCutResult.object2;
+
+	    if (object1 != null) debris.push(object1);
+	    if (object2 != null) debris.push(object2);
+
+		iron.Scene.active.meshes.remove(object);
+
+		return debris;		
 	}
 
 	// maxRadialIterations Iterations for radial cuts
