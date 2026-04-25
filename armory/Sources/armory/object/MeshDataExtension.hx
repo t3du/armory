@@ -68,6 +68,8 @@ class MeshDataExtension {
 		var naa = new kha.arrays.Int16Array(n * 2);
 		var texa = new kha.arrays.Int16Array(n * 2);
 		var invdim = 1 / maxdim;
+		var scale: Float = 0.5;
+		
 		for (i in 0...n) {
 			var px = pa[i * 3];
 			var py = pa[i * 3 + 1];
@@ -87,15 +89,15 @@ class MeshDataExtension {
 			var v: Float = 0;
 
 			if (nx > ny && nx > nz) {
-				u = pz * invdim + 0.5;
-				v = py * invdim + 0.5;
-			} else if (ny > nx && ny > nz) {
-				u = px * invdim + 0.5;
-				v = pz * invdim + 0.5;
-			} else {
-				u = px * invdim + 0.5;
-				v = py * invdim + 0.5;
-			}
+		        u = pz * invdim * scale + 0.5;
+		        v = py * invdim * scale + 0.5;
+		    } else if (ny > nx && ny > nz) {
+		        u = px * invdim * scale + 0.5;
+		        v = pz * invdim * scale + 0.5;
+		    } else {
+		        u = px * invdim * scale + 0.5;
+		        v = py * invdim * scale + 0.5;
+		    }
 
 			texa.set(i * 2,     Std.int(u * 32767));
 			texa.set(i * 2 + 1, Std.int(v * 32767));
