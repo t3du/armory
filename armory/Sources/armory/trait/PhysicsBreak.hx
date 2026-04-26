@@ -3,6 +3,7 @@ package armory.trait;
 import iron.math.Vec4;
 import iron.math.Mat4;
 import iron.Trait;
+import iron.object.Object;
 import iron.object.MeshObject;
 import iron.data.MeshData;
 import iron.data.SceneFormat;
@@ -10,6 +11,10 @@ import iron.data.SceneFormat;
 import armory.trait.physics.bullet.RigidBody;
 import armory.trait.physics.PhysicsWorld;
 #end
+
+import armory.object.MeshDataExtension;
+import kha.arrays.Float32Array;
+import haxe.ds.Vector;
 
 class PhysicsBreak extends Trait {
 
@@ -25,10 +30,26 @@ class PhysicsBreak extends Trait {
 	var physics: PhysicsWorld;
 	var body: RigidBody;
 
+	@prop
+	var fractureImpulse: Float = 0.1;
+	@prop
+	var fractureIterative: Bool = true;
+	@prop
+	var traitName: String = '';
+
+	@prop
+	var subdivideByPlane: Bool = false;
+	
+	@prop
+	var plane: Vec4 = new Vec4(1, 1, 1);
+
+	@prop
+	var randomPlane: Bool = true;
+
 	public function new() {
 		super();
 
-		breaker = new ConvexBreaker();
+		breaker = new ConvexBreaker(0.1);
 		notifyOnInit(init);
 	}
 
@@ -78,9 +99,47 @@ class PhysicsBreak extends Trait {
 			if (maxImpulse > fractureImpulse) {
 				var radialIter = 1;
 				var randIter = 1;
-				var debris = breaker.subdivideByImpact(cast object, impactPoint, impactNormal, radialIter, randIter);
-				// var numObjects = debris.length;
+				var debris = subdivideByPlane ? breaker.subdivideByPlane(cast object, plane, randomPlane) :
+					breaker.subdivideByImpact(cast object, impactPoint, impactNormal, radialIter, randIter);
 				for (o in debris) {
+					var obj: Object = cast o;
+					obj.name = o.data.raw.name;
+					obj.setParent(iron.Scene.active.root);
+					
+					var dims = new kha.arrays.Float32Array(3);
+					dims[0] = o.data.geom.aabb.x;
+					dims[1] = o.data.geom.aabb.y;
+					dims[2] = o.data.geom.aabb.z;
+
+					obj.raw = cast { 
+					    type: "mesh_object", 
+					    name: obj.name, 
+					    data_ref: obj.name,
+					    dimensions: dims
+					};
+
+					if (traitName == '')
+						for (t in object.traits) {
+							var tc = Type.getClass(t);
+							if (tc == null || tc == armory.trait.physics.bullet.RigidBody || 
+								tc == armory.trait.PhysicsBreak || Type.resolveClass("arm.PhysicsBreak") != null) continue;
+
+							var nt = Type.createInstance(tc, []);
+							for (f in Type.getInstanceFields(tc)) {
+								var v = Reflect.field(t, f);
+								if (v != null && !Reflect.isFunction(v)) Reflect.setField(nt, f, v);
+							}
+							obj.addTrait(nt);
+						}
+					else {
+						var cname = Type.resolveClass(Main.projectPackage + "." + traitName);
+						if (cname == null) cname = Type.resolveClass(Main.projectPackage + ".node." + traitName);
+						var trait = Type.createInstance(cname, []);
+						obj.addTrait(trait);
+
+						obj.addTrait(new armory.trait.internal.UniformsManager());
+					}
+
 					var ud = breaker.userDataMap.get(cast o);
 					if (ud == null) continue;
 					var params: RigidBodyParams = {
@@ -98,9 +157,13 @@ class PhysicsBreak extends Trait {
 						angularDeactivationThreshold: 0.0,
 						deactivationTime: 0.0
 					};
-					o.addTrait(new RigidBody(Shape.ConvexHull, ud.mass, ud.friction, 0, 1, params));
-					if (cast(o, MeshObject).data.geom.positions.values.length < 600) {
-						o.addTrait(new PhysicsBreak());
+
+					obj.addTrait(new RigidBody(Shape.ConvexHull, ud.mass, ud.friction, 0, 1, params));
+					if (fractureIterative && cast(o, MeshObject).data.geom.positions.values.length > 100) {
+						var pb = new PhysicsBreak();
+						pb.fractureImpulse = fractureImpulse / 2;
+						pb.traitName = traitName;
+						obj.addTrait(pb);
 					}
 					// Track debris for cleanup on scene change
 					allDebris.push(cast o);
@@ -172,26 +235,30 @@ class ConvexBreaker {
 			));
 		}
 
-		var ind = object.data.geom.indices[0];
 		var faces = new Array<Face3>();
-		for (i in 0...Std.int(ind.length / 3)) {
-			var a = ind[i * 3];
-			var b = ind[i * 3 + 1];
-			var c = ind[i * 3 + 2];
-			// Merge duplis
-			for (f in faces) {
-				if (vertices[a].equals(vertices[f.a])) a = f.a;
-				else if (vertices[a].equals(vertices[f.b])) a = f.b;
-				else if (vertices[a].equals(vertices[f.c])) a = f.c;
-				if (vertices[b].equals(vertices[f.a])) b = f.a;
-				else if (vertices[b].equals(vertices[f.b])) b = f.b;
-				else if (vertices[b].equals(vertices[f.c])) b = f.c;
-				if (vertices[c].equals(vertices[f.a])) c = f.a;
-				else if (vertices[c].equals(vertices[f.b])) c = f.b;
-				else if (vertices[c].equals(vertices[f.c])) c = f.c;
+		
+		for (materialIndex in 0...object.data.geom.indices.length) {
+			var ind = object.data.geom.indices[materialIndex];
+			for (i in 0...Std.int(ind.length / 3)) {
+				var a = ind[i * 3];
+				var b = ind[i * 3 + 1];
+				var c = ind[i * 3 + 2];
+				// Merge duplis
+				for (f in faces) {
+					if (vertices[a].equals(vertices[f.a])) a = f.a;
+					else if (vertices[a].equals(vertices[f.b])) a = f.b;
+					else if (vertices[a].equals(vertices[f.c])) a = f.c;
+					if (vertices[b].equals(vertices[f.a])) b = f.a;
+					else if (vertices[b].equals(vertices[f.b])) b = f.b;
+					else if (vertices[b].equals(vertices[f.c])) b = f.c;
+					if (vertices[c].equals(vertices[f.a])) c = f.a;
+					else if (vertices[c].equals(vertices[f.b])) c = f.b;
+					else if (vertices[c].equals(vertices[f.c])) c = f.c;
+				}
+				faces.push(new Face3(a, b, c));
 			}
-			faces.push(new Face3(a, b, c));
 		}
+
 		// Reorder vertices
 		var verts = new Array<Vec4>();
 		var map = new Map<Int, Int>();
@@ -221,6 +288,36 @@ class ConvexBreaker {
 		userData.vertices = verts;
 		userData.faces = faces;
 		userDataMap.set(object, userData);
+	}
+
+	public function subdivideByPlane(object: MeshObject, plane: Vec4 = null, random: Bool = true): Array<MeshObject> {
+		var debris: Array<MeshObject> = [];
+		var scope = this;
+
+		if (plane == null) plane = new Vec4(1, 1, 1);
+
+		if (random)
+			tempPlane2.normal.setFrom(new Vec4(
+				plane.x > 0 ? Math.random() - 0.5 : plane.x,
+				plane.y > 0 ? Math.random() - 0.5 : plane.y,
+				plane.z > 0 ? Math.random() - 0.5 : plane.z
+			).normalize());
+		else
+			tempPlane2.normal.setFrom(new Vec4(plane.x, plane.y, plane.z).normalize());
+
+		tempPlane2.constant = -(object.transform.loc.dot(tempPlane2.normal));
+
+		scope.cutByPlane(object, tempPlane2, scope.tempCutResult);
+
+	    var object1 = scope.tempCutResult.object1;
+	    var object2 = scope.tempCutResult.object2;
+
+	    if (object1 != null) debris.push(object1);
+	    if (object2 != null) debris.push(object2);
+
+		iron.Scene.active.meshes.remove(object);
+
+		return debris;		
 	}
 
 	// maxRadialIterations Iterations for radial cuts
@@ -280,9 +377,7 @@ class ConvexBreaker {
 		return debris;
 	}
 
-	function transformFreeVector(v: Vec4, m: Mat4): Vec4 {
-		// Vector interpreted as a free vector
-		// Mat4 orthogonal matrix (matrix without scale)
+	function transformFreeVectorInverse(v: Vec4, m: Mat4): Vec4 {
 		var x = v.x, y = v.y, z = v.z;
 		v.x = m._00 * x + m._10 * y + m._20 * z;
 		v.y = m._01 * x + m._11 * y + m._21 * z;
@@ -290,35 +385,20 @@ class ConvexBreaker {
 		return v;
 	}
 
-	function transformFreeVectorInverse(v: Vec4, m: Mat4): Vec4 {
-		// Vector interpreted as a free vector
-		// Mat4 orthogonal matrix (matrix without scale)
-		var x = v.x, y = v.y, z = v.z;
-		v.x = m._00 * x + m._01 * y + m._02 * z;
-		v.y = m._10 * x + m._11 * y + m._12 * z;
-		v.z = m._20 * x + m._21 * y + m._22 * z;
+	function transformTiedVectorInverse(v: Vec4, m: Mat4): Vec4 {
+		var x = v.x - m._30, y = v.y - m._31, z = v.z - m._32;
+		v.x = m._00 * x + m._10 * y + m._20 * z;
+		v.y = m._01 * x + m._11 * y + m._21 * z;
+		v.z = m._02 * x + m._12 * y + m._22 * z;
 		return v;
 	}
 
-	function transformTiedVectorInverse(v: Vec4, m: Mat4): Vec4 {
-		// Vector interpreted as a tied (ordinary) vector
-		// Mat4 orthogonal matrix (matrix without scale)
-		var x = v.x, y = v.y, z = v.z;
-		v.x = m._00 * x + m._01 * y + m._02 * z - m._30;
-		v.y = m._10 * x + m._11 * y + m._12 * z - m._31;
-		v.z = m._20 * x + m._21 * y + m._22 * z - m._32;
-		return v;
-	};
-
 	function transformPlaneToLocalSpace(plane: Plane, m: Mat4, resultPlane: Plane) {
-		resultPlane.normal.setFrom(plane.normal);
-		resultPlane.constant = plane.constant;
-
 		var v1 = new Vec4();
 		var referencePoint = transformTiedVectorInverse(plane.coplanarPoint(v1), m);
+		resultPlane.normal.setFrom(plane.normal);
 		transformFreeVectorInverse(resultPlane.normal, m);
-
-		// Recalculate constant
+		resultPlane.normal.normalize();
 		resultPlane.constant = -referencePoint.dot(resultPlane.normal);
 	}
 
@@ -462,65 +542,88 @@ class ConvexBreaker {
 			}
 		}
 
-		// Calculate debris mass (very fast and imprecise):
+		// Calculate debris mass (very fast and precise):
 		var newMass = userData.mass * 0.5;
 
-		// Calculate debris Center of Mass (again fast and imprecise)
 		tempCM1.set(0, 0, 0);
 		var radius1 = 0.0;
-		var numPoints1 = points1.length;
-		if (numPoints1 > 0) {
-			for (i in 0...numPoints1) {
-				tempCM1.add(points1[i]);
-			}
-			tempCM1.mult(1.0 / numPoints1);
-			for (i in 0...numPoints1) {
-				var p = points1[i];
-				p.sub(tempCM1);
-				radius1 = Math.max(Math.max(radius1, p.x), Math.max(p.y, p.z));
-			}
-			tempCM1.add(object.transform.loc);
+		if (points1.length > 0) {
+			for (p in points1) 
+				tempCM1.add(p);
+			tempCM1.mult(1.0 / points1.length);
+			for (p in points1) { 
+				p.sub(tempCM1); radius1 = Math.max(radius1, p.length()); }
+			tempCM1.applymat4(object.transform.world);
 		}
-
+		
 		tempCM2.set(0, 0, 0);
 		var radius2 = 0.0;
-		var numPoints2 = points2.length;
-		if (numPoints2 > 0) {
-			for (i in 0...numPoints2) {
-				tempCM2.add(points2[i]);
+		if (points2.length > 0) {
+			for (p in points2) 
+				tempCM2.add(p);
+			tempCM2.mult(1.0 / points2.length);
+			for (p in points2) { 
+				p.sub(tempCM2); radius2 = Math.max(radius2, p.length()); }
+			tempCM2.applymat4(object.transform.world);
+		}
+
+		//MATERIALES
+		var mats = object.materials;
+		var udParent = userDataMap.get(object);
+		if (udParent.matWeights == null) {
+			udParent.matWeights = [];
+			udParent.totalWeight = 0;
+			for (i in 0...object.data.geom.indices.length) {
+				var w = object.data.geom.indices[i].length;
+				udParent.matWeights.push(w);
+				udParent.totalWeight += w;
 			}
-			tempCM2.mult(1.0 / numPoints2);
-			for (i in 0...numPoints2) {
-				var p = points2[i];
-				p.sub(tempCM2);
-				radius2 = Math.max(Math.max(radius2, p.x), Math.max(p.y, p.z));
+		}
+
+		function getWeightedIndex(): Int {
+			var r = Std.random(udParent.totalWeight);
+			var acc = 0;
+			for (i in 0...udParent.matWeights.length) {
+				acc += udParent.matWeights[i];
+				if (r < acc) return i;
 			}
-			tempCM2.add(object.transform.loc);
+			return 0;
 		}
 
 		var object1 = null;
 		var object2 = null;
 		var numObjects = 0;
-		if (numPoints1 > 4) {
-			var data1 = makeMeshData(points1);
+
+		if (points1.length > 4) {
+			var data1 = MeshDataExtension.makeMeshData(points1);
 			if (data1 != null) {
-				object1 = new MeshObject(data1, object.materials);
+				var sel1 = getWeightedIndex();
+				var mats1 = [mats[sel1]];
+				for (i in 0...mats.length) if (i != sel1) mats1.push(mats[i]);
+				object1 = new MeshObject(data1, haxe.ds.Vector.fromArrayCopy(mats1));
 				object1.transform.loc.setFrom(tempCM1);
 				object1.transform.rot.setFrom(object.transform.rot);
 				object1.transform.buildMatrix();
 				initBreakableObject(object1, newMass, userData.friction, userData.velocity, userData.angularVelocity, 2 * radius1 > minSizeForBreak);
+				userDataMap.get(object1).matWeights = udParent.matWeights;
+				userDataMap.get(object1).totalWeight = udParent.totalWeight;
 				numObjects++;
 			}
 		}
 
-		if (numPoints2 > 4) {
-			var data2 = makeMeshData(points2);
+		if (points2.length > 4) {
+			var data2 = MeshDataExtension.makeMeshData(points2);
 			if (data2 != null) {
-				object2 = new MeshObject(data2, object.materials);
+				var sel2 = getWeightedIndex();
+				var mats2 = [mats[sel2]];
+				for (i in 0...mats.length) if (i != sel2) mats2.push(mats[i]);
+				object2 = new MeshObject(data2, haxe.ds.Vector.fromArrayCopy(mats2));
 				object2.transform.loc.setFrom(tempCM2);
 				object2.transform.rot.setFrom(object.transform.rot);
 				object2.transform.buildMatrix();
 				initBreakableObject(object2, newMass, userData.friction, userData.velocity, userData.angularVelocity, 2 * radius2 > minSizeForBreak);
+				userDataMap.get(object2).matWeights = udParent.matWeights;
+				userDataMap.get(object2).totalWeight = udParent.totalWeight;
 				numObjects++;
 			}
 		}
@@ -528,96 +631,6 @@ class ConvexBreaker {
 		output.object1 = object1;
 		output.object2 = object2;
 		return numObjects;
-	}
-
-	static var meshIndex = 0;
-	function makeMeshData(points: Array<Vec4>): MeshData {
-		// Need at least 4 points for a 3D hull
-		if (points.length < 4) return null;
-
-		while (points.length > 50) points.pop();
-		var cm = new ConvexHull(points);
-
-		// Validate hull has enough geometry for a mesh
-		if (cm.vertices.length < 4 || cm.face3s.length < 4) return null;
-
-		var maxdim = 1.0;
-		var pa = new Array<Float>();
-		var na = new Array<Float>();
-		for (p in cm.vertices) {
-			pa.push(p.x);
-			pa.push(p.y);
-			pa.push(p.z);
-			na.push(0.0);
-			na.push(0.0);
-			na.push(0.0);
-
-			var ax = Math.abs(p.x);
-			var ay = Math.abs(p.y);
-			var az = Math.abs(p.z);
-			if (ax > maxdim) maxdim = ax;
-			if (ay > maxdim) maxdim = ay;
-			if (az > maxdim) maxdim = az;
-		}
-		maxdim *= 2;
-
-		var ind = new Array<Int>();
-		function addFlatNormal(normal: Vec4, fi: Int) {
-			if (na[fi * 3] != 0.0 || na[fi * 3 + 1] != 0.0 || na[fi * 3 + 2] != 0.0) {
-				pa.push(pa[fi * 3    ]);
-				pa.push(pa[fi * 3 + 1]);
-				pa.push(pa[fi * 3 + 2]);
-				na.push(normal.x);
-				na.push(normal.y);
-				na.push(normal.z);
-				ind.push(Std.int(pa.length / 3 - 1));
-			}
-			else {
-				na[fi * 3    ] = normal.x;
-				na[fi * 3 + 1] = normal.y;
-				na[fi * 3 + 2] = normal.z;
-				ind.push(fi);
-			}
-		}
-		for (f in cm.face3s) {
-			// Duplicate vertex for flat normals
-			addFlatNormal(f.normal, f.a);
-			addFlatNormal(f.normal, f.b);
-			addFlatNormal(f.normal, f.c);
-		}
-
-		// TODO:
-		var n = Std.int(pa.length / 3);
-		var paa = new kha.arrays.Int16Array(n * 4);
-		var naa = new kha.arrays.Int16Array(n * 2);
-		var invdim = 1 / maxdim;
-		for (i in 0...n) {
-			paa.set(i * 4    , Std.int(pa[i * 3    ] * 32767 * invdim));
-			paa.set(i * 4 + 1, Std.int(pa[i * 3 + 1] * 32767 * invdim));
-			paa.set(i * 4 + 2, Std.int(pa[i * 3 + 2] * 32767 * invdim));
-			naa.set(i * 2    , Std.int(na[i * 3    ] * 32767 * invdim));
-			naa.set(i * 2 + 1, Std.int(na[i * 3 + 1] * 32767 * invdim));
-			paa.set(i * 4 + 3, Std.int(na[i * 3 + 2] * 32767 * invdim));
-		}
-		var inda = new kha.arrays.Uint32Array(ind.length);
-		for (i in 0...ind.length) inda.set(i, ind[i]);
-
-		var pos: TVertexArray = { attrib: "pos", values: paa, data: "short4norm" };
-		var nor: TVertexArray = { attrib: "nor", values: naa, data: "short2norm" };
-		var indices: TIndexArray = { material: 0, values: inda };
-
-		var rawmesh: TMeshData = {
-			name: "TempMesh" + (meshIndex++),
-			sorting_index: 0,
-			vertex_arrays: [pos, nor],
-			index_arrays: [indices],
-			scale_pos: maxdim
-		};
-
-		// Synchronous on Krom
-		var md = new MeshData(rawmesh, function(d: MeshData) {});
-		md.geom.calculateAABB();
-		return md;
 	}
 }
 
@@ -631,6 +644,9 @@ class UserData {
 
 	public var vertices: Array<Vec4>;
 	public var faces: Array<Face3>;
+
+	public var matWeights: Array<Int>;
+	public var totalWeight: Int;
 
 	public function new() {}
 }
@@ -704,148 +720,5 @@ class Plane {
 		var t = -(line.start.dot(this.normal) + constant) / denominator;
 		if (t < 0 || t > 1) return null;
 		return result.setFrom(direction).mult(t).add(line.start);
-	}
-}
-
-// Based on work by qiao https://github.com/qiao
-// This is a convex hull generator using the incremental method
-// The complexity is O(n^2) where n is the number of vertices
-class ConvexHull {
-
-	var faces = [[0, 1, 2], [0, 2, 1]];
-	public var face3s = new Array<Face3>();
-	public var vertices = new Array<Vec4>();
-
-	public function new(vertices: Array<Vec4>) {
-
-		for (i in 3...vertices.length) addPoint(i, vertices);
-
-		// Push vertices into array, skipping those inside the hull
-		// Map from old vertex id to new id
-		var id = 0;
-		var newId = new Array<Int>();
-		for (i in 0...vertices.length) newId.push(-1);
-
-		for (i in 0...faces.length) {
-			 var face = faces[i];
-			 for (j in 0...3) {
-				if (newId[face[j]] == -1) {
-					newId[face[j]] = id++;
-					this.vertices.push(vertices[face[j]]);
-				}
-				face[j] = newId[face[j]];
-			 }
-		}
-
-		for (i in 0...faces.length) {
-			face3s.push(new Face3(faces[i][0], faces[i][1], faces[i][2]));
-		}
-
-		computeFaceNormals();
-	}
-
-	var cb = new Vec4();
-	var ab = new Vec4();
-	function computeFaceNormals() {
-		for (f in 0...face3s.length) {
-			var face = face3s[f];
-			var va = vertices[face.a];
-			var vb = vertices[face.b];
-			var vc = vertices[face.c];
-			cb.subvecs(vc, vb);
-			ab.subvecs(va, vb);
-			cb.cross(ab);
-			cb.normalize();
-			face.normal.setFrom(cb);
-		}
-	}
-
-	function addPoint(vertexId: Int, vertices: Array<Vec4>) {
-		var vertex = vertices[vertexId].clone();
-
-		var mag = vertex.length();
-		vertex.x += mag * randomOffset();
-		vertex.y += mag * randomOffset();
-		vertex.z += mag * randomOffset();
-
-		var hole: Array<Array<Int>> = [];
-		var f = 0;
-		while (f < faces.length) {
-			var face = faces[f];
-
-			// For each face, if the vertex can see it,
-			// then we try to add the face's edges into the hole
-			if (visible(face, vertex, vertices)) {
-				for (e in 0...3) {
-					var edge = [face[e], face[(e + 1) % 3]];
-					var boundary = true;
-
-					// Remove duplicated edges
-					for (h in 0...hole.length) {
-						if (equalEdge(hole[h], edge)) {
-							hole[h] = hole[hole.length - 1];
-							hole.pop();
-							boundary = false;
-							break;
-						}
-					}
-					if (boundary) hole.push(edge);
-				}
-
-				faces[f] = faces[faces.length - 1];
-				faces.pop();
-			}
-			else {
-				f++;
-			}
-		}
-
-		// Construct the new faces formed by the edges of the hole and the vertex
-		for (h in 0...hole.length) {
-			faces.push([hole[h][0], hole[h][1], vertexId]);
-		}
-	}
-
-	// Whether the face is visible from the vertex
-	function visible(face: Array<Int>, vertex: Vec4, vertices: Array<Vec4>): Bool {
-		var va = vertices[face[0]];
-		var vb = vertices[face[1]];
-		var vc = vertices[face[2]];
-		var n = normal(va, vb, vc);
-		var dist = n.dot(va); // Distance from face to origin
-		return n.dot(vertex) >= dist;
-	}
-
-	function normal(va: Vec4, vb: Vec4, vc: Vec4): Vec4 {
-		var cb = new Vec4();
-		var ab = new Vec4();
-		cb.subvecs(vc, vb);
-		ab.subvecs(va, vb);
-		cb.cross(ab);
-		cb.normalize();
-		return cb;
-	}
-
-	function equalEdge(ea: Array<Int>, eb: Array<Int>): Bool {
-		return ea[0] == eb[1] && ea[1] == eb[0];
-	}
-
-	function randomOffset(): Float {
-		return (Math.random() - 0.5) * 2 * 1e-6;
-	}
-}
-
-class Face3 {
-
-	public var a: Int;
-	public var b: Int;
-	public var c: Int;
-	public var normal: Vec4;
-
-	public function new(a: Int, b: Int, c: Int) {
-		this.a = a;
-		this.b = b;
-		this.c = c;
-		normal = new Vec4();
 	}
 }

@@ -66,26 +66,54 @@ class MeshDataExtension {
 		var n = Std.int(pa.length / 3);
 		var paa = new kha.arrays.Int16Array(n * 4);
 		var naa = new kha.arrays.Int16Array(n * 2);
+		var texa = new kha.arrays.Int16Array(n * 2);
 		var invdim = 1 / maxdim;
+		var scale: Float = 0.5;
+		
 		for (i in 0...n) {
-			paa.set(i * 4    , Std.int(pa[i * 3    ] * 32767 * invdim));
-			paa.set(i * 4 + 1, Std.int(pa[i * 3 + 1] * 32767 * invdim));
-			paa.set(i * 4 + 2, Std.int(pa[i * 3 + 2] * 32767 * invdim));
+			var px = pa[i * 3];
+			var py = pa[i * 3 + 1];
+			var pz = pa[i * 3 + 2];
+			var nx = Math.abs(na[i * 3]);
+			var ny = Math.abs(na[i * 3 + 1]);
+			var nz = Math.abs(na[i * 3 + 2]);
+
+			paa.set(i * 4,     Std.int(px * 32767 * invdim));
+			paa.set(i * 4 + 1, Std.int(py * 32767 * invdim));
+			paa.set(i * 4 + 2, Std.int(pz * 32767 * invdim));
 			naa.set(i * 2    , Std.int(na[i * 3    ] * 32767 * invdim));
 			naa.set(i * 2 + 1, Std.int(na[i * 3 + 1] * 32767 * invdim));
 			paa.set(i * 4 + 3, Std.int(na[i * 3 + 2] * 32767 * invdim));
+
+			var u: Float = 0;
+			var v: Float = 0;
+
+			if (nx > ny && nx > nz) {
+		        u = pz * invdim * scale + 0.5;
+		        v = py * invdim * scale + 0.5;
+		    } else if (ny > nx && ny > nz) {
+		        u = px * invdim * scale + 0.5;
+		        v = pz * invdim * scale + 0.5;
+		    } else {
+		        u = px * invdim * scale + 0.5;
+		        v = py * invdim * scale + 0.5;
+		    }
+
+			texa.set(i * 2,     Std.int(u * 32767));
+			texa.set(i * 2 + 1, Std.int(v * 32767));
 		}
 		var inda = new kha.arrays.Uint32Array(ind.length);
 		for (i in 0...ind.length) inda.set(i, ind[i]);
 
 		var pos: TVertexArray = { attrib: "pos", values: paa, data: "short4norm" };
 		var nor: TVertexArray = { attrib: "nor", values: naa, data: "short2norm" };
+		var tex: TVertexArray = { attrib: "tex", values: texa, data: "short2norm" };
 		var indices: TIndexArray = { material: 0, values: inda };
 
 		var rawmesh: TMeshData = {
 			name: "TempMesh" + (meshIndex++),
 			sorting_index: 0,
-			vertex_arrays: [pos, nor],
+			vertex_arrays: [pos, nor, tex],
 			index_arrays: [indices],
 			scale_pos: maxdim
 		};

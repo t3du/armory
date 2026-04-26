@@ -388,7 +388,7 @@ def parse_vector(node: bpy.types.Node, socket: bpy.types.NodeSocket) -> str:
     return "vec3(0, 0, 0)"
 
 
-def parse_normal_map_color_input(inp, strength_input=None):
+def parse_normal_map_color_input(inp, strength_input=None, space='TANGENT'):
     frag = state.frag
 
     if state.basecol_only or not inp.is_linked or state.normal_parsed:
@@ -396,20 +396,39 @@ def parse_normal_map_color_input(inp, strength_input=None):
 
     state.normal_parsed = True
     frag.write_normal += 1
-    if not get_arm_export_tangents() or mat_get_material().arm_decal: # Compute TBN matrix
-        frag.write('vec3 texn = ({0}) * 2.0 - 1.0;'.format(parse_vector_input(inp)))
-        frag.write('texn.y = -texn.y;')
-        frag.add_include('std/normals.glsl')
-        frag.write('mat3 TBN = cotangentFrame(n, -vVec, texCoord);')
-        frag.write('n = TBN * normalize(texn);')
-    else:
-        frag.write('n = ({0}) * 2.0 - 1.0;'.format(parse_vector_input(inp)))
-        if strength_input is not None:
-            strength = parse_value_input(strength_input)
+    
+    color_val = parse_vector_input(inp)
+    strength = parse_value_input(strength_input) if strength_input is not None else '1.0'
+
+    if space == 'TANGENT':
+        if not get_arm_export_tangents() or mat_get_material().arm_decal:
+            frag.write(f'vec3 texn = ({color_val}) * 2.0 - 1.0;')
+            frag.write('texn.y = -texn.y;')
+            frag.add_include('std/normals.glsl')
+            frag.write('mat3 TBN = cotangentFrame(n, -vVec, texCoord);')
             if strength != '1.0':
-                frag.write('n.xy *= {0};'.format(strength))
-        frag.write('n = normalize(TBN * n);')
-        state.con.add_elem('tang', 'short4norm')
+                frag.write(f'texn.xy *= {strength};')
+            frag.write('n = TBN * normalize(texn);')
+        else:
+            frag.write(f'vec3 texn = ({color_val}) * 2.0 - 1.0;')
+            if strength != '1.0':
+                frag.write(f'texn.xy *= {strength};')
+            frag.write('n = normalize(TBN * texn);')
+            state.con.add_elem('tang', 'short4norm')
+            
+    elif space in ['OBJECT', 'BLENDER_OBJECT']:
+        frag.write(f'vec3 objn = ({color_val}) * 2.0 - 1.0;')
+        if strength != '1.0':
+            frag.write(f'objn = mix(vec3(0.0, 0.0, 1.0), objn, {strength});')
+        frag.write('n = normalize(nmat * objn);')
+
+    elif space in ['WORLD', 'BLENDER_WORLD']:
+        frag.write(f'vec3 worldn = ({color_val}) * 2.0 - 1.0;')
+        if strength != '1.0':
+            frag.write(f'n = normalize(mix(n, worldn, {strength}));')
+        else:
+            frag.write('n = normalize(worldn);')
+
     frag.write_normal -= 1
 
 
