@@ -365,8 +365,25 @@ class DebugConsole extends Trait {
 							ui.g.color = 0xffffffff;
 						}
 					}
-					for (c in iron.Scene.active.root.children) {
-						drawList(Id.handle(), c);
+
+					if (ui.panel(Id.handle({selected: false}), "Scene Objects")) {
+						ui.indent();
+						for (c in iron.Scene.active.root.children) {
+							if (c.raw == null) {
+								drawList(Id.handle(), c);
+							}
+						}
+						ui.unindent();
+					}
+
+					if (ui.panel(Id.handle({selected: false}), "Dynamic Objects (Runtime)")) {
+						ui.indent();
+						for (c in iron.Scene.active.root.children) {
+							if (c.raw != null) {
+								drawList(Id.handle(), c);
+							}
+						}
+						ui.unindent();
 					}
 
 					ui.unindent();
