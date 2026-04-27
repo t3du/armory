@@ -1,21 +1,22 @@
 package iron.object;
 
+import iron.Scene;
 import iron.data.SceneFormat;
 import iron.math.Vec4;
+import iron.math.Quat;
 
 import iron.data.Data;
 import iron.data.MeshData;
 import iron.data.MaterialData;
+import haxe.ds.Vector;
 import kha.arrays.Float32Array;
 import kha.arrays.Uint32Array;
-
-import haxe.ds.Vector;
-import iron.Scene;
 
 class CurveObject extends Object {
 
 	public var data: TCurveData;
 	public var splinesLength: Int;
+	public var equidistantSamples: Int = 0;
 
 	static var _p0 = new Vec4();
 	static var _p1 = new Vec4();
@@ -69,8 +70,18 @@ class CurveObject extends Object {
 	}
 
 	public function getPoint(t: Float, splineIndex: Int = 0): Vec4 {
+	    if (data.splines == null || splinesLength <= splineIndex) return new Vec4();
+
+	    if (equidistantSamples <= 0) {
+	        return getBezierPoint(t, splineIndex);
+	    } 
+	    else {
+	        return getPointEquidistant(t, splineIndex, equidistantSamples);
+	    }
+	}
+
+	public function getBezierPoint(t: Float, splineIndex: Int = 0): Vec4 {
 		if (data.splines == null || splinesLength <= splineIndex) return new Vec4();
-    
     	var spline = data.splines[splineIndex];
 		var points = spline.points;
 		if (points.length < 2) return new Vec4(points[0].co[0], points[0].co[1], points[0].co[2]);
@@ -98,21 +109,21 @@ class CurveObject extends Object {
 		return interpBezier(localT, _p0, _p1, _p2, _p3);
 	}
 
-	public function getPointEquidistant(u: Float, splineIndex: Int = 0, samples: Int = 100): Vec4 {
+	public function getPointEquidistant(t: Float, splineIndex: Int = 0, samples: Int = 100): Vec4 {
 	    if (data.splines == null || splinesLength <= splineIndex) return new Vec4();
 	    
 	    var table = [0.0];
 	    var totalLength = 0.0;
-	    var lastP = getPoint(0, splineIndex);
+	    var lastP = getBezierPoint(0, splineIndex);
 
 	    for (i in 1...samples + 1) {
-	        var p = getPoint(i / samples, splineIndex);
+	        var p = getBezierPoint(i / samples, splineIndex);
 	        totalLength += lastP.distanceTo(p);
 	        table.push(totalLength);
 	        lastP = p;
 	    }
 
-	    var targetDistance = Math.max(0.0, Math.min(1.0, u)) * totalLength;
+	    var targetDistance = Math.max(0.0, Math.min(1.0, t)) * totalLength;
 	    var low = 0;
 	    var high = table.length - 1;
 	    
@@ -125,10 +136,10 @@ class CurveObject extends Object {
 	    var distStart = table[low];
 	    var distEnd = table[high];
 	    var segmentLength = distEnd - distStart;
-	    var localU = (segmentLength <= 0) ? 0 : (targetDistance - distStart) / segmentLength;
-	    var correctedT = (low + localU) / (table.length - 1);
+	    var localT = (segmentLength <= 0) ? 0 : (targetDistance - distStart) / segmentLength;
+	    var correctedT = (low + localT) / (table.length - 1);
 
-	    return getPoint(correctedT, splineIndex);
+	    return getBezierPoint(correctedT, splineIndex);
 	}
 
 	function interpBezier(t: Float, p0: Vec4, p1: Vec4, p2: Vec4, p3: Vec4): Vec4 {
@@ -214,26 +225,70 @@ class CurveObject extends Object {
 		#end
 	}
 
-	public function follow(obj: Object, t: Float, splineIndex: Int = 0, forwardAxis: String = "Y") {
-		var pos = getPoint(t, splineIndex);
-		pos.applymat4(this.transform.world);
-		obj.transform.loc.setFrom(pos);
+	var _lastTangent = new Vec4(0, 1, 0); 
+	var _initialized = false;
 
-		switch (forwardAxis) {
-			case "X": _v1.set(1, 0, 0);
-			case "-X": _v1.set(-1, 0, 0);
-			case "Y": _v1.set(0, 1, 0);
-			case "-Y": _v1.set(0, -1, 0);
-			case "Z": _v1.set(0, 0, 1);
-			case "-Z": _v1.set(0, 0, -1);
+	public function follow(obj: Object, t: Float, splineIndex: Int = 0, forwardAxis: String = "X", advanced: Bool = false) {
+		if (advanced){
+			var pos = getPointEquidistant(t, splineIndex);
+		    pos.applymat4(this.transform.world);
+		    
+		    var nextTangent = getTangent(t, splineIndex);
+		    nextTangent.applyQuat(this.transform.rot);
+		    nextTangent.normalize();
+
+		    var currentDir = new Vec4();
+		    
+		    if (forwardAxis == "Y") 
+		    	currentDir.set(obj.transform.world._10, obj.transform.world._11, obj.transform.world._12);
+		    else if (forwardAxis == "Z") 
+		    	currentDir.set(obj.transform.world._20, obj.transform.world._21, obj.transform.world._22);
+		    else 
+		    	currentDir.set(obj.transform.world._00, obj.transform.world._01, obj.transform.world._02);
+		    
+		    currentDir.normalize();
+
+		    var binormal = new Vec4();
+		    binormal.setFrom(currentDir);
+		    binormal.cross(nextTangent);
+		    
+		    var dot = currentDir.dot(nextTangent);
+		    
+		    if (Math.abs(dot) < 0.999999) {
+		        binormal.normalize();
+		        var theta = Math.acos(Math.max(-1, Math.min(1, dot)));
+		        
+		        var deltaRot = new Quat();
+		        deltaRot.fromAxisAngle(binormal, theta);
+		        
+		        obj.transform.rot.multquats(deltaRot, obj.transform.rot);
+		    }
+
+		    obj.transform.loc.setFrom(pos);
+
+		} else {
+			var pos = getPoint(t, splineIndex);
+			pos.applymat4(this.transform.world);
+			obj.transform.loc.setFrom(pos);
+
+			switch (forwardAxis) {
+				case "X": _v1.set(1, 0, 0);
+				case "-X": _v1.set(-1, 0, 0);
+				case "Y": _v1.set(0, 1, 0);
+				case "-Y": _v1.set(0, -1, 0);
+				case "Z": _v1.set(0, 0, 1);
+				case "-Z": _v1.set(0, 0, -1);
+			}
+
+			_v2.setFrom(getTangent(t, splineIndex));
+			_v2.applyQuat(this.transform.rot); 
+
+			obj.transform.rot.fromTo(_v1, _v2);
 		}
 
-		_v2.setFrom(getTangent(t, splineIndex));
-		_v2.applyQuat(this.transform.rot); 
-
-		obj.transform.rot.fromTo(_v1, _v2);
 		obj.transform.buildMatrix();
 	}
+
 
 	override public function remove() {
 	    visible = false;
