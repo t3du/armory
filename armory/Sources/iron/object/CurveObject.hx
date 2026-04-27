@@ -98,6 +98,39 @@ class CurveObject extends Object {
 		return interpBezier(localT, _p0, _p1, _p2, _p3);
 	}
 
+	public function getPointEquidistant(u: Float, splineIndex: Int = 0, samples: Int = 100): Vec4 {
+	    if (data.splines == null || splinesLength <= splineIndex) return new Vec4();
+	    
+	    var table = [0.0];
+	    var totalLength = 0.0;
+	    var lastP = getPoint(0, splineIndex);
+
+	    for (i in 1...samples + 1) {
+	        var p = getPoint(i / samples, splineIndex);
+	        totalLength += lastP.distanceTo(p);
+	        table.push(totalLength);
+	        lastP = p;
+	    }
+
+	    var targetDistance = Math.max(0.0, Math.min(1.0, u)) * totalLength;
+	    var low = 0;
+	    var high = table.length - 1;
+	    
+	    while (low < high - 1) {
+	        var mid = Std.int((low + high) / 2);
+	        if (table[mid] < targetDistance) low = mid;
+	        else high = mid;
+	    }
+
+	    var distStart = table[low];
+	    var distEnd = table[high];
+	    var segmentLength = distEnd - distStart;
+	    var localU = (segmentLength <= 0) ? 0 : (targetDistance - distStart) / segmentLength;
+	    var correctedT = (low + localU) / (table.length - 1);
+
+	    return getPoint(correctedT, splineIndex);
+	}
+
 	function interpBezier(t: Float, p0: Vec4, p1: Vec4, p2: Vec4, p3: Vec4): Vec4 {
 		var it = 1.0 - t;
 		var b0 = it * it * it;
