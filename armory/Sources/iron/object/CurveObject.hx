@@ -230,7 +230,7 @@ class CurveObject extends Object {
 
 	public function follow(obj: Object, t: Float, splineIndex: Int = 0, forwardAxis: String = "X", advanced: Bool = false) {
 		if (advanced){
-			var pos = getPointEquidistant(t, splineIndex);
+			var pos = getPoint(t, splineIndex);
 		    pos.applymat4(this.transform.world);
 		    
 		    var nextTangent = getTangent(t, splineIndex);
