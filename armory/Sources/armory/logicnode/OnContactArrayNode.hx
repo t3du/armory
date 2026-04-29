@@ -27,14 +27,16 @@ class OnContactArrayNode extends LogicNode {
 #if arm_physics
 		var physics = armory.trait.physics.PhysicsWorld.active;
 		var rb1 = object1.getTrait(RigidBody);
-		var rbs = physics.getContacts(rb1);
-		if (rb1 != null && rbs != null) {
-			for (object2 in objects) {
-				var rb2 = object2.getTrait(RigidBody);
-				for (rb in rbs) {
-					if (rb == rb2) {
-						currentContacts.push(object2);
-						break;
+		if (rb1 != null){
+			var rbs = physics.getContacts(rb1);
+			if (rbs != null) {
+				for (object2 in objects) {
+					var rb2 = object2.getTrait(RigidBody);
+					for (rb in rbs) {
+						if (rb == rb2) {
+							currentContacts.push(object2);
+							break;
+						}
 					}
 				}
 			}
