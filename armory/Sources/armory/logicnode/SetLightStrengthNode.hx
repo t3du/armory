@@ -14,7 +14,7 @@ class SetLightStrengthNode extends LogicNode {
 
 		if (light == null) return;
 
-		light.data.raw.strength = light.data.raw.type == "sun" ? strength * 0.325 : strength * 0.026;
+		light.data.raw.strength = light.data.raw.type == "sun" ? strength * 0.325 : strength * 0.01;
 
 		runOutput(0);
 	}

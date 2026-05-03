@@ -93,12 +93,8 @@ class LightObject extends Object {
 			this.shadowMapScale = 1.0;
 			#end
 		}
-		else if (type == "point" || type == "area") {
+		else //if (type == "point" || type == "area" || type == "spot") {
 			P = Mat4.persp(fov, 1, data.raw.near_plane, data.raw.far_plane);
-		}
-		else if (type == "spot") {
-			P = Mat4.persp(fov, 1, data.raw.near_plane, data.raw.far_plane);
-		}
 
 		Scene.active.lights.push(this);
 	}
