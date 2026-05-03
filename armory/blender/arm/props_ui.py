@@ -1713,7 +1713,7 @@ class ARM_PT_RenderPathShadowsPanel(bpy.types.Panel):
 
                 col = colatlas_single.row()
                 col.alignment = 'RIGHT'
-                col.label(text=f'Enough space for { point_lights } point lights or { spot_lights } spot lights or { dir_lights } sun lights.')
+                col.label(text=f'Enough space for { point_lights } point lights or { spot_lights } spot lights or { dir_lights } sun lights (limit 1 sun light per scene).')
         else:
             # show size for all types
             colatlas_mixed = colatlas.column()
