@@ -59,6 +59,8 @@ def add_world_defs():
         if rpdat.rp_shadowmap_cascades != '1':
             wrd.world_defs += '_CSM'
             assets.add_khafile_def('arm_csm')
+        assets.add_khafile_def('rp_max_lights_cluster={0}'.format(int(rpdat.rp_max_lights_cluster)))
+        assets.add_khafile_def('rp_max_lights={0}'.format(int(rpdat.rp_max_lights)))
         if rpdat.rp_shadowmap_atlas:
             assets.add_khafile_def('arm_shadowmap_atlas')
             wrd.world_defs += '_ShadowMapAtlas'
@@ -70,8 +72,6 @@ def add_world_defs():
             assets.add_khafile_def('rp_shadowmap_atlas_max_size_sun={0}'.format(int(rpdat.rp_shadowmap_atlas_max_size_sun)))
             assets.add_khafile_def('rp_shadowmap_atlas_max_size={0}'.format(int(rpdat.rp_shadowmap_atlas_max_size)))
 
-            assets.add_khafile_def('rp_max_lights_cluster={0}'.format(int(rpdat.rp_max_lights_cluster)))
-            assets.add_khafile_def('rp_max_lights={0}'.format(int(rpdat.rp_max_lights)))
             if rpdat.rp_shadowmap_atlas_lod:
                 assets.add_khafile_def('arm_shadowmap_atlas_lod')
                 assets.add_khafile_def('rp_shadowmap_atlas_lod_subdivisions={0}'.format(int(rpdat.rp_shadowmap_atlas_lod_subdivisions)))

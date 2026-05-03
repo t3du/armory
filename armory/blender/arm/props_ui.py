@@ -1667,13 +1667,13 @@ class ARM_PT_RenderPathShadowsPanel(bpy.types.Panel):
         col2.prop(rpdat, 'arm_shadowmap_split')
         col.prop(rpdat, 'arm_shadowmap_bounds')
         col.prop(rpdat, 'arm_pcfsize')
+        col.prop(rpdat, 'rp_max_lights')
+        col.prop(rpdat, 'rp_max_lights_cluster')
         layout.separator()
 
         layout.prop(rpdat, 'rp_shadowmap_atlas')
         colatlas = layout.column()
         colatlas.enabled = rpdat.rp_shadowmap_atlas
-        colatlas.prop(rpdat, 'rp_max_lights')
-        colatlas.prop(rpdat, 'rp_max_lights_cluster')
         colatlas.prop(rpdat, 'rp_shadowmap_atlas_lod')
 
         colatlas_lod = colatlas.column()
@@ -1713,7 +1713,7 @@ class ARM_PT_RenderPathShadowsPanel(bpy.types.Panel):
 
                 col = colatlas_single.row()
                 col.alignment = 'RIGHT'
-                col.label(text=f'Enough space for { point_lights } point lights or { spot_lights } spot lights or { dir_lights } directional lights.')
+                col.label(text=f'Enough space for { point_lights } point lights or { spot_lights } spot lights or { dir_lights } sun lights.')
         else:
             # show size for all types
             colatlas_mixed = colatlas.column()
@@ -1757,7 +1757,7 @@ class ARM_PT_RenderPathShadowsPanel(bpy.types.Panel):
 
                 col = colatlas_mixed.row()
                 col.alignment = 'RIGHT'
-                col.label(text=f'Enough space for {dir_lights} directional lights.')
+                col.label(text=f'Enough space for {dir_lights} sun lights.')
 
         # show warning when user picks a size higher than 2048 (arbitrary number).
         if size_warning:
