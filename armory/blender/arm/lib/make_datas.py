@@ -236,6 +236,8 @@ def parse_shader(
                     const = {"type": ctype, "name": cid}
                     con["constants"].append(const)
 
+                    #print(f"file: {c.get('vertex_shader', 'Unknown')} | Constant: {cid} ({ctype})")
+
                     check_link(c, defs, cid, const)
 
 
