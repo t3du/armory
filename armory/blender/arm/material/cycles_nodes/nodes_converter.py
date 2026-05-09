@@ -134,6 +134,7 @@ def parse_valtorgb(node: bpy.types.ShaderNodeValToRGB, out_socket: bpy.types.Nod
 
     state.parsed.add(ramp_store)
     return f'{ramp_store}.rgb' if use_color_out else f'{ramp_store}.a'
+    
 if bpy.app.version > (3, 2, 0):
     def parse_combine_color(node: bpy.types.ShaderNodeCombineColor, out_socket: bpy.types.NodeSocket, state: ParserState) -> floatstr:
         if node.mode == 'RGB':
