@@ -94,15 +94,18 @@ def parse_tex_gradient(node: bpy.types.ShaderNodeTexGradient, out_socket: bpy.ty
     if grad == 'LINEAR':
         f = f'{co}.x'
     elif grad == 'QUADRATIC':
-        f = '0.0'
+        f = f'max({co}.x, 0.0)'
+        f = f'({f} * {f})'
     elif grad == 'EASING':
-        f = '0.0'
+        f = f'clamp({co}.x, 0.0, 1.0)'
+        f = f'({f} * {f} * (3.0 - 2.0 * {f}))'
     elif grad == 'DIAGONAL':
         f = f'({co}.x + {co}.y) * 0.5'
     elif grad == 'RADIAL':
         f = f'atan({co}.y, {co}.x) / PI2 + 0.5'
     elif grad == 'QUADRATIC_SPHERE':
-        f = '0.0'
+        f = f'max(1.0 - sqrt({co}.x * {co}.x + {co}.y * {co}.y + {co}.z * {co}.z), 0.0)'
+        f = f'({f} * {f})'
     else:  # SPHERICAL
         f = f'max(1.0 - sqrt({co}.x * {co}.x + {co}.y * {co}.y + {co}.z * {co}.z), 0.0)'
 
