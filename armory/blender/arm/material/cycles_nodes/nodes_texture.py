@@ -581,29 +581,43 @@ def parse_tex_voronoi(node: bpy.types.ShaderNodeTexVoronoi, out_socket: bpy.type
 def parse_tex_wave(node: bpy.types.ShaderNodeTexWave, out_socket: bpy.types.NodeSocket, state: ParserState) -> Union[floatstr, vec3str]:
     c.write_procedurals()
     state.curshader.add_function(c_functions.str_tex_wave)
+    
     if node.inputs[0].is_linked:
         co = c.parse_vector_input(node.inputs[0])
     else:
         co = 'bposition'
+    
     scale = c.parse_value_input(node.inputs[1])
     distortion = c.parse_value_input(node.inputs[2])
     detail = c.parse_value_input(node.inputs[3])
     detail_scale = c.parse_value_input(node.inputs[4])
     phase_offset = c.parse_value_input(node.inputs['Phase Offset'])
+
+    wave_type = 0 if node.wave_type == 'BANDS' else 1
+    
+    dir_map = {'X': 0, 'Y': 1, 'Z': 2, 'DIAGONAL': 3}
+    
+    if hasattr(node, 'wave_direction'):
+        wave_dir = dir_map.get(node.wave_direction, 0)
+    elif wave_type == 0:
+        wave_dir = dir_map.get(node.bands_direction, 0)
+    else:
+        wave_dir = dir_map.get(node.rings_direction, 0)
+    
     if node.wave_profile == 'SIN':
         wave_profile = 0
-    else:
+    elif node.wave_profile == 'SAW':
         wave_profile = 1
-    if node.wave_type == 'BANDS':
-        wave_type = 0
     else:
-        wave_type = 1
+        wave_profile = 2
 
-    # Color
+    args = '{0} * {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}'.format(
+        co, scale, wave_type, wave_dir, wave_profile, distortion, detail, detail_scale, phase_offset
+    )
+
     if out_socket == node.outputs[0]:
-        res = 'vec3(tex_wave_f({0} * {1},{2},{3},{4},{5},{6},{7}))'.format(co, scale, wave_type, wave_profile, distortion, detail, detail_scale, phase_offset)
-    # Fac
+        res = 'vec3(tex_wave_f({0}))'.format(args)
     else:
-        res = 'tex_wave_f({0} * {1},{2},{3},{4},{5},{6},{7})'.format(co, scale, wave_type, wave_profile, distortion, detail, detail_scale, phase_offset)
+        res = 'tex_wave_f({0})'.format(args)
 
     return res
