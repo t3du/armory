@@ -268,8 +268,8 @@ if bpy.app.version < (4, 1, 0):
             co = 'bposition'
     
         scale = c.parse_value_input(node.inputs['Scale'])
-        detail = c.parse_value_input(node.inputs[3])
-        distortion = c.parse_value_input(node.inputs[4])
+        detail = c.parse_value_input(node.inputs['Detail'])
+        distortion = c.parse_value_input(node.inputs['Dimension'])
 
         res = f'tex_musgrave_f({co} * {scale} * 0.5, {detail}, {distortion})'
     
@@ -286,10 +286,10 @@ def parse_tex_noise(node: bpy.types.ShaderNodeTexNoise, out_socket: bpy.types.No
         co = c.parse_vector_input(node.inputs[0])
     else:
         co = 'bposition'
-    scale = c.parse_value_input(node.inputs[2])
-    detail = c.parse_value_input(node.inputs[3])
-    roughness = c.parse_value_input(node.inputs[4])
-    distortion = c.parse_value_input(node.inputs[5])
+    scale = c.parse_value_input(node.inputs['Scale'])
+    detail = c.parse_value_input(node.inputs['Detail'])
+    roughness = c.parse_value_input(node.inputs['Roughness'])
+    distortion = c.parse_value_input(node.inputs['Distortion'])
     if bpy.app.version >= (4, 1, 0):
         if node.noise_type == "FBM":
             state.curshader.add_function(c_functions.str_tex_musgrave)
@@ -299,14 +299,14 @@ def parse_tex_noise(node: bpy.types.ShaderNodeTexNoise, out_socket: bpy.types.No
                 res = f'tex_musgrave_f({co} * {scale} * 1.0, {detail}, {distortion})'
         else:
             if out_socket == node.outputs[1]:
-                res = 'vec3(tex_noise({0} * {1},{2},{3}), tex_noise({0} * {1} + 120.0,{2},{3}), tex_noise({0} * {1} + 168.0,{2},{3}))'.format(co, scale, detail, distortion)
+                res = 'vec3(tex_noise({0} * {1},{2},{3},{4}), tex_noise({0} * {1} + 120.0,{2},{3},{4}), tex_noise({0} * {1} + 168.0,{2},{3},{4}))'.format(co, scale, detail, distortion, roughness)
             else:
-                res = 'tex_noise({0} * {1},{2},{3})'.format(co, scale, detail, distortion)
+                res = 'tex_noise({0} * {1},{2},{3},{4})'.format(co, scale, detail, distortion, roughness)
     else:
         if out_socket == node.outputs[1]:
-            res = 'vec3(tex_noise({0} * {1},{2},{3}), tex_noise({0} * {1} + 120.0,{2},{3}), tex_noise({0} * {1} + 168.0,{2},{3}))'.format(co, scale, detail, distortion)
+            res = 'vec3(tex_noise({0} * {1},{2},{3},{4}), tex_noise({0} * {1} + 120.0,{2},{3},{4}), tex_noise({0} * {1} + 168.0,{2},{3},{4}))'.format(co, scale, detail, distortion, roughness)
         else:
-            res = 'tex_noise({0} * {1},{2},{3})'.format(co, scale, detail, distortion)
+            res = 'tex_noise({0} * {1},{2},{3},{4})'.format(co, scale, detail, distortion, roughness)
     return res
 
 
@@ -591,6 +591,7 @@ def parse_tex_wave(node: bpy.types.ShaderNodeTexWave, out_socket: bpy.types.Node
     distortion = c.parse_value_input(node.inputs[2])
     detail = c.parse_value_input(node.inputs[3])
     detail_scale = c.parse_value_input(node.inputs[4])
+    detail_roughness = c.parse_value_input(node.inputs['Detail Roughness'])
     phase_offset = c.parse_value_input(node.inputs['Phase Offset'])
 
     wave_type = 0 if node.wave_type == 'BANDS' else 1
@@ -611,8 +612,8 @@ def parse_tex_wave(node: bpy.types.ShaderNodeTexWave, out_socket: bpy.types.Node
     else:
         wave_profile = 2
 
-    args = '{0} * {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}'.format(
-        co, scale, wave_type, wave_dir, wave_profile, distortion, detail, detail_scale, phase_offset
+    args = '{0} * {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}'.format(
+        co, scale, wave_type, wave_dir, wave_profile, distortion, detail, detail_scale, phase_offset, detail_roughness
     )
 
     if out_socket == node.outputs[0]:

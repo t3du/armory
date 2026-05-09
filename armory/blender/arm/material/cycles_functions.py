@@ -24,29 +24,44 @@ float noise(const vec3 x) {
 
 //  Shader-code adapted from Blender
 //  https://github.com/sobotka/blender/blob/master/source/blender/gpu/shaders/material/gpu_shader_material_tex_wave.glsl & /gpu_shader_material_fractal_noise.glsl
-float fractal_noise(const vec3 p, const float o)
+float fractal_noise(const vec3 p, const float o, const float r)
 {
   float fscale = 1.0;
   float amp = 1.0;
   float sum = 0.0;
   float octaves = clamp(o, 0.0, 16.0);
   int n = int(octaves);
+  
   for (int i = 0; i <= n; i++) {
     float t = noise(fscale * p);
     sum += t * amp;
-    amp *= 0.5;
+    amp *= r; 
     fscale *= 2.0;
   }
+  
   float rmd = octaves - floor(octaves);
   if (rmd != 0.0) {
     float t = noise(fscale * p);
     float sum2 = sum + t * amp;
-    sum *= float(pow(2, n)) / float(pow(2, n + 1) - 1.0);
-    sum2 *= float(pow(2, n + 1)) / float(pow(2, n + 2) - 1);
+    
+    float max_amp1 = (1.0 - pow(r, float(n + 1))) / (1.0 - r);
+    float max_amp2 = (1.0 - pow(r, float(n + 2))) / (1.0 - r);
+    
+    if (abs(r - 1.0) < 0.0001) {
+        max_amp1 = float(n + 1);
+        max_amp2 = float(n + 2);
+    }
+
+    sum /= max_amp1;
+    sum2 /= max_amp2;
+    
     return (1.0 - rmd) * sum + rmd * sum2;
   }
   else {
-    sum *= float(pow(2, n)) / float(pow(2, n + 1) - 1); 
+    float max_amp = (1.0 - pow(r, float(n + 1))) / (1.0 - r);
+    if (abs(r - 1.0) < 0.0001) max_amp = float(n + 1);
+    
+    sum /= max_amp;
     return sum;
   }
 }
@@ -148,12 +163,12 @@ vec3 tex_voronoi(const vec3 coord, const float r, const int metric, const int ou
 # By Morgan McGuire @morgan3d, http://graphicscodex.com Reuse permitted under the BSD license.
 # https://www.shadertoy.com/view/4dS3Wd
 str_tex_noise = """
-float tex_noise(const vec3 p, const float detail, const float distortion) {
+float tex_noise(const vec3 p, const float detail, const float roughness, const float distortion) {
     vec3 pk = p;
     if (distortion != 0.0) {
-    pk += vec3(noise(p) * distortion);
-  }
-  return fractal_noise(pk, detail);
+        pk += vec3(noise(p) * distortion);
+    }
+    return fractal_noise(pk, detail, roughness);
 }
 """
 
@@ -486,7 +501,7 @@ float tex_brick_blender_f(vec3 co,
 """
 
 str_tex_wave = """
-float tex_wave_f(const vec3 p, const int type, const int d, const int profile, const float dist, const float detail, const float detail_scale, const float phase_offset) {
+float tex_wave_f(const vec3 p, const int type, const int d, const int profile, const float dist, const float detail, const float detail_scale, const float phase_offset, const float detail_roughness) {
     float n;
     
     if (type == 0) {
@@ -502,7 +517,7 @@ float tex_wave_f(const vec3 p, const int type, const int d, const int profile, c
     }
 
     if (dist != 0.0) {
-        n += dist * fractal_noise(p * detail_scale, detail) * 2.0 - 1.0;
+        n += dist * fractal_noise(p * detail_scale, detail, detail_roughness) * 2.0 - 1.0;
     }
 
     n += phase_offset;
