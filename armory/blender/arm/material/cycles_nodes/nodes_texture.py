@@ -248,15 +248,15 @@ def parse_tex_magic(node: bpy.types.ShaderNodeTexMagic, out_socket: bpy.types.No
         co = 'bposition'
 
     scale = c.parse_value_input(node.inputs[1])
+    depth = node.turbulence_depth
 
-    # Color
     if out_socket == node.outputs[0]:
-        res = f'tex_magic({co} * {scale} * 4.0)'
-    # Fac
+        res = f'tex_magic({co} * {scale} * 5.0, {depth})'
     else:
-        res = f'tex_magic_f({co} * {scale} * 4.0)'
+        res = f'tex_magic_f({co} * {scale} * 5.0, {depth})'
 
     return res
+
 
 if bpy.app.version < (4, 1, 0):
     def parse_tex_musgrave(node: bpy.types.ShaderNodeTexMusgrave, out_socket: bpy.types.NodeSocket, state: ParserState) -> Union[floatstr, vec3str]:
@@ -622,6 +622,7 @@ def parse_tex_wave(node: bpy.types.ShaderNodeTexWave, out_socket: bpy.types.Node
 
     return res
 
+
 def parse_tex_gabor(node: bpy.types.ShaderNodeTexGabor, out_socket: bpy.types.NodeSocket, state: ParserState) -> Union[floatstr, vec3str]:
     c.write_procedurals()
     state.curshader.add_function(c_functions.str_tex_gabor)
@@ -635,15 +636,13 @@ def parse_tex_gabor(node: bpy.types.ShaderNodeTexGabor, out_socket: bpy.types.No
     freq = c.parse_value_input(node.inputs[2])
     anisotropy = c.parse_value_input(node.inputs[3])
     orientation = c.parse_value_input(node.inputs[4])
-    bandwidth = "1.0" 
+    bandwidth = "0.5"
 
     args = '{0}, {1}, {2}, {3}, {4}, {5}'.format(
         co, scale, freq, anisotropy, orientation, bandwidth
     )
 
-    if out_socket == node.outputs[0] or out_socket == node.outputs[2]:
-        res = 'tex_gabor_f({0})'.format(args)
-    else:
-        res = 'tex_gabor_f({0})'.format(args)
-
-    return res
+    if out_socket == node.outputs[0]:
+        return 'vec3(tex_gabor_f({0}))'.format(args)
+    
+    return 'tex_gabor_f({0})'.format(args)

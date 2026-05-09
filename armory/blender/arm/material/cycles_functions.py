@@ -267,14 +267,79 @@ vec3 wavelength_to_rgb(const float t) {
 """
 
 str_tex_magic = """
-vec3 tex_magic(const vec3 p) {
-    float a = 1.0 - (sin(p.x) + sin(p.y));
-    float b = 1.0 - sin(p.x - p.y);
-    float c = 1.0 - sin(p.x + p.y);
-    return vec3(a, b, c);
+vec3 tex_magic(vec3 p, int depth) {
+    float x = p.x;
+    float y = p.y;
+    float z = p.z;
+    
+    // Blender usa un multiplicador de 5.0 internamente en los pasos intermedios
+    // pero el orden de las operaciones seno/coseno es estricto
+    if (depth > 0) {
+        float dist = x + y + z;
+        x = 1.0 - sin(dist);
+        y = 1.0 - sin(x - y + z);
+        z = 1.0 - sin(-x - y + z);
+    }
+    if (depth > 1) {
+        float dist = x + y + z;
+        x = 1.0 - sin(dist);
+        y = 1.0 - sin(x - y + z);
+        z = 1.0 - sin(-x - y + z);
+    }
+    if (depth > 2) {
+        float dist = x + y + z;
+        x = 1.0 - sin(dist);
+        y = 1.0 - sin(x - y + z);
+        z = 1.0 - sin(-x - y + z);
+    }
+    if (depth > 3) {
+        float dist = x + y + z;
+        x = 1.0 - sin(dist);
+        y = 1.0 - sin(x - y + z);
+        z = 1.0 - sin(-x - y + z);
+    }
+    if (depth > 4) {
+        float dist = x + y + z;
+        x = 1.0 - sin(dist);
+        y = 1.0 - sin(x - y + z);
+        z = 1.0 - sin(-x - y + z);
+    }
+    if (depth > 5) {
+        float dist = x + y + z;
+        x = 1.0 - sin(dist);
+        y = 1.0 - sin(x - y + z);
+        z = 1.0 - sin(-x - y + z);
+    }
+    if (depth > 6) {
+        float dist = x + y + z;
+        x = 1.0 - sin(dist);
+        y = 1.0 - sin(x - y + z);
+        z = 1.0 - sin(-x - y + z);
+    }
+    if (depth > 7) {
+        float dist = x + y + z;
+        x = 1.0 - sin(dist);
+        y = 1.0 - sin(x - y + z);
+        z = 1.0 - sin(-x - y + z);
+    }
+    if (depth > 8) {
+        float dist = x + y + z;
+        x = 1.0 - sin(dist);
+        y = 1.0 - sin(x - y + z);
+        z = 1.0 - sin(-x - y + z);
+    }
+    if (depth > 9) {
+        float dist = x + y + z;
+        x = 1.0 - sin(dist);
+        y = 1.0 - sin(x - y + z);
+        z = 1.0 - sin(-x - y + z);
+    }
+
+    return vec3(x, y, z);
 }
-float tex_magic_f(const vec3 p) {
-    vec3 c = tex_magic(p);
+
+float tex_magic_f(vec3 p, int depth) {
+    vec3 c = tex_magic(p, depth);
     return (c.x + c.y + c.z) / 3.0;
 }
 """
@@ -471,23 +536,18 @@ float tex_gabor_f(vec3 p, float scale, float freq, float anisotropy, float orien
             for (int x = -1; x <= 1; x++) {
                 vec3 o = vec3(float(x), float(y), float(z));
                 vec3 r = fp - o;
-                
-                // Hash para aleatoriedad del kernel
                 float h = hash_f(gp + o);
-                
-                // Envolvente Gaussiana
                 float dist_sq = dot(r, r);
                 float g = exp(-bandwidth * dist_sq);
-                
-                // Onda modulada
-                float oscillation = cos(freq * dot(r, dir) + h * 6.2831);
-                
-                va += g * oscillation;
+                float omega = freq * 6.28318530718;
+                float oscillation = cos(omega * dot(r, dir) + h * 6.28318530718);
+                float a = mix(1.0, g, anisotropy);
+                va += a * g * oscillation;
                 wt += g;
             }
         }
     }
-    return 0.5 + 0.5 * (va / wt);
+    return 0.5 + (va / (wt + 0.0001)) * 0.5;
 }
 """
 
