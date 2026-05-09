@@ -38,7 +38,10 @@ class MathNode(ArmLogicTreeNode):
             'Modulo': 2,
             'Less Than': 2,
             'Greater Than': 2,
-            'Ping-Pong': 2
+            'Ping-Pong': 2,
+            'Hyperbolic Sine': 1,
+            'Hyperbolic Cosine': 1,
+            'Hyperbolic Tangent': 1
         }.get(operation_name, 0)
 
     def get_enum(self):
@@ -97,7 +100,10 @@ class MathNode(ArmLogicTreeNode):
                  ('Fract', 'Fract', 'Fract'),
                  ('Square Root', 'Square Root', 'Square Root'),
                  ('Exponent', 'Exponent', 'Exponent'),
-                 ('Ping-Pong', 'Ping-Pong', 'The output value is moved between 0.0 and the Scale based on the input value')],
+                 ('Ping-Pong', 'Ping-Pong', 'The output value is moved between 0.0 and the Scale based on the input value'),
+                 ('Hyperbolic Sine', 'Hyperbolic Sine', 'Hyperbolic Sine'),
+                 ('Hyperbolic Cosine', 'Hyperbolic Cosine', 'Hyperbolic Cosine'),
+                 ('Hyperbolic Tangent', 'Hyperbolic Tangent', 'Hyperbolic Tangent')],
         name='', default='Add', set=set_enum, get=get_enum)
 
     property1: HaxeBoolProperty('property1', name='Clamp', default=False)

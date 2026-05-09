@@ -98,6 +98,17 @@ class MathNode extends LogicNode {
 				}
 			case "Ping-Pong":
 				r = pingpong(inputs[0].get(), inputs[1].get());
+			case "Hyperbolic Sine":
+				var x = inputs[0].get();
+				r = (Math.exp(x) - Math.exp(-x)) / 2;
+			case "Hyperbolic Cosine":
+				var x = inputs[0].get();
+				r = (Math.exp(x) + Math.exp(-x)) / 2;
+			case "Hyperbolic Tangent":
+				var x = inputs[0].get();
+				var sinh = (Math.exp(x) - Math.exp(-x)) / 2;
+				var cosh = (Math.exp(x) + Math.exp(-x)) / 2;
+				r = sinh / cosh;
 			}
 		// Clamp
 		if (property1) r = r < 0.0 ? 0.0 : (r > 1.0 ? 1.0 : r);
