@@ -20,6 +20,7 @@ class SetShaderUniformNode(ArmLogicTreeNode):
             self.add_input('ArmFloatSocket', 'Float')
         elif self.property0 in ('vec2', 'vec3', 'vec4'):
             self.add_input('ArmVectorSocket', 'Vector')
+        else: self.add_input('ArmStringSocket', 'Sample2D')
 
     property0: HaxeEnumProperty(
         'property0',
@@ -27,7 +28,8 @@ class SetShaderUniformNode(ArmLogicTreeNode):
                  ('float', 'float', 'float'),
                  ('vec2', 'vec2', 'vec2'),
                  ('vec3', 'vec3', 'vec3'),
-                 ('vec4', 'vec4', 'vec4')],
+                 ('vec4', 'vec4', 'vec4'),
+                 ('sampler2D', 'sampler2D', 'sampler2D')],
         name='Uniform Type',
         default='float',
         description="The type of the uniform",

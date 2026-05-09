@@ -11,6 +11,7 @@ class SetShaderUniformNode extends LogicNode {
 	static var vec2Map = new Map<String, iron.math.Vec4>();
 	static var vec3Map = new Map<String, iron.math.Vec4>();
 	static var vec4Map = new Map<String, iron.math.Vec4>();
+	static var texMap = new Map<String, kha.Image>();
 
 	/** Uniform type **/
 	public var property0: String;
@@ -24,6 +25,7 @@ class SetShaderUniformNode extends LogicNode {
 			iron.object.Uniforms.externalVec2Links.push(vec2Link);
 			iron.object.Uniforms.externalVec3Links.push(vec3Link);
 			iron.object.Uniforms.externalVec4Links.push(vec4Link);
+			iron.object.Uniforms.externalTextureLinks.push(textureLink);
 		}
 	}
 
@@ -37,6 +39,24 @@ class SetShaderUniformNode extends LogicNode {
 			case "vec2": vec2Map.set(uniformName, inputs[2].get());
 			case "vec3": vec3Map.set(uniformName, inputs[2].get());
 			case "vec4": vec4Map.set(uniformName, inputs[2].get());
+			case "sampler2D":
+			    var assetName: String = inputs[2].get();
+			    if (assetName == null || assetName == "") return;
+
+			    var img = iron.data.Data.cachedImages.get(assetName);
+
+			    if (img != null) {
+			        texMap.set(uniformName, img);
+			        runOutput(0);
+			    } 
+			    else {
+			        iron.data.Data.getImage(assetName, function(loadedImg: kha.Image) {
+			            if (loadedImg != null) {
+			                texMap.set(uniformName, loadedImg);
+			                runOutput(0);
+			            }
+			        });
+			    }
 			default:
 		}
 
@@ -61,5 +81,9 @@ class SetShaderUniformNode extends LogicNode {
 
 	static function vec4Link(object: Object, mat: MaterialData, link: String): iron.math.Vec4 {
 		return vec4Map.get(link);
+	}
+
+	static function textureLink(object: Object, mat: MaterialData, link: String): kha.Image {
+		return texMap.get(link);
 	}
 }
