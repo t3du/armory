@@ -456,6 +456,41 @@ float tex_wave_f(const vec3 p, const int type, const int d, const int profile, c
 }
 """
 
+str_tex_gabor = """
+float tex_gabor_f(vec3 p, float scale, float freq, float anisotropy, float orientation, float bandwidth) {
+    p *= scale;
+    vec3 gp = floor(p);
+    vec3 fp = fract(p);
+    float va = 0.0;
+    float wt = 0.0;
+
+    vec3 dir = vec3(sin(orientation), cos(orientation), 0.0);
+
+    for (int z = -1; z <= 1; z++) {
+        for (int y = -1; y <= 1; y++) {
+            for (int x = -1; x <= 1; x++) {
+                vec3 o = vec3(float(x), float(y), float(z));
+                vec3 r = fp - o;
+                
+                // Hash para aleatoriedad del kernel
+                float h = hash_f(gp + o);
+                
+                // Envolvente Gaussiana
+                float dist_sq = dot(r, r);
+                float g = exp(-bandwidth * dist_sq);
+                
+                // Onda modulada
+                float oscillation = cos(freq * dot(r, dir) + h * 6.2831);
+                
+                va += g * oscillation;
+                wt += g;
+            }
+        }
+    }
+    return 0.5 + 0.5 * (va / wt);
+}
+"""
+
 str_brightcontrast = """
 vec3 brightcontrast(const vec3 col, const float bright, const float contr) {
     float a = 1.0 + contr;

@@ -621,3 +621,29 @@ def parse_tex_wave(node: bpy.types.ShaderNodeTexWave, out_socket: bpy.types.Node
         res = 'tex_wave_f({0})'.format(args)
 
     return res
+
+def parse_tex_gabor(node: bpy.types.ShaderNodeTexGabor, out_socket: bpy.types.NodeSocket, state: ParserState) -> Union[floatstr, vec3str]:
+    c.write_procedurals()
+    state.curshader.add_function(c_functions.str_tex_gabor)
+    
+    if node.inputs[0].is_linked:
+        co = c.parse_vector_input(node.inputs[0])
+    else:
+        co = 'bposition'
+    
+    scale = c.parse_value_input(node.inputs[1])
+    freq = c.parse_value_input(node.inputs[2])
+    anisotropy = c.parse_value_input(node.inputs[3])
+    orientation = c.parse_value_input(node.inputs[4])
+    bandwidth = "1.0" 
+
+    args = '{0}, {1}, {2}, {3}, {4}, {5}'.format(
+        co, scale, freq, anisotropy, orientation, bandwidth
+    )
+
+    if out_socket == node.outputs[0] or out_socket == node.outputs[2]:
+        res = 'tex_gabor_f({0})'.format(args)
+    else:
+        res = 'tex_gabor_f({0})'.format(args)
+
+    return res
