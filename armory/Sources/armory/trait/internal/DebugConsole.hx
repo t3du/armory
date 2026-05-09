@@ -902,13 +902,13 @@ class DebugConsole extends Trait {
 					ui.unindent();
 				}
 
-				// if (ui.panel(Id.handle({selected: false}), 'Cached Textures')) {
-				// 	ui.indent();
-				// 	for (c in iron.data.Data.cachedImages) {
-				// 		ui.image(c);
-				// 	}
-				// 	ui.unindent();
-				// }
+				if (ui.panel(Id.handle({selected: false}), 'Cached Textures')) {
+					ui.indent();
+					for (c in iron.data.Data.cachedImages) {
+						ui.image(c);
+					}
+					ui.unindent();
+				}
 			}
 			if (ui.tab(htab, lastTraces[0] == "" ? "Console" : lastTraces[0].substr(0, 20))) {
 				#if js
