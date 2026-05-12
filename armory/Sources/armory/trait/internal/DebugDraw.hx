@@ -74,6 +74,157 @@ class DebugDraw {
 		});
 	}
 
+	static var wv1 = new iron.math.Vec4();
+	static var wv2 = new iron.math.Vec4();
+	static var wv3 = new iron.math.Vec4();
+	static var we1 = new iron.math.Vec4();
+	static var we2 = new iron.math.Vec4();
+	static var wn = new iron.math.Vec4();
+	public function wireframe(mesh: iron.object.MeshObject) {
+		if (mesh == null || mesh.data == null) return;
+
+		var geom = mesh.data.geom;
+		var pos = geom.positions.values;
+		var indices = geom.indices;
+		var world = mesh.transform.world;
+		var scl = mesh.data.scalePos / 32767;
+
+		var edgeMap = new haxe.ds.StringMap<iron.math.Vec4>();
+
+		for (indexArray in indices) {
+			var i = 0;
+			while (i < indexArray.length) {
+				var i1 = indexArray[i];
+				var i2 = indexArray[i + 1];
+				var i3 = indexArray[i + 2];
+
+				wv1.set(pos[i1 * 4], pos[i1 * 4 + 1], pos[i1 * 4 + 2]);
+				wv2.set(pos[i2 * 4], pos[i2 * 4 + 1], pos[i2 * 4 + 2]);
+				wv3.set(pos[i3 * 4], pos[i3 * 4 + 1], pos[i3 * 4 + 2]);
+				
+				we1.set(wv2.x - wv1.x, wv2.y - wv1.y, wv2.z - wv1.z);
+				we2.set(wv3.x - wv1.x, wv3.y - wv1.y, wv3.z - wv1.z);
+				
+				wn.crossvecs(we1, we2);
+				wn.normalize();
+
+				var edgeIndices = [[i1, i2], [i2, i3], [i3, i1]];
+				for (edge in edgeIndices) {
+					var a = edge[0];
+					var b = edge[1];
+					var key = a < b ? a + "_" + b : b + "_" + a;
+					
+					if (edgeMap.exists(key)) {
+						if (wn.dot(edgeMap.get(key)) < 0.99) {
+							wv1.set(pos[a * 4] * scl, pos[a * 4 + 1] * scl, pos[a * 4 + 2] * scl).applymat4(world);
+							wv2.set(pos[b * 4] * scl, pos[b * 4 + 1] * scl, pos[b * 4 + 2] * scl).applymat4(world);
+							linev(wv1, wv2);
+						}
+						edgeMap.remove(key);
+					} else {
+						edgeMap.set(key, wn.clone());
+					}
+				}
+				i += 3;
+			}
+		}
+
+		for (key in edgeMap.keys()) {
+			var v = key.split("_");
+			var a = Std.parseInt(v[0]);
+			var b = Std.parseInt(v[1]);
+			wv1.set(pos[a * 4] * scl, pos[a * 4 + 1] * scl, pos[a * 4 + 2] * scl).applymat4(world);
+			wv2.set(pos[b * 4] * scl, pos[b * 4 + 1] * scl, pos[b * 4 + 2] * scl).applymat4(world);
+			linev(wv1, wv2);
+		}
+	}
+
+	public function outline(mesh: iron.object.MeshObject) {
+		if (mesh == null || mesh.data == null) return;
+
+		var geom = mesh.data.geom;
+		var pos = geom.positions.values;
+		var indices = geom.indices;
+		var world = mesh.transform.world;
+		var scl = mesh.data.scalePos / 32767;
+
+		var camera = iron.Scene.active.camera;
+		cameraPos.setFrom(camera.transform.getWorldPosition());
+
+		var faceIsFront = new Array<Bool>();
+		var edgeToFace = new haxe.ds.StringMap<Int>();
+		var edgesToDraw = new Array<Int>();
+
+		for (matIndex in 0...indices.length) {
+			var indexArray = indices[matIndex];
+			var i = 0;
+			var faceIdx = 0;
+
+			while (i < indexArray.length) {
+				var i1 = indexArray[i];
+				var i2 = indexArray[i + 1];
+				var i3 = indexArray[i + 2];
+
+				wv1.set(pos[i1 * 4] * scl, pos[i1 * 4 + 1] * scl, pos[i1 * 4 + 2] * scl).applymat4(world);
+				wv2.set(pos[i2 * 4] * scl, pos[i2 * 4 + 1] * scl, pos[i2 * 4 + 2] * scl).applymat4(world);
+				wv3.set(pos[i3 * 4] * scl, pos[i3 * 4 + 1] * scl, pos[i3 * 4 + 2] * scl).applymat4(world);
+				
+				we1.set(wv2.x - wv1.x, wv2.y - wv1.y, wv2.z - wv1.z);
+				we2.set(wv3.x - wv1.x, wv3.y - wv1.y, wv3.z - wv1.z);
+				wn.crossvecs(we1, we2);
+
+				viewVec.set(cameraPos.x - wv1.x, cameraPos.y - wv1.y, cameraPos.z - wv1.z);
+				
+				var isFront = wn.dot(viewVec) > 0;
+				faceIsFront.push(isFront);
+
+				var eIdx = [[i1, i2], [i2, i3], [i3, i1]];
+				for (e in eIdx) {
+					var v1x = Math.round(pos[e[0]*4] * 100);
+					var v1y = Math.round(pos[e[0]*4+1] * 100);
+					var v1z = Math.round(pos[e[0]*4+2] * 100);
+					var v2x = Math.round(pos[e[1]*4] * 100);
+					var v2y = Math.round(pos[e[1]*4+1] * 100);
+					var v2z = Math.round(pos[e[1]*4+2] * 100);
+					
+					var key = v1x < v2x ? v1x+"_"+v1y+"_"+v1z+"_"+v2x+"_"+v2y+"_"+v2z : v2x+"_"+v2y+"_"+v2z+"_"+v1x+"_"+v1y+"_"+v1z;
+
+					if (edgeToFace.exists(key)) {
+						var otherFaceIdx = edgeToFace.get(key);
+
+						if (faceIsFront[otherFaceIdx] != isFront) {
+							edgesToDraw.push(e[0]);
+							edgesToDraw.push(e[1]);
+						}
+						edgeToFace.remove(key);
+					} else {
+						edgeToFace.set(key, faceIdx);
+					}
+				}
+
+				faceIdx++;
+				i += 3;
+			}
+		}
+
+		for (key in edgeToFace.keys()) {
+			var fIdx = edgeToFace.get(key);
+			if (faceIsFront[fIdx]) {
+				var coords = key.split("_");
+			}
+		}
+
+		var j = 0;
+		while (j < edgesToDraw.length) {
+			var a = edgesToDraw[j];
+			var b = edgesToDraw[j + 1];
+			wv1.set(pos[a * 4] * scl, pos[a * 4 + 1] * scl, pos[a * 4 + 2] * scl).applymat4(world);
+			wv2.set(pos[b * 4] * scl, pos[b * 4 + 1] * scl, pos[b * 4 + 2] * scl).applymat4(world);
+			linev(wv1, wv2);
+			j += 2;
+		}
+	}
+
 	static var objPosition: Vec4;
 	static var vx = new Vec4();
 	static var vy = new Vec4();
@@ -135,37 +286,50 @@ class DebugDraw {
 		line(v1.x, v1.y, v1.z, v2.x, v2.y, v2.z);
 	}
 
-	static var midPoint = new Vec4();
-	static var midLine = new Vec4();
-	static var corner1 = new Vec4();
-	static var corner2 = new Vec4();
-	static var corner3 = new Vec4();
-	static var corner4 = new Vec4();
-	static var cameraLook = new Vec4();
-	public function line(x1: Float, y1: Float, z1: Float, x2: Float, y2: Float, z2: Float) {
+	static var v1c = new iron.math.Vec4();
+	static var cameraPos = new iron.math.Vec4();
+	static var lineVec = new iron.math.Vec4();
+	static var viewVec = new iron.math.Vec4();
+	static var perp = new iron.math.Vec4();
+	static var corner1 = new iron.math.Vec4();
+	static var corner2 = new iron.math.Vec4();
+	static var corner3 = new iron.math.Vec4();
+	static var corner4 = new iron.math.Vec4();
 
+	public function line(x1: Float, y1: Float, z1: Float, x2: Float, y2: Float, z2: Float) {
 		if (lines >= maxLines) { end(); begin(); }
 
-		midPoint.set(x1 + x2, y1 + y2, z1 + z2);
-		midPoint.mult(0.5);
-
-		midLine.set(x1, y1, z1);
-		midLine.sub(midPoint);
-
 		var camera = iron.Scene.active.camera;
-		cameraLook = camera.transform.getWorldPosition();
-		cameraLook.sub(midPoint);
+		cameraPos.setFrom(camera.transform.getWorldPosition());
 
-		var lineWidth = cameraLook.cross(midLine);
-		lineWidth.normalize();
-		lineWidth.mult(strength);
+		v1c.set(x1, y1, z1, 1.0).applymat4(camera.VP);
+		var dist1 = v1c.w;
+		v1c.set(x2, y2, z2, 1.0).applymat4(camera.VP);
+		var dist2 = v1c.w;
 
-		corner1.set(x1, y1, z1).add(lineWidth);
-		corner2.set(x1, y1, z1).sub(lineWidth);
-		corner3.set(x2, y2, z2).sub(lineWidth);
-		corner4.set(x2, y2, z2).add(lineWidth);
+		lineVec.set(x2 - x1, y2 - y1, z2 - z1);
+		lineVec.normalize();
 
-		var i = lines * 24; // 4 * 6 (structure len)
+		viewVec.set(cameraPos.x - x1, cameraPos.y - y1, cameraPos.z - z1);
+		viewVec.normalize();
+
+		perp.crossvecs(viewVec, lineVec);
+		perp.normalize();
+
+		var s1 = strength * dist1 * 0.01;
+		var s2 = strength * dist2 * 0.01;
+
+		var bias = 0.005; 
+		var bX = viewVec.x * bias;
+		var bY = viewVec.y * bias;
+		var bZ = viewVec.z * bias;
+
+		corner1.set(x1 + perp.x * s1 + bX, y1 + perp.y * s1 + bY, z1 + perp.z * s1 + bZ);
+		corner2.set(x1 - perp.x * s1 + bX, y1 - perp.y * s1 + bY, z1 - perp.z * s1 + bZ);
+		corner3.set(x2 - perp.x * s2 + bX, y2 - perp.y * s2 + bY, z2 - perp.z * s2 + bZ);
+		corner4.set(x2 + perp.x * s2 + bX, y2 + perp.y * s2 + bY, z2 + perp.z * s2 + bZ);
+
+		var i = lines * 24;
 		addVbData(i, [corner1.x, corner1.y, corner1.z, color.R, color.G, color.B]);
 		i += 6;
 		addVbData(i, [corner2.x, corner2.y, corner2.z, color.R, color.G, color.B]);
@@ -175,7 +339,7 @@ class DebugDraw {
 		addVbData(i, [corner4.x, corner4.y, corner4.z, color.R, color.G, color.B]);
 
 		i = lines * 6;
-		ibData[i    ] = lines * 4;
+		ibData[i] = lines * 4;
 		ibData[i + 1] = lines * 4 + 1;
 		ibData[i + 2] = lines * 4 + 2;
 		ibData[i + 3] = lines * 4 + 2;
