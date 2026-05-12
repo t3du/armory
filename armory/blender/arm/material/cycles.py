@@ -106,6 +106,11 @@ def parse_material_output(node: bpy.types.Node, custom_particle_node: bpy.types.
 
     mat_state.emission_type = mat_state.EmissionType.NO_EMISSION
 
+   #for debugDraw color in deferred
+    if '_EmissionShaded' not in wrd.world_defs:
+        wrd.world_defs += '_EmissionShaded'
+        arm.assets.add_khafile_def('rp_gbuffer_emission')
+
     # Surface
     if parse_surface or parse_opacity:
         state.parents = []

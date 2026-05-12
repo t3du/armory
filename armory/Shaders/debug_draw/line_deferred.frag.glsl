@@ -10,6 +10,6 @@ void main() {
 	fragColor[GBUF_IDX_1] = vec4(color, 1.0);
 
 	#ifdef _EmissionShaded
-		fragColor[GBUF_IDX_EMISSION] = vec4(0.0);
+		fragColor[GBUF_IDX_EMISSION] = vec4(color, 1.0);
 	#endif
 }
