@@ -69,9 +69,6 @@ class ARM_PT_ObjectPropsPanel(bpy.types.Panel):
         col.prop(obj, 'arm_spawn')
         col.prop(obj, 'arm_mobile')
         col.prop(obj, 'arm_animation_enabled')
-        sub = col.column()
-        sub.enabled = False
-        sub.prop(obj, 'arm_lighting')
 
         if obj.type == 'MESH':
             layout.prop(obj, 'arm_instanced')
