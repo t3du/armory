@@ -809,8 +809,8 @@ const float voxelgiOffset = """ + str(round(rpdat.arm_voxelgi_offset * 100) / 10
 const float voxelgiAperture = """ + str(round(rpdat.arm_voxelgi_aperture * 100) / 100) + """;
 """)
 
-        if rpdat.rp_sss:
-            f.write(f"const float sssWidth = {rpdat.arm_sss_width / 10.0};\n")
+        val = rpdat.arm_sss_width / 10.0 if rpdat.rp_sss else 0.0
+        f.write(f"const float sssWidth = {val};\n")
 
         # Skinning
         if rpdat.arm_skin == 'On':
@@ -818,17 +818,13 @@ const float voxelgiAperture = """ + str(round(rpdat.arm_voxelgi_aperture * 100) 
 """const int skinMaxBones = """ + str(rpdat.arm_skin_max_bones) + """;
 """)
 
-        if '_Clusters' in wrd.world_defs:
-            max_lights = "4"
-            max_lights_clusters = "4"
-            if rpdat.rp_shadowmap_atlas:
-                max_lights = str(rpdat.rp_max_lights)
-                max_lights_clusters = str(rpdat.rp_max_lights_cluster)
-                # prevent max lights cluster being higher than max lights
-                if (int(max_lights_clusters) > int(max_lights)):
-                    max_lights_clusters = max_lights
+        max_lights = str(rpdat.rp_max_lights)
+        max_lights_clusters = str(rpdat.rp_max_lights_cluster)
+        # prevent max lights cluster being higher than max lights
+        if (int(max_lights_clusters) > int(max_lights)):
+            max_lights_clusters = max_lights
 
-            f.write(
+        f.write(
 """const int maxLights = """ + max_lights + """;
 const int maxLightsCluster = """ + max_lights_clusters + """;
 const float clusterNear = 3.0;
