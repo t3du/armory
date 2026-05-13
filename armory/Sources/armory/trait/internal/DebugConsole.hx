@@ -875,7 +875,7 @@ class DebugConsole extends Trait {
 					ui.imageInvertY = true;
 					#end
 					for (rt in iron.RenderPath.active.renderTargets) {
-						ui.text(rt.raw.name);
+						ui.text(rt.raw.name+' '+rt.raw.format);
 						if (rt.image != null && !rt.is3D) {
 							ui.image(rt.image);
 						}
