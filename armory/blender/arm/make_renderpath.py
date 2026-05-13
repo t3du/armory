@@ -186,6 +186,9 @@ def build():
     if rpdat.rp_renderer == 'Deferred':
         assets.add_shader_pass('copy_pass')
 
+    assets.add_shader_pass('blend_pass')
+    assets.add_shader_pass('add_pass')
+
     if rpdat.rp_render_to_texture:
         assets.add_khafile_def('rp_render_to_texture')
 
