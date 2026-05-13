@@ -207,6 +207,17 @@ def parse_objectinfo(node: bpy.types.ShaderNodeObjectInfo, out_socket: bpy.types
                 return c.to_vec3((0.0, 0.0, 0.0))
             return c.to_vec3([background_node.inputs[1].default_value] * 3)
 
+        if mat_state.uses_instancing:
+            state.vert.add_out(f'vec3 irandc')
+            state.frag.add_in(f'vec3 irandc')
+            state.vert.write("irandc = vec3(" \
+               "fract(sin(fract(sin(gl_InstanceID) * 43758.5453) * 12.9898 + 78.233) * 43758.5453), " \
+               "fract(sin(fract(sin(gl_InstanceID) * 43758.5453) * 39.3456 + 12.123) * 43758.5453), " \
+               "fract(sin(fract(sin(gl_InstanceID) * 43758.5453) * 78.2330 + 45.678) * 43758.5453)" \
+               ");"
+            )
+            return 'irandc'
+
         state.curshader.add_uniform('float objRandom', link='_objectInfoRandom')
         return "vec3(" \
                "fract(sin(objRandom * 12.9898 + 78.233) * 43758.5453), " \
@@ -217,6 +228,12 @@ def parse_objectinfo(node: bpy.types.ShaderNodeObjectInfo, out_socket: bpy.types
 
     # Alpha
     elif out_socket == node.outputs[2]:
+        if mat_state.uses_instancing:
+            state.vert.add_out(f'float iranda')
+            state.frag.add_in(f'float iranda')
+            state.vert.write("iranda = 'fract(sin(fract(sin(gl_InstanceID) * 43758.5453) * 12.9898) * 43758.5453);")
+            return 'iranda'
+
         state.curshader.add_uniform('float objAlphaRandom', link='_objectInfoRandom')
         return 'fract(sin(objAlphaRandom * 12.9898) * 43758.5453)'
 
