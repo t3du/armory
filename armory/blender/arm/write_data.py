@@ -297,11 +297,9 @@ project.addSources('Sources');
                 khafile.write(add_shaders(sdk_path + "/armory/Shaders/debug_draw/line.frag.glsl", rel_path=do_relpath_sdk))
             khafile.write(add_shaders(sdk_path + "/armory/Shaders/debug_draw/line.vert.glsl", rel_path=do_relpath_sdk))
 
-        khafile.write(add_shaders(sdk_path + "/armory/Shaders/render_draw/render_line.vert.glsl", rel_path=do_relpath_sdk))
         if rpdat.rp_renderer == 'Forward':
             khafile.write(add_shaders(sdk_path + "/armory/Shaders/render_draw/render_line.frag.glsl", rel_path=do_relpath_sdk))
-        else:
-            khafile.write(add_shaders(sdk_path + "/armory/Shaders/render_draw/render_line_deferred.frag.glsl", rel_path=do_relpath_sdk))
+        khafile.write(add_shaders(sdk_path + "/armory/Shaders/render_draw/render_line.vert.glsl", rel_path=do_relpath_sdk))
 
         if not is_publish and state.target == 'html5':
             khafile.write("project.addParameter('--debug');\n")
