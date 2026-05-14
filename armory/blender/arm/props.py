@@ -352,6 +352,14 @@ def init_properties():
         description='Whether to use instancing to draw the children of this object. If enabled, this option defines what attributes may vary between the instances',
         update=assets.invalidate_instance_cache,
         override={'LIBRARY_OVERRIDABLE'})
+    bpy.types.Object.arm_instanced_rot_type = EnumProperty(
+        items = [('Local', 'Local', 'Rotate around instance origin'),
+                 ('Global', 'Global', 'Rotate around world origin')],
+        name="Rotation Type",
+        default='Local',
+        description='Rotation space for instanced children',
+        update=assets.invalidate_compiler_cache)
+    bpy.types.Material.arm_instanced_rot_type = bpy.props.StringProperty(default='Local')
     bpy.types.Object.arm_sorting_index = IntProperty(name="Sorting Index", description="Sorting index for the Render's Draw Order", default=0, override={'LIBRARY_OVERRIDABLE'})
     bpy.types.Object.arm_export = BoolProperty(name="Export", description="Export object data", default=True, override={'LIBRARY_OVERRIDABLE'})
     bpy.types.Object.arm_spawn = BoolProperty(name="Spawn", description="Auto-add this object when creating scene", default=True, override={'LIBRARY_OVERRIDABLE'})

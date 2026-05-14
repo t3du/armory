@@ -72,6 +72,8 @@ class ARM_PT_ObjectPropsPanel(bpy.types.Panel):
 
         if obj.type == 'MESH':
             layout.prop(obj, 'arm_instanced')
+            if 'Rot' in obj.arm_instanced:
+                layout.prop(obj, 'arm_instanced_rot_type')
             wrd = bpy.data.worlds['Arm']
             layout.prop_search(obj, "arm_tilesheet", wrd, "arm_tilesheetlist", text="Tilesheet")
             if obj.arm_tilesheet != '':
