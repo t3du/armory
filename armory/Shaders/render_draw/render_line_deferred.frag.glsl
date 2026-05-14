@@ -1,0 +1,15 @@
+#version 450
+
+#include "compiled.inc"
+
+in vec4 color;
+out vec4 fragColor[GBUF_SIZE];
+
+void main() {
+	fragColor[GBUF_IDX_0] = vec4(1.0, 1.0, 0.0, 1.0);
+	fragColor[GBUF_IDX_1] = vec4(color);
+
+	#ifdef _EmissionShaded
+		fragColor[GBUF_IDX_EMISSION] = vec4(color);
+	#endif
+}

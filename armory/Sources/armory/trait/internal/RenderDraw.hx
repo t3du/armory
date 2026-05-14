@@ -9,6 +9,7 @@ import kha.graphics4.Usage;
 import kha.graphics4.ConstantLocation;
 import kha.graphics4.CompareMode;
 import kha.graphics4.CullMode;
+import kha.graphics4.BlendingFactor;
 import iron.math.Vec4;
 import iron.math.Mat4;
 using armory.object.TransformExtension;
@@ -40,15 +41,21 @@ class RenderDraw {
 
 		var structure = new VertexStructure();
 		structure.add("pos", VertexData.Float3);
-		structure.add("col", VertexData.Float3);
+		structure.add("col", VertexData.Float4);
 		pipeline = new PipelineState();
 		pipeline.inputLayout = [structure];
 		#if arm_deferred
-		pipeline.fragmentShader = kha.Shaders.line_deferred_frag;
+		pipeline.fragmentShader = kha.Shaders.render_line_deferred_frag;
 		#else
-		pipeline.fragmentShader = kha.Shaders.line_frag;
+		pipeline.fragmentShader = kha.Shaders.render_line_frag;
 		#end
-		pipeline.vertexShader = kha.Shaders.line_vert;
+		pipeline.vertexShader = kha.Shaders.render_line_vert;
+
+		pipeline.blendSource = BlendingFactor.SourceAlpha;
+		pipeline.blendDestination = BlendingFactor.InverseSourceAlpha;
+		pipeline.alphaBlendSource = BlendingFactor.SourceAlpha;
+		pipeline.alphaBlendDestination = BlendingFactor.InverseSourceAlpha;
+
 		pipeline.depthWrite = true;
 		pipeline.depthMode = CompareMode.Less;
 		pipeline.cullMode = CullMode.None;
@@ -327,14 +334,14 @@ class RenderDraw {
 		corner3.set(x2 - perp.x * s2 + bX, y2 - perp.y * s2 + bY, z2 - perp.z * s2 + bZ);
 		corner4.set(x2 + perp.x * s2 + bX, y2 + perp.y * s2 + bY, z2 + perp.z * s2 + bZ);
 
-		var i = lines * 24;
-		addVbData(i, [corner1.x, corner1.y, corner1.z, color.R, color.G, color.B]);
-		i += 6;
-		addVbData(i, [corner2.x, corner2.y, corner2.z, color.R, color.G, color.B]);
-		i += 6;
-		addVbData(i, [corner3.x, corner3.y, corner3.z, color.R, color.G, color.B]);
-		i += 6;
-		addVbData(i, [corner4.x, corner4.y, corner4.z, color.R, color.G, color.B]);
+		var i = lines * 28;
+		addVbData(i, [corner1.x, corner1.y, corner1.z, color.R, color.G, color.B, color.A]);
+		i += 7;
+		addVbData(i, [corner2.x, corner2.y, corner2.z, color.R, color.G, color.B, color.A]);
+		i += 7;
+		addVbData(i, [corner3.x, corner3.y, corner3.z, color.R, color.G, color.B, color.A]);
+		i += 7;
+		addVbData(i, [corner4.x, corner4.y, corner4.z, color.R, color.G, color.B, color.A]);
 
 		i = lines * 6;
 		ibData[i] = lines * 4;
@@ -368,7 +375,7 @@ class RenderDraw {
 	}
 
 	inline function addVbData(i: Int, data: Array<Float>) {
-		for (offset in 0...6) {
+		for (offset in 0...7) {
 			vbData.set(i + offset, data[offset]);
 		}
 	}

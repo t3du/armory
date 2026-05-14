@@ -385,7 +385,6 @@ class RenderPath {
 		}
 	}
 
-	#if arm_debug
 	static var contextEvents: Map<String, Array<Graphics->Int->Int->Void>> = null;
 	public static function notifyOnContext(name: String, onContext: Graphics->Int->Int->Void) {
 		if (contextEvents == null) contextEvents = new Map();
@@ -396,7 +395,6 @@ class RenderPath {
 		}
 		ar.push(onContext);
 	}
-	#end
 
 	#if rp_decals
 	public function drawDecals(context: String) {
