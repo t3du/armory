@@ -63,14 +63,19 @@ class Spectral {
 		}
 
 		var mixedR = [];
+		var finalAlpha = 0.0;
+
 		for (i in 0...SIZE) {
 			var ksMix = 0.0;
 			var totalConc = 0.0;
+			var alphaAccum = 0.0;
 			for (j in 0...colors.length) {
 				var conc = Math.pow(factors[j], 2) * luminances[j];
 				totalConc += conc;
 				ksMix += ksArrays[j][i] * conc;
+				if (i == 0) alphaAccum += colors[j].w * conc;
 			}
+			if (i == 0) finalAlpha = alphaAccum / totalConc;
 			var finalKs = ksMix / totalConc;
 			mixedR.push(1.0 + finalKs - Math.sqrt(Math.pow(finalKs, 2) + 2.0 * finalKs));
 		}
@@ -90,7 +95,7 @@ class Spectral {
 			compand(Math.max(0, Math.min(1, outR))),
 			compand(Math.max(0, Math.min(1, outG))),
 			compand(Math.max(0, Math.min(1, outB))),
-			1.0
+			finalAlpha
 		);
 	}
 }
