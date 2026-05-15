@@ -1937,7 +1937,8 @@ Make sure the mesh only has tris/quads.""")
         out_curve = {
             'name': curve_id,
             'splines': [],
-            'strength': curve_data.arm_strength
+            'strength': curve_data.arm_draw_strength,
+            'color': [curve_data.arm_draw_color[0], curve_data.arm_draw_color[1], curve_data.arm_draw_color[2], curve_data.arm_draw_color[3]]
         }
         
         for spline in curve_data.splines:

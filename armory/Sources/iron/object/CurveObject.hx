@@ -11,6 +11,7 @@ import iron.data.MaterialData;
 import haxe.ds.Vector;
 import kha.arrays.Float32Array;
 import kha.arrays.Uint32Array;
+import kha.Color;
 
 class CurveObject extends Object {
 
@@ -52,7 +53,7 @@ class CurveObject extends Object {
 				}
 			});
 		} else
-			draw(data.strength);
+			draw(data.strength, Color.fromFloats(data.color[0], data.color[1], data.color[2], data.color[3]));
 
 	}
 
@@ -194,11 +195,10 @@ class CurveObject extends Object {
 		return length;
 	}
 
-	public function draw(strength: Float = 0.005) {
-		#if arm_debug
-		armory.trait.internal.DebugDraw.notifyOnRender(function(draw: armory.trait.internal.DebugDraw) {
+	public function draw(strength: Float = 0.005, color: kha.Color = Color.Black) {
+		armory.trait.internal.RenderDraw.notifyOnRender(function(draw: armory.trait.internal.RenderDraw) {
 			if (!visible) return;
-			draw.color = 0xffffffff;
+			draw.color = color;
 			draw.strength = strength;
 
 			var worldMat = this.transform.world;
@@ -222,7 +222,6 @@ class CurveObject extends Object {
 				}
 			}
 		});
-		#end
 	}
 
 	var _lastTangent = new Vec4(0, 1, 0); 

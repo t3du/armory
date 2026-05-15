@@ -283,7 +283,8 @@ class ARM_PT_DataPropsPanel(bpy.types.Panel):
             layout.prop(obj.data, 'arm_dynamic_usage')
             layout.operator("arm.invalidate_cache")
         elif obj.type == 'CURVE':
-            layout.prop(obj.data, 'arm_strength')
+            layout.prop(obj.data, 'arm_draw_strength')
+            layout.prop(obj.data, 'arm_draw_color')
         elif obj.type == 'LIGHT':
             layout.prop(obj.data, 'arm_clip_start')
             layout.prop(obj.data, 'arm_clip_end')
