@@ -1,4 +1,3 @@
-package armory.trait;
 
 import iron.object.CurveObject;
 import iron.Scene;
@@ -33,28 +32,22 @@ class FollowCurve extends iron.Trait {
 		super();
 
 		notifyOnInit(function() {
-
 			var obj = iron.Scene.active.getChild(curveName);
 			if (obj != null && Std.isOfType(obj, CurveObject)) {
 				curve = cast obj;
 				curve.equidistantSamples = equidistantSamples;
 			}
-
 		});
 
 		notifyOnUpdate(function() {
 			if (curve == null) return;
 
-			// (t) de 0.0 a 1.0
 			progress += (speed * iron.system.Time.delta * (forward ? 1.0 : -1.0));
-			
-			if (progress > 1.0)
-				progress = 0.0;
-			else if (progress < 0.0)
-				progress = 1.0;
+
+			if (progress > 1.0) progress -= 1.0;
+			else if (progress < 0.0) progress += 1.0;
 
 			curve.follow(object, progress, splineIndex, forwardAxis, advanced);
 		});
-
 	}
 }
