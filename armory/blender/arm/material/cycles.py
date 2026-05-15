@@ -106,6 +106,11 @@ def parse_material_output(node: bpy.types.Node, custom_particle_node: bpy.types.
 
     mat_state.emission_type = mat_state.EmissionType.NO_EMISSION
 
+   #for debugDraw color in deferred
+    if '_EmissionShaded' not in wrd.world_defs:
+        wrd.world_defs += '_EmissionShaded'
+        arm.assets.add_khafile_def('rp_gbuffer_emission')
+
     # Surface
     if parse_surface or parse_opacity:
         state.parents = []
@@ -261,7 +266,6 @@ def parse_shader(node: bpy.types.Node, socket: bpy.types.NodeSocket) -> Tuple[st
                     mat_state.emission_type = mat_state.EmissionType.SHADED
             if state.parse_opacity:
                 state.out_opacity = parse_value_input(node.inputs[1])
-                state.out_ior = 1.450;
         else:
             return parse_group(node, socket)
 
@@ -336,6 +340,7 @@ def parse_vector(node: bpy.types.Node, socket: bpy.types.NodeSocket) -> str:
         'TEX_SKY',
         'TEX_VORONOI',
         'TEX_WAVE',
+        'TEX_GABOR',
         'VERTEX_COLOR',
         'BRIGHTCONTRAST',
         'GAMMA',
@@ -482,6 +487,7 @@ def parse_value(node, socket):
         'TEX_POINTDENSITY',
         'TEX_VORONOI',
         'TEX_WAVE',
+        'TEX_GABOR',
         'LIGHT_FALLOFF',
         'NORMAL',
         'CLAMP',

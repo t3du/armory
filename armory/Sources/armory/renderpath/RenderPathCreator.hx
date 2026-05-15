@@ -17,10 +17,6 @@ class RenderPathCreator {
 	public static var setTargetMeshes: Void->Void = RenderPathDeferred.setTargetMeshes;
 	public static var drawMeshes: Void->Void = RenderPathDeferred.drawMeshes;
 	public static var applyConfig: Void->Void = RenderPathDeferred.applyConfig;
-	#else
-	public static var setTargetMeshes: Void->Void = function() {};
-	public static var drawMeshes: Void->Void = function() {};
-	public static var applyConfig: Void->Void = function() {};
 	#end
 
 	public static function get(): RenderPath {
@@ -47,15 +43,15 @@ class RenderPathCreator {
 				commands();
 			}
 			path.setupDepthTexture = RenderPathDeferred.setupDepthTexture;
-		#elseif (rp_renderer == "Raytracer")
-			RenderPathRaytracer.init(path);
-			path.commands = function() {
-				RenderPathRaytracer.commands();
-				commands();
-			}
 		#end
+
 		return path;
 	}
+
+	#if rp_voxels
+	public static var voxelFrame = 0;
+	public static var voxelFreq = 6; // Revoxelizing frequency
+	#end
 
 	// Last target before drawing to framebuffer
 	public static var finalTarget: RenderTarget = null;

@@ -925,6 +925,9 @@ class ArmoryExporter:
                     # Decal flag
                     if mat is not None and mat.arm_decal:
                         out_object['type'] = 'decal_object'
+                    if mat is not None:
+                        if 'Rot' in bobject.arm_instanced:
+                            mat.arm_instanced_rot_type = bobject.arm_instanced_rot_type
                 # No material, mimic cycles and assign default
                 if len(out_object['material_refs']) == 0:
                     self.use_default_material(bobject, out_object)

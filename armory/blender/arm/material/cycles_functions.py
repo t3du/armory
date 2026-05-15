@@ -24,29 +24,44 @@ float noise(const vec3 x) {
 
 //  Shader-code adapted from Blender
 //  https://github.com/sobotka/blender/blob/master/source/blender/gpu/shaders/material/gpu_shader_material_tex_wave.glsl & /gpu_shader_material_fractal_noise.glsl
-float fractal_noise(const vec3 p, const float o)
+float fractal_noise(const vec3 p, const float o, const float r)
 {
   float fscale = 1.0;
   float amp = 1.0;
   float sum = 0.0;
   float octaves = clamp(o, 0.0, 16.0);
   int n = int(octaves);
+  
   for (int i = 0; i <= n; i++) {
     float t = noise(fscale * p);
     sum += t * amp;
-    amp *= 0.5;
+    amp *= r; 
     fscale *= 2.0;
   }
+  
   float rmd = octaves - floor(octaves);
   if (rmd != 0.0) {
     float t = noise(fscale * p);
     float sum2 = sum + t * amp;
-    sum *= float(pow(2, n)) / float(pow(2, n + 1) - 1.0);
-    sum2 *= float(pow(2, n + 1)) / float(pow(2, n + 2) - 1);
+    
+    float max_amp1 = (1.0 - pow(r, float(n + 1))) / (1.0 - r);
+    float max_amp2 = (1.0 - pow(r, float(n + 2))) / (1.0 - r);
+    
+    if (abs(r - 1.0) < 0.0001) {
+        max_amp1 = float(n + 1);
+        max_amp2 = float(n + 2);
+    }
+
+    sum /= max_amp1;
+    sum2 /= max_amp2;
+    
     return (1.0 - rmd) * sum + rmd * sum2;
   }
   else {
-    sum *= float(pow(2, n)) / float(pow(2, n + 1) - 1); 
+    float max_amp = (1.0 - pow(r, float(n + 1))) / (1.0 - r);
+    if (abs(r - 1.0) < 0.0001) max_amp = float(n + 1);
+    
+    sum /= max_amp;
     return sum;
   }
 }
@@ -148,12 +163,12 @@ vec3 tex_voronoi(const vec3 coord, const float r, const int metric, const int ou
 # By Morgan McGuire @morgan3d, http://graphicscodex.com Reuse permitted under the BSD license.
 # https://www.shadertoy.com/view/4dS3Wd
 str_tex_noise = """
-float tex_noise(const vec3 p, const float detail, const float distortion) {
+float tex_noise(const vec3 p, const float detail, const float roughness, const float distortion) {
     vec3 pk = p;
     if (distortion != 0.0) {
-    pk += vec3(noise(p) * distortion);
-  }
-  return fractal_noise(pk, detail);
+        pk += vec3(noise(p) * distortion);
+    }
+    return fractal_noise(pk, detail, roughness);
 }
 """
 
@@ -267,14 +282,79 @@ vec3 wavelength_to_rgb(const float t) {
 """
 
 str_tex_magic = """
-vec3 tex_magic(const vec3 p) {
-    float a = 1.0 - (sin(p.x) + sin(p.y));
-    float b = 1.0 - sin(p.x - p.y);
-    float c = 1.0 - sin(p.x + p.y);
-    return vec3(a, b, c);
+vec3 tex_magic(vec3 p, int depth) {
+    float x = p.x;
+    float y = p.y;
+    float z = p.z;
+    
+    // Blender usa un multiplicador de 5.0 internamente en los pasos intermedios
+    // pero el orden de las operaciones seno/coseno es estricto
+    if (depth > 0) {
+        float dist = x + y + z;
+        x = 1.0 - sin(dist);
+        y = 1.0 - sin(x - y + z);
+        z = 1.0 - sin(-x - y + z);
+    }
+    if (depth > 1) {
+        float dist = x + y + z;
+        x = 1.0 - sin(dist);
+        y = 1.0 - sin(x - y + z);
+        z = 1.0 - sin(-x - y + z);
+    }
+    if (depth > 2) {
+        float dist = x + y + z;
+        x = 1.0 - sin(dist);
+        y = 1.0 - sin(x - y + z);
+        z = 1.0 - sin(-x - y + z);
+    }
+    if (depth > 3) {
+        float dist = x + y + z;
+        x = 1.0 - sin(dist);
+        y = 1.0 - sin(x - y + z);
+        z = 1.0 - sin(-x - y + z);
+    }
+    if (depth > 4) {
+        float dist = x + y + z;
+        x = 1.0 - sin(dist);
+        y = 1.0 - sin(x - y + z);
+        z = 1.0 - sin(-x - y + z);
+    }
+    if (depth > 5) {
+        float dist = x + y + z;
+        x = 1.0 - sin(dist);
+        y = 1.0 - sin(x - y + z);
+        z = 1.0 - sin(-x - y + z);
+    }
+    if (depth > 6) {
+        float dist = x + y + z;
+        x = 1.0 - sin(dist);
+        y = 1.0 - sin(x - y + z);
+        z = 1.0 - sin(-x - y + z);
+    }
+    if (depth > 7) {
+        float dist = x + y + z;
+        x = 1.0 - sin(dist);
+        y = 1.0 - sin(x - y + z);
+        z = 1.0 - sin(-x - y + z);
+    }
+    if (depth > 8) {
+        float dist = x + y + z;
+        x = 1.0 - sin(dist);
+        y = 1.0 - sin(x - y + z);
+        z = 1.0 - sin(-x - y + z);
+    }
+    if (depth > 9) {
+        float dist = x + y + z;
+        x = 1.0 - sin(dist);
+        y = 1.0 - sin(x - y + z);
+        z = 1.0 - sin(-x - y + z);
+    }
+
+    return vec3(x, y, z);
 }
-float tex_magic_f(const vec3 p) {
-    vec3 c = tex_magic(p);
+
+float tex_magic_f(vec3 p, int depth) {
+    vec3 c = tex_magic(p, depth);
     return (c.x + c.y + c.z) / 3.0;
 }
 """
@@ -421,17 +501,68 @@ float tex_brick_blender_f(vec3 co,
 """
 
 str_tex_wave = """
-float tex_wave_f(const vec3 p, const int type, const int profile, const float dist, const float detail, const float detail_scale, const float phase_offset) {
+float tex_wave_f(const vec3 p, const int type, const int d, const int profile, const float dist, const float detail, const float detail_scale, const float phase_offset, const float detail_roughness) {
     float n;
-    if(type == 0) n = (p.x + p.y + p.z) * 9.5;
-    else n = length(p) * 13.0;
-    if(dist != 0.0) n += dist * fractal_noise(p * detail_scale, detail) * 2.0 - 1.0;
-    n += phase_offset;
-    if(profile == 0) { return 0.5 + 0.5 * sin(n - PI); }
+    
+    if (type == 0) {
+        float co;
+        if (d == 0) co = p.x;
+        else if (d == 1) co = p.y;
+        else if (d == 2) co = p.z;
+        else co = (p.x + p.y + p.z) * 0.577;
+        n = co * 20.0;
+    }
     else {
+        n = length(p) * 20.0;
+    }
+
+    if (dist != 0.0) {
+        n += dist * fractal_noise(p * detail_scale, detail, detail_roughness) * 2.0 - 1.0;
+    }
+
+    n += phase_offset;
+
+    if (profile == 0) {
+        return 0.5 + 0.5 * sin(n - PI);
+    }
+    else if (profile == 1) {
         n /= 2.0 * PI;
         return n - floor(n);
     }
+    else {
+        n /= 2.0 * PI;
+        return abs(2.0 * (n - floor(n + 0.5)));
+    }
+}
+"""
+
+str_tex_gabor = """
+float tex_gabor_f(vec3 p, float scale, float freq, float anisotropy, float orientation, float bandwidth) {
+    p *= scale;
+    vec3 gp = floor(p);
+    vec3 fp = fract(p);
+    float va = 0.0;
+    float wt = 0.0;
+
+    vec3 dir = vec3(sin(orientation), cos(orientation), 0.0);
+
+    for (int z = -1; z <= 1; z++) {
+        for (int y = -1; y <= 1; y++) {
+            for (int x = -1; x <= 1; x++) {
+                vec3 o = vec3(float(x), float(y), float(z));
+                vec3 r = fp - o;
+                float h = hash_f(gp + o);
+                float dist_sq = dot(r, r);
+                float g = exp(-bandwidth * dist_sq);
+                float omega = freq * 6.28318530718;
+                float oscillation = cos(omega * dot(r, dir) + h * 6.28318530718);
+                float a = mix(1.0, g, anisotropy);
+                va += a * g * oscillation;
+                wt += g;
+            }
+        }
+    }
+    return 0.5 + (va / (wt + 0.0001)) * 0.5;
 }
 """
 

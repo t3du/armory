@@ -34,6 +34,9 @@ class MeshGenerator extends Trait {
 	var material: String = '';
 
 	@prop
+	var scaleUV: Float = 0.3;
+
+	@prop
 	var loc: Vec4 = new Vec4(0, 0, 0);
 
 	@prop
@@ -86,7 +89,7 @@ class MeshGenerator extends Trait {
 			        points.push(new Vec4(-x, -y, -z));
 			}
  
-		md = MeshDataExtension.makeMeshData(points);
+		md = MeshDataExtension.makeMeshData(points, scaleUV);
 
 		}
 

@@ -378,6 +378,12 @@ def export_data(fp, sdk_path):
         line_deferred_dst = os.path.join(shaders_path, 'line_deferred.frag.glsl')
         shutil.copyfile(line_deferred_src, line_deferred_dst)
 
+    if rpdat.rp_renderer == 'Deferred':
+        # Copy deferred shader so that it can include compiled.inc
+        line_deferred_src = os.path.join(sdk_path, 'armory', 'Shaders', 'render_draw', 'render_line_deferred.frag.glsl')
+        line_deferred_dst = os.path.join(shaders_path, 'render_line_deferred.frag.glsl')
+        shutil.copyfile(line_deferred_src, line_deferred_dst)    
+
     for ref in assets.shader_passes:
         for s in assets.shader_passes_assets[ref]:
             assets.add_shader(shaders_path + '/' + s + '.glsl')

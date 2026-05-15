@@ -7,7 +7,7 @@ import iron.data.SceneFormat;
 class MeshDataExtension {
 
 	static var meshIndex = 0;
-	static public function makeMeshData(points: Array<Vec4>): MeshData {
+	static public function makeMeshData(points: Array<Vec4>, scaleUV: Float = 0.3): MeshData {
 		// Need at least 4 points for a 3D hull
 		if (points.length < 4) return null;
 
@@ -68,7 +68,6 @@ class MeshDataExtension {
 		var naa = new kha.arrays.Int16Array(n * 2);
 		var texa = new kha.arrays.Int16Array(n * 2);
 		var invdim = 1 / maxdim;
-		var scale: Float = 0.5;
 		
 		for (i in 0...n) {
 			var px = pa[i * 3];
@@ -89,14 +88,14 @@ class MeshDataExtension {
 			var v: Float = 0;
 
 			if (nx > ny && nx > nz) {
-		        u = pz * invdim * scale + 0.5;
-		        v = py * invdim * scale + 0.5;
+		        u = pz * invdim * scaleUV + 0.5;
+		        v = py * invdim * scaleUV + 0.5;
 		    } else if (ny > nx && ny > nz) {
-		        u = px * invdim * scale + 0.5;
-		        v = pz * invdim * scale + 0.5;
+		        u = px * invdim * scaleUV + 0.5;
+		        v = pz * invdim * scaleUV + 0.5;
 		    } else {
-		        u = px * invdim * scale + 0.5;
-		        v = py * invdim * scale + 0.5;
+		        u = px * invdim * scaleUV + 0.5;
+		        v = py * invdim * scaleUV + 0.5;
 		    }
 
 			texa.set(i * 2,     Std.int(u * 32767));

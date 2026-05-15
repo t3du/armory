@@ -352,12 +352,19 @@ def init_properties():
         description='Whether to use instancing to draw the children of this object. If enabled, this option defines what attributes may vary between the instances',
         update=assets.invalidate_instance_cache,
         override={'LIBRARY_OVERRIDABLE'})
+    bpy.types.Object.arm_instanced_rot_type = EnumProperty(
+        items = [('Local', 'Local', 'Rotate around instance origin'),
+                 ('Global', 'Global', 'Rotate around world origin')],
+        name="Rotation Type",
+        default='Local',
+        description='Rotation space for instanced children',
+        update=assets.invalidate_compiler_cache)
+    bpy.types.Material.arm_instanced_rot_type = bpy.props.StringProperty(default='Local')
     bpy.types.Object.arm_sorting_index = IntProperty(name="Sorting Index", description="Sorting index for the Render's Draw Order", default=0, override={'LIBRARY_OVERRIDABLE'})
     bpy.types.Object.arm_export = BoolProperty(name="Export", description="Export object data", default=True, override={'LIBRARY_OVERRIDABLE'})
     bpy.types.Object.arm_spawn = BoolProperty(name="Spawn", description="Auto-add this object when creating scene", default=True, override={'LIBRARY_OVERRIDABLE'})
     bpy.types.Object.arm_mobile = BoolProperty(name="Mobile", description="Object moves during gameplay", default=False, override={'LIBRARY_OVERRIDABLE'})
     bpy.types.Object.arm_visible = BoolProperty(name="Visible", description="Render this object", default=True, override={'LIBRARY_OVERRIDABLE'})
-    bpy.types.Object.arm_lighting = BoolProperty(name="Lighting", description="Object contributes to the lighting", default=True, override={'LIBRARY_OVERRIDABLE'})
     bpy.types.Object.arm_soft_body_margin = FloatProperty(name="Soft Body Margin", description="Collision margin", default=0.04)
     bpy.types.Object.arm_soft_body_linear_stiffness = FloatProperty(name="Soft Body Linear Stiffness", description="Linear Stiffness", default=0.9)
     bpy.types.Object.arm_soft_body_friction = FloatProperty(name="Soft Body Friction", description="Friction", default=0.5)
@@ -612,7 +619,7 @@ def update_armory_world():
         for rp in wrd.arm_rplist:  # TODO: deprecated
             if hasattr(rp, 'rp_gi') and rp.rp_gi != 'Off':
                 rp.rp_gi = 'Off'
-                rp.rp_voxels = rp.rp_gi
+                rp.rp_voxelao = True
 
         # For some breaking changes we need to use a special update
         # routine first before regularly replacing nodes

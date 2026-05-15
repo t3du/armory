@@ -181,6 +181,7 @@ ALL_NODES: dict[str, MaterialNodeMeta] = {
     'TEX_SKY': MaterialNodeMeta(parse_func=nodes_texture.parse_tex_sky),
     'TEX_VORONOI': MaterialNodeMeta(parse_func=nodes_texture.parse_tex_voronoi),
     'TEX_WAVE': MaterialNodeMeta(parse_func=nodes_texture.parse_tex_wave),
+    'TEX_GABOR': MaterialNodeMeta(parse_func=nodes_texture.parse_tex_gabor),
 
     # --- nodes_vector
     'BUMP': MaterialNodeMeta(parse_func=nodes_vector.parse_bump),

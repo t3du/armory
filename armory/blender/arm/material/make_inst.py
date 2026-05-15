@@ -9,14 +9,18 @@ def inst_pos(con, vert):
         vert.write('float srotz = sin(irot.z);')
         vert.write('float crotz = cos(irot.z);')
         vert.write('mat3 mirot = mat3(')
-        vert.write('    croty * crotz, srotz, -sroty * crotz,')
-        vert.write('    -croty * srotz * crotx + sroty * srotx, crotz * crotx, sroty * srotz * crotx + croty * srotx,')
-        vert.write('    croty * srotz * srotx + sroty * crotx, -crotz * srotx, -sroty * srotz * srotx + croty * crotx')
+        if con.material.arm_instanced_rot_type == 'Local':
+            vert.write('    croty * crotz, srotz, -sroty * crotz,')
+            vert.write('    -croty * srotz * crotx + sroty * srotx, crotz * crotx, sroty * srotz * crotx + croty * srotx,')
+            vert.write('    croty * srotz * srotx + sroty * crotx, -crotz * srotx, -sroty * srotz * srotx + croty * crotx')
+        else:
+            vert.write('    croty * crotz, croty * srotz, -sroty,')
+            vert.write('    srotx * sroty * crotz - crotx * srotz, srotx * sroty * srotz + crotx * crotz, srotx * croty,')
+            vert.write('    crotx * sroty * crotz + srotx * srotz, crotx * sroty * srotz - srotx * crotz, crotx * croty')    
         vert.write(');')
         vert.write('spos.xyz = mirot * spos.xyz;')
         if (con.data['name'] == 'mesh' or con.data['name'] == 'translucent' or con.data['name'] == 'refraction') and vert.contains('wnormal'):
             vert.write('wnormal = normalize(N * mirot * vec3(nor.xy, pos.w));')
-
 
     if con.is_elem('iscl'):
         vert.write('spos.xyz *= iscl;')

@@ -880,7 +880,7 @@ class DebugConsole extends Trait {
 					ui.imageInvertY = true;
 					#end
 					for (rt in iron.RenderPath.active.renderTargets) {
-						ui.text(rt.raw.name);
+						ui.text(rt.raw.name+' '+rt.raw.format);
 						if (rt.image != null && !rt.is3D) {
 							ui.image(rt.image);
 						}
@@ -907,13 +907,13 @@ class DebugConsole extends Trait {
 					ui.unindent();
 				}
 
-				// if (ui.panel(Id.handle({selected: false}), 'Cached Textures')) {
-				// 	ui.indent();
-				// 	for (c in iron.data.Data.cachedImages) {
-				// 		ui.image(c);
-				// 	}
-				// 	ui.unindent();
-				// }
+				if (ui.panel(Id.handle({selected: false}), 'Cached Textures')) {
+					ui.indent();
+					for (c in iron.data.Data.cachedImages) {
+						ui.image(c);
+					}
+					ui.unindent();
+				}
 			}
 			if (ui.tab(htab, lastTraces[0] == "" ? "Console" : lastTraces[0].substr(0, 20))) {
 				#if js

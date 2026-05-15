@@ -5,7 +5,6 @@ import bpy
 import arm.utils
 import arm.make_state as make_state
 import arm.material.cycles as cycles
-import arm.assets as assets
 import arm.log as log
 
 if arm.is_reload(__name__):
@@ -51,7 +50,7 @@ def get_rpasses(material):
             ar.append('translucent')
         elif is_transluc(material) and not material.arm_discard and not material.arm_blending and rpdat.rp_ss_refraction:
             ar.append('refraction')
-        if rpdat.rp_voxels != "Off" and has_voxels:
+        if rpdat.rp_voxelao and has_voxels:
             ar.append('voxel')
         if rpdat.rp_renderer == 'Forward' and rpdat.rp_depthprepass and not material.arm_blending and not material.arm_particle_flag:
             ar.append('depth')

@@ -94,15 +94,18 @@ def parse_tex_gradient(node: bpy.types.ShaderNodeTexGradient, out_socket: bpy.ty
     if grad == 'LINEAR':
         f = f'{co}.x'
     elif grad == 'QUADRATIC':
-        f = '0.0'
+        f = f'max({co}.x, 0.0)'
+        f = f'({f} * {f})'
     elif grad == 'EASING':
-        f = '0.0'
+        f = f'clamp({co}.x, 0.0, 1.0)'
+        f = f'({f} * {f} * (3.0 - 2.0 * {f}))'
     elif grad == 'DIAGONAL':
         f = f'({co}.x + {co}.y) * 0.5'
     elif grad == 'RADIAL':
         f = f'atan({co}.y, {co}.x) / PI2 + 0.5'
     elif grad == 'QUADRATIC_SPHERE':
-        f = '0.0'
+        f = f'max(1.0 - sqrt({co}.x * {co}.x + {co}.y * {co}.y + {co}.z * {co}.z), 0.0)'
+        f = f'({f} * {f})'
     else:  # SPHERICAL
         f = f'max(1.0 - sqrt({co}.x * {co}.x + {co}.y * {co}.y + {co}.z * {co}.z), 0.0)'
 
@@ -245,15 +248,15 @@ def parse_tex_magic(node: bpy.types.ShaderNodeTexMagic, out_socket: bpy.types.No
         co = 'bposition'
 
     scale = c.parse_value_input(node.inputs[1])
+    depth = node.turbulence_depth
 
-    # Color
     if out_socket == node.outputs[0]:
-        res = f'tex_magic({co} * {scale} * 4.0)'
-    # Fac
+        res = f'tex_magic({co} * {scale} * 5.0, {depth})'
     else:
-        res = f'tex_magic_f({co} * {scale} * 4.0)'
+        res = f'tex_magic_f({co} * {scale} * 5.0, {depth})'
 
     return res
+
 
 if bpy.app.version < (4, 1, 0):
     def parse_tex_musgrave(node: bpy.types.ShaderNodeTexMusgrave, out_socket: bpy.types.NodeSocket, state: ParserState) -> Union[floatstr, vec3str]:
@@ -265,8 +268,8 @@ if bpy.app.version < (4, 1, 0):
             co = 'bposition'
     
         scale = c.parse_value_input(node.inputs['Scale'])
-        detail = c.parse_value_input(node.inputs[3])
-        distortion = c.parse_value_input(node.inputs[4])
+        detail = c.parse_value_input(node.inputs['Detail'])
+        distortion = c.parse_value_input(node.inputs['Dimension'])
 
         res = f'tex_musgrave_f({co} * {scale} * 0.5, {detail}, {distortion})'
     
@@ -283,10 +286,10 @@ def parse_tex_noise(node: bpy.types.ShaderNodeTexNoise, out_socket: bpy.types.No
         co = c.parse_vector_input(node.inputs[0])
     else:
         co = 'bposition'
-    scale = c.parse_value_input(node.inputs[2])
-    detail = c.parse_value_input(node.inputs[3])
-    roughness = c.parse_value_input(node.inputs[4])
-    distortion = c.parse_value_input(node.inputs[5])
+    scale = c.parse_value_input(node.inputs['Scale'])
+    detail = c.parse_value_input(node.inputs['Detail'])
+    roughness = c.parse_value_input(node.inputs['Roughness'])
+    distortion = c.parse_value_input(node.inputs['Distortion'])
     if bpy.app.version >= (4, 1, 0):
         if node.noise_type == "FBM":
             state.curshader.add_function(c_functions.str_tex_musgrave)
@@ -296,14 +299,14 @@ def parse_tex_noise(node: bpy.types.ShaderNodeTexNoise, out_socket: bpy.types.No
                 res = f'tex_musgrave_f({co} * {scale} * 1.0, {detail}, {distortion})'
         else:
             if out_socket == node.outputs[1]:
-                res = 'vec3(tex_noise({0} * {1},{2},{3}), tex_noise({0} * {1} + 120.0,{2},{3}), tex_noise({0} * {1} + 168.0,{2},{3}))'.format(co, scale, detail, distortion)
+                res = 'vec3(tex_noise({0} * {1},{2},{3},{4}), tex_noise({0} * {1} + 120.0,{2},{3},{4}), tex_noise({0} * {1} + 168.0,{2},{3},{4}))'.format(co, scale, detail, distortion, roughness)
             else:
-                res = 'tex_noise({0} * {1},{2},{3})'.format(co, scale, detail, distortion)
+                res = 'tex_noise({0} * {1},{2},{3},{4})'.format(co, scale, detail, distortion, roughness)
     else:
         if out_socket == node.outputs[1]:
-            res = 'vec3(tex_noise({0} * {1},{2},{3}), tex_noise({0} * {1} + 120.0,{2},{3}), tex_noise({0} * {1} + 168.0,{2},{3}))'.format(co, scale, detail, distortion)
+            res = 'vec3(tex_noise({0} * {1},{2},{3},{4}), tex_noise({0} * {1} + 120.0,{2},{3},{4}), tex_noise({0} * {1} + 168.0,{2},{3},{4}))'.format(co, scale, detail, distortion, roughness)
         else:
-            res = 'tex_noise({0} * {1},{2},{3})'.format(co, scale, detail, distortion)
+            res = 'tex_noise({0} * {1},{2},{3},{4})'.format(co, scale, detail, distortion, roughness)
     return res
 
 
@@ -328,6 +331,7 @@ def parse_tex_sky(node: bpy.types.ShaderNodeTexSky, out_socket: bpy.types.NodeSo
     if node.sky_type == 'PREETHAM' or node.sky_type == 'HOSEK_WILKIE':
         if node.sky_type == 'PREETHAM':
             log.info('Info: Preetham sky model is not supported, using Hosek Wilkie sky model instead')
+
         return parse_sky_hosekwilkie(node, state)
 
     elif node.sky_type == 'NISHITA':
@@ -369,8 +373,6 @@ def parse_sky_hosekwilkie(node: bpy.types.ShaderNodeTexSky, state: ParserState) 
     wrd = bpy.data.worlds['Arm']
     rpdat = arm.utils.get_rp()
     mobile_mat = rpdat.arm_material_model == 'Mobile' or rpdat.arm_material_model == 'Solid'
-
-    wrd.world_defs += '_HOSEK'
 
     if not state.radiance_written:
         # Irradiance json file name
@@ -526,7 +528,6 @@ def parse_tex_environment(node: bpy.types.ShaderNodeTexEnvironment, out_socket: 
         # Append LDR define
         if disable_hdr:
             world.world_defs += '_EnvLDR'
-            assets.add_khafile_def("arm_envldr")
 
     wrd = bpy.data.worlds['Arm']
     mobile_mat = rpdat.arm_material_model == 'Mobile' or rpdat.arm_material_model == 'Solid'
@@ -578,29 +579,69 @@ def parse_tex_voronoi(node: bpy.types.ShaderNodeTexVoronoi, out_socket: bpy.type
 def parse_tex_wave(node: bpy.types.ShaderNodeTexWave, out_socket: bpy.types.NodeSocket, state: ParserState) -> Union[floatstr, vec3str]:
     c.write_procedurals()
     state.curshader.add_function(c_functions.str_tex_wave)
+    
     if node.inputs[0].is_linked:
         co = c.parse_vector_input(node.inputs[0])
     else:
         co = 'bposition'
+    
     scale = c.parse_value_input(node.inputs[1])
     distortion = c.parse_value_input(node.inputs[2])
     detail = c.parse_value_input(node.inputs[3])
     detail_scale = c.parse_value_input(node.inputs[4])
+    detail_roughness = c.parse_value_input(node.inputs['Detail Roughness'])
     phase_offset = c.parse_value_input(node.inputs['Phase Offset'])
+
+    wave_type = 0 if node.wave_type == 'BANDS' else 1
+    
+    dir_map = {'X': 0, 'Y': 1, 'Z': 2, 'DIAGONAL': 3}
+    
+    if hasattr(node, 'wave_direction'):
+        wave_dir = dir_map.get(node.wave_direction, 0)
+    elif wave_type == 0:
+        wave_dir = dir_map.get(node.bands_direction, 0)
+    else:
+        wave_dir = dir_map.get(node.rings_direction, 0)
+    
     if node.wave_profile == 'SIN':
         wave_profile = 0
-    else:
+    elif node.wave_profile == 'SAW':
         wave_profile = 1
-    if node.wave_type == 'BANDS':
-        wave_type = 0
     else:
-        wave_type = 1
+        wave_profile = 2
 
-    # Color
+    args = '{0} * {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}'.format(
+        co, scale, wave_type, wave_dir, wave_profile, distortion, detail, detail_scale, phase_offset, detail_roughness
+    )
+
     if out_socket == node.outputs[0]:
-        res = 'vec3(tex_wave_f({0} * {1},{2},{3},{4},{5},{6},{7}))'.format(co, scale, wave_type, wave_profile, distortion, detail, detail_scale, phase_offset)
-    # Fac
+        res = 'vec3(tex_wave_f({0}))'.format(args)
     else:
-        res = 'tex_wave_f({0} * {1},{2},{3},{4},{5},{6},{7})'.format(co, scale, wave_type, wave_profile, distortion, detail, detail_scale, phase_offset)
+        res = 'tex_wave_f({0})'.format(args)
 
     return res
+
+
+def parse_tex_gabor(node: bpy.types.ShaderNodeTexGabor, out_socket: bpy.types.NodeSocket, state: ParserState) -> Union[floatstr, vec3str]:
+    c.write_procedurals()
+    state.curshader.add_function(c_functions.str_tex_gabor)
+    
+    if node.inputs[0].is_linked:
+        co = c.parse_vector_input(node.inputs[0])
+    else:
+        co = 'bposition'
+    
+    scale = c.parse_value_input(node.inputs[1])
+    freq = c.parse_value_input(node.inputs[2])
+    anisotropy = c.parse_value_input(node.inputs[3])
+    orientation = c.parse_value_input(node.inputs[4])
+    bandwidth = "0.5"
+
+    args = '{0}, {1}, {2}, {3}, {4}, {5}'.format(
+        co, scale, freq, anisotropy, orientation, bandwidth
+    )
+
+    if out_socket == node.outputs[0]:
+        return 'vec3(tex_gabor_f({0}))'.format(args)
+    
+    return 'tex_gabor_f({0})'.format(args)

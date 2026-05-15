@@ -149,8 +149,8 @@ if bpy.app.version > (4, 1, 0):
                 pass
             if (node.inputs['Emission Strength'].is_linked or node.inputs['Emission Strength'].default_value != 0.0)\
                     and (node.inputs['Emission Color'].is_linked or not mat_utils.equals_color_socket(node.inputs['Emission Color'], (0.0, 0.0, 0.0), comp_alpha=False)):
-                emission_col = c.parse_vector_input(node.inputs[26])
-                emission_strength = c.parse_value_input(node.inputs[27])
+                emission_col = c.parse_vector_input(node.inputs['Emission Color']) #27
+                emission_strength = c.parse_value_input(node.inputs['Emission Strength']) #28
                 state.out_emission_col = '({0} * {1})'.format(emission_col, emission_strength)
                 mat_state.emission_type = mat_state.EmissionType.SHADED
             else:
@@ -273,13 +273,12 @@ def parse_bsdftranslucent(node: bpy.types.ShaderNodeBsdfTranslucent, out_socket:
         c.write_normal(node.inputs[1])
     if state.parse_opacity:
         state.out_opacity = '(1.0 - {0}.r)'.format(c.parse_vector_input(node.inputs[0]))
-        state.out_ior = '1.0'
 
 
 def parse_bsdftransparent(node: bpy.types.ShaderNodeBsdfTransparent, out_socket: NodeSocket, state: ParserState) -> None:
     if state.parse_opacity:
         state.out_opacity = '(1.0 - {0}.r)'.format(c.parse_vector_input(node.inputs[0]))
-        state.out_ior = '1.0'
+
 
 if bpy.app.version < (4, 1, 0):
     def parse_bsdfvelvet(node: bpy.types.ShaderNodeBsdfVelvet, out_socket: NodeSocket, state: ParserState) -> None:

@@ -69,12 +69,11 @@ class ARM_PT_ObjectPropsPanel(bpy.types.Panel):
         col.prop(obj, 'arm_spawn')
         col.prop(obj, 'arm_mobile')
         col.prop(obj, 'arm_animation_enabled')
-        sub = col.column()
-        sub.enabled = False
-        sub.prop(obj, 'arm_lighting')
 
         if obj.type == 'MESH':
             layout.prop(obj, 'arm_instanced')
+            if 'Rot' in obj.arm_instanced:
+                layout.prop(obj, 'arm_instanced_rot_type')
             wrd = bpy.data.worlds['Arm']
             layout.prop_search(obj, "arm_tilesheet", wrd, "arm_tilesheetlist", text="Tilesheet")
             if obj.arm_tilesheet != '':
@@ -1669,13 +1668,13 @@ class ARM_PT_RenderPathShadowsPanel(bpy.types.Panel):
         col2.prop(rpdat, 'arm_shadowmap_split')
         col.prop(rpdat, 'arm_shadowmap_bounds')
         col.prop(rpdat, 'arm_pcfsize')
+        col.prop(rpdat, 'rp_max_lights')
+        col.prop(rpdat, 'rp_max_lights_cluster')
         layout.separator()
 
         layout.prop(rpdat, 'rp_shadowmap_atlas')
         colatlas = layout.column()
         colatlas.enabled = rpdat.rp_shadowmap_atlas
-        colatlas.prop(rpdat, 'rp_max_lights')
-        colatlas.prop(rpdat, 'rp_max_lights_cluster')
         colatlas.prop(rpdat, 'rp_shadowmap_atlas_lod')
 
         colatlas_lod = colatlas.column()
@@ -1715,7 +1714,7 @@ class ARM_PT_RenderPathShadowsPanel(bpy.types.Panel):
 
                 col = colatlas_single.row()
                 col.alignment = 'RIGHT'
-                col.label(text=f'Enough space for { point_lights } point lights or { spot_lights } spot lights or { dir_lights } directional lights.')
+                col.label(text=f'Enough space for { point_lights } point lights or { spot_lights } spot lights or { dir_lights } sun lights.')
         else:
             # show size for all types
             colatlas_mixed = colatlas.column()
@@ -1759,7 +1758,7 @@ class ARM_PT_RenderPathShadowsPanel(bpy.types.Panel):
 
                 col = colatlas_mixed.row()
                 col.alignment = 'RIGHT'
-                col.label(text=f'Enough space for {dir_lights} directional lights.')
+                col.label(text=f'Enough space for {dir_lights} sun lights.')
 
         # show warning when user picks a size higher than 2048 (arbitrary number).
         if size_warning:
@@ -1769,12 +1768,19 @@ class ARM_PT_RenderPathShadowsPanel(bpy.types.Panel):
             row.label(text='Warning: Game will crash if texture size is higher than max texture size allowed by target.', icon='ERROR')
 
 class ARM_PT_RenderPathVoxelsPanel(bpy.types.Panel):
-    bl_label = "Voxels"
+    bl_label = "Voxel AO"
     bl_space_type = "PROPERTIES"
     bl_region_type = "WINDOW"
     bl_context = "render"
     bl_options = {'DEFAULT_CLOSED'}
     bl_parent_id = "ARM_PT_RenderPathPanel"
+
+    def draw_header(self, context):
+        wrd = bpy.data.worlds['Arm']
+        if len(wrd.arm_rplist) <= wrd.arm_rplist_index:
+            return
+        rpdat = wrd.arm_rplist[wrd.arm_rplist_index]
+        self.layout.prop(rpdat, "rp_voxelao", text="")
 
     def draw(self, context):
         layout = self.layout
@@ -1785,35 +1791,22 @@ class ARM_PT_RenderPathVoxelsPanel(bpy.types.Panel):
             return
         rpdat = wrd.arm_rplist[wrd.arm_rplist_index]
 
-        layout.prop(rpdat, 'rp_voxels')
-        col = layout.column()
-        col.enabled = rpdat.rp_voxels != 'Off'
-        col2 = col.column()
-        col2.enabled = rpdat.rp_voxels == 'Voxel GI'
-        col3 = col.column()
-        col3.enabled = rpdat.rp_voxels == 'Voxel AO'
-        col.prop(rpdat, 'arm_voxelgi_shadows', text='Shadows')
-        col2.prop(rpdat, 'arm_voxelgi_refract', text='Refraction')
-        col.prop(rpdat, 'arm_voxelgi_clipmap_count')
-        #col.prop(rpdat, 'arm_voxelgi_cones')
-        col.prop(rpdat, 'rp_voxelgi_resolution')
-        col.prop(rpdat, 'arm_voxelgi_size')
-        #col.prop(rpdat, 'rp_voxelgi_resolution_z')
-        col2.enabled = rpdat.rp_voxels == 'Voxel GI'
-        #col.prop(rpdat, 'arm_voxelgi_temporal')
-        col.label(text="Light")
-        col2 = col.column()
-        col2.enabled = rpdat.rp_voxels == 'Voxel GI'
-        col2.prop(rpdat, 'arm_voxelgi_diff')
-        col2.prop(rpdat, 'arm_voxelgi_spec')
-        col2.prop(rpdat, 'arm_voxelgi_refr')
-        col.prop(rpdat, 'arm_voxelgi_shad')
-        col.prop(rpdat, 'arm_voxelgi_occ')
-        col.label(text="Ray")
-        col.prop(rpdat, 'arm_voxelgi_offset')
-        col.prop(rpdat, 'arm_voxelgi_step')
-        col.prop(rpdat, 'arm_voxelgi_range')
-        #col.prop(rpdat, 'arm_voxelgi_aperture')
+        layout.enabled = rpdat.rp_voxelao
+        layout.prop(rpdat, 'arm_voxelgi_shadows')
+        layout.prop(rpdat, 'arm_voxelgi_cones')
+        layout.prop(rpdat, 'rp_voxelgi_resolution')
+        layout.prop(rpdat, 'rp_voxelgi_resolution_z')
+        layout.prop(rpdat, 'arm_voxelgi_dimensions')
+        layout.prop(rpdat, 'arm_voxelgi_revoxelize')
+        col2 = layout.column()
+        col2.enabled = rpdat.arm_voxelgi_revoxelize
+        col2.prop(rpdat, 'arm_voxelgi_camera')
+        col2.prop(rpdat, 'arm_voxelgi_temporal')
+        layout.prop(rpdat, 'arm_voxelgi_occ')
+        layout.prop(rpdat, 'arm_voxelgi_step')
+        layout.prop(rpdat, 'arm_voxelgi_range')
+        layout.prop(rpdat, 'arm_voxelgi_offset')
+        layout.prop(rpdat, 'arm_voxelgi_aperture')
 
 class ARM_PT_RenderPathWorldPanel(bpy.types.Panel):
     bl_label = "World"

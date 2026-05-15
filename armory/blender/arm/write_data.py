@@ -297,6 +297,10 @@ project.addSources('Sources');
                 khafile.write(add_shaders(sdk_path + "/armory/Shaders/debug_draw/line.frag.glsl", rel_path=do_relpath_sdk))
             khafile.write(add_shaders(sdk_path + "/armory/Shaders/debug_draw/line.vert.glsl", rel_path=do_relpath_sdk))
 
+        if rpdat.rp_renderer == 'Forward':
+            khafile.write(add_shaders(sdk_path + "/armory/Shaders/render_draw/render_line.frag.glsl", rel_path=do_relpath_sdk))
+        khafile.write(add_shaders(sdk_path + "/armory/Shaders/render_draw/render_line.vert.glsl", rel_path=do_relpath_sdk))
+
         if not is_publish and state.target == 'html5':
             khafile.write("project.addParameter('--debug');\n")
 
@@ -453,7 +457,7 @@ def write_config(resx, resy):
         'rp_bloom': rpdat.rp_bloom != 'Off',
         'rp_chromatic_aberration': rpdat.rp_chromatic_aberration != 'Off',
         'rp_motionblur': rpdat.rp_motionblur != 'Off',
-        'rp_gi': rpdat.rp_voxels != "Off",
+        'rp_gi': rpdat.rp_voxelao,
         'rp_dynres': rpdat.rp_dynres
     }
 
@@ -479,17 +483,17 @@ def write_mainhx(scene_name, resx, resy, is_play, is_publish):
         f.write(
 """// Auto-generated
 package;\n""")
-
+        
         f.write("""
 class Main {
     public static inline var projectName = '""" + arm.utils.safestr(wrd.arm_project_name) + """';
     public static inline var projectVersion = '""" + arm.utils.safestr(wrd.arm_project_version) + """';
     public static inline var projectPackage = '""" + arm.utils.safestr(wrd.arm_project_package) + """';""")
 
-        if rpdat.rp_voxels == 'Voxel GI' or rpdat.rp_voxels == 'Voxel AO':
+        if rpdat.rp_voxelao:
             f.write("""
-            public static inline var voxelgiClipmapCount = """ + str(rpdat.arm_voxelgi_clipmap_count) + """;
-            public static inline var voxelgiVoxelSize = """ + str(round(rpdat.arm_voxelgi_size * 100) / 100) + """;""")
+    public static inline var voxelgiVoxelSize = """ + str(rpdat.arm_voxelgi_dimensions) + " / " + str(rpdat.rp_voxelgi_resolution) + """;
+    public static inline var voxelgiHalfExtents = """ + str(round(rpdat.arm_voxelgi_dimensions / 2.0)) + """;""")
 
         if rpdat.rp_bloom:
 
@@ -503,7 +507,7 @@ class Main {
 
         f.write("""\n
     public static function main() {""")
-
+        
         if rpdat.arm_skin != 'Off':
             f.write("""
         iron.object.BoneAnimation.skinMaxBones = """ + str(rpdat.arm_skin_max_bones) + """;""")
@@ -625,7 +629,7 @@ def write_compiledglsl(defs, make_variants):
                 f.write(f'#define GBUF_IDX_EMISSION {idx_emission}\n')
                 idx_refraction += 1
 
-            if '_SSRefraction' in wrd.world_defs or '_VoxelRefract' in wrd.world_defs:
+            if '_SSRefraction' in wrd.world_defs:
                 f.write(f'#define GBUF_IDX_REFRACTION {idx_refraction}\n')
 
         f.write("""#if defined(HLSL) || defined(METAL)
@@ -797,23 +801,18 @@ const float compoDOFFstop = """ + str(round(fstop * 100) / 100) + """;
 const float compoDOFLength = """ + str(round(lens * 100) / 100) +""";
 """) #160.0;
 
-        if rpdat.rp_voxels != 'Off':
-            f.write("""const ivec3 voxelgiResolution = ivec3(""" + str(rpdat.rp_voxelgi_resolution) + """, """ + str(rpdat.rp_voxelgi_resolution) + """, """ + str(rpdat.rp_voxelgi_resolution) + """);
-const int voxelgiClipmapCount = """ + str(rpdat.arm_voxelgi_clipmap_count) + """;
+        if rpdat.rp_voxelao:
+            halfext = round(rpdat.arm_voxelgi_dimensions / 2.0)
+            f.write(
+"""const ivec3 voxelgiResolution = ivec3(""" + str(rpdat.rp_voxelgi_resolution) + """, """ + str(rpdat.rp_voxelgi_resolution) + """, """ + str(int(int(rpdat.rp_voxelgi_resolution) * float(rpdat.rp_voxelgi_resolution_z))) + """);
+const vec3 voxelgiHalfExtents = vec3(""" + str(halfext) + """, """ + str(halfext) + """, """ + str(round(halfext * float(rpdat.rp_voxelgi_resolution_z))) + """);
 const float voxelgiOcc = """ + str(round(rpdat.arm_voxelgi_occ * 100) / 100) + """;
-const float voxelgiVoxelSize = """ + str(round(rpdat.arm_voxelgi_size * 1000) / 1000) + """;
-const float voxelgiStep = """ + str(round(rpdat.arm_voxelgi_step * 1000) / 1000) + """;
+const float voxelgiStep = """ + str(round(rpdat.arm_voxelgi_step * 100) / 100) + """;
 const float voxelgiRange = """ + str(round(rpdat.arm_voxelgi_range * 100) / 100) + """;
-const float voxelgiOffset = """ + str(round(rpdat.arm_voxelgi_offset * 1000) / 1000) + """;
+const float voxelgiOffset = """ + str(round(rpdat.arm_voxelgi_offset * 100) / 100) + """;
 const float voxelgiAperture = """ + str(round(rpdat.arm_voxelgi_aperture * 100) / 100) + """;
-const float voxelgiShad = """ + str(round(rpdat.arm_voxelgi_shad * 100) / 100) + """;
 """)
-        if rpdat.rp_voxels == 'Voxel GI':
-            f.write("""
-const float voxelgiDiff = """ + str(round(rpdat.arm_voxelgi_diff * 100) / 100) + """;
-const float voxelgiRefl = """ + str(round(rpdat.arm_voxelgi_spec * 100) / 100) + """;
-const float voxelgiRefr = """ + str(round(rpdat.arm_voxelgi_refr * 100) / 100) + """;
-""")
+
         val = rpdat.arm_sss_width / 10.0 if rpdat.rp_sss else 0.0
         f.write(f"const float sssWidth = {val};\n")
 
@@ -823,17 +822,13 @@ const float voxelgiRefr = """ + str(round(rpdat.arm_voxelgi_refr * 100) / 100) +
 """const int skinMaxBones = """ + str(rpdat.arm_skin_max_bones) + """;
 """)
 
-        if '_Clusters' in wrd.world_defs:
-            max_lights = "4"
-            max_lights_clusters = "4"
-            if rpdat.rp_shadowmap_atlas:
-                max_lights = str(rpdat.rp_max_lights)
-                max_lights_clusters = str(rpdat.rp_max_lights_cluster)
-                # prevent max lights cluster being higher than max lights
-                if (int(max_lights_clusters) > int(max_lights)):
-                    max_lights_clusters = max_lights
+        max_lights = str(rpdat.rp_max_lights)
+        max_lights_clusters = str(rpdat.rp_max_lights_cluster)
+        # prevent max lights cluster being higher than max lights
+        if (int(max_lights_clusters) > int(max_lights)):
+            max_lights_clusters = max_lights
 
-            f.write(
+        f.write(
 """const int maxLights = """ + max_lights + """;
 const int maxLightsCluster = """ + max_lights_clusters + """;
 const float clusterNear = 3.0;

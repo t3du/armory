@@ -7,6 +7,9 @@
 #ifdef _ShadowMap
 #include "std/shadows.glsl"
 #endif
+#ifdef _VoxelAOvar
+#include "std/conetrace.glsl"
+#endif
 #ifdef _LTC
 #include "std/ltc.glsl"
 #endif
@@ -86,8 +89,10 @@ vec3 sampleLight(const vec3 p, const vec3 n, const vec3 v, const float dotNV, co
 	#ifdef _Spot
 		, bool isSpot, float spotSize, float spotBlend, vec3 spotDir, vec2 scale, vec3 right
 	#endif
+	#ifdef _VoxelAOvar
 	#ifdef _VoxelShadow
-		, vec2 texCoord
+		, sampler3D voxels, vec3 voxpos
+	#endif
 	#endif
 	#ifdef _MicroShadowing
 		, float occ
@@ -129,6 +134,12 @@ vec3 sampleLight(const vec3 p, const vec3 n, const vec3 v, const float dotNV, co
 
 	#ifdef _SSRS
 	direct *= traceShadowSS(l, p, gbufferD, invVP, eye);
+	#endif
+
+	#ifdef _VoxelAOvar
+	#ifdef _VoxelShadow
+	direct *= 1.0 - traceShadow(voxels, voxpos, l);
+	#endif
 	#endif
 
 	#ifdef _LTC

@@ -197,6 +197,9 @@ class ConvexBreaker {
 	var tempCutResult: CutResult;
 	var segments: Array<Bool>;
 
+	@prop
+	var scaleUV: Float = 0.3;
+
 	public var userDataMap: Map<MeshObject, UserData>;
 
 	// minSizeForBreak Min size a debris can have to break
@@ -595,7 +598,7 @@ class ConvexBreaker {
 		var numObjects = 0;
 
 		if (points1.length > 4) {
-			var data1 = MeshDataExtension.makeMeshData(points1);
+			var data1 = MeshDataExtension.makeMeshData(points1, scaleUV);
 			if (data1 != null) {
 				var sel1 = getWeightedIndex();
 				var mats1 = [mats[sel1]];
@@ -612,7 +615,7 @@ class ConvexBreaker {
 		}
 
 		if (points2.length > 4) {
-			var data2 = MeshDataExtension.makeMeshData(points2);
+			var data2 = MeshDataExtension.makeMeshData(points2, scaleUV);
 			if (data2 != null) {
 				var sel2 = getWeightedIndex();
 				var mats2 = [mats[sel2]];

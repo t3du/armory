@@ -224,6 +224,10 @@ class Scene {
 				framePassed = true;
 				if (done != null) done(o);
 
+				#if rp_voxels // Revoxelize
+				RenderPath.active.voxelized = 0;
+				#end
+
 				#if (rp_background == "World")
 				if (removeWorldShader != null) {
 					RenderPath.active.unloadShader(removeWorldShader);

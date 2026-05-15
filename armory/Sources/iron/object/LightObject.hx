@@ -18,7 +18,7 @@ class LightObject extends Object {
 	public var lightInAtlas = false;
 	public var culledLight = false;
 	public static var pointLightsData: kha.arrays.Float32Array = null;
-	public var shadowMapScale = 1.0; // When in forward if this defaults to 0.0, the atlas are not drawn before being bound.
+	public var shadowMapScale = 0.0;
 	// Data used in uniforms
 	public var tileOffsetX: Array<Float> = [0.0];
 	public var tileOffsetY: Array<Float> = [0.0];
@@ -93,12 +93,8 @@ class LightObject extends Object {
 			this.shadowMapScale = 1.0;
 			#end
 		}
-		else if (type == "point" || type == "area") {
+		else //if (type == "point" || type == "area" || type == "spot") {
 			P = Mat4.persp(fov, 1, data.raw.near_plane, data.raw.far_plane);
-		}
-		else if (type == "spot") {
-			P = Mat4.persp(fov, 1, data.raw.near_plane, data.raw.far_plane);
-		}
 
 		Scene.active.lights.push(this);
 	}
