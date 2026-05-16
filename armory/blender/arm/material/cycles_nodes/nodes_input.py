@@ -158,7 +158,7 @@ def parse_geometry(node: bpy.types.ShaderNodeNewGeometry, out_socket: bpy.types.
     # True Normal
     elif out_socket == node.outputs[3]:
         state.dxdy_varying_input_value = True
-        return 'n' if state.curshader.shader_type == 'frag' else 'wnormal'
+        return 'normalize(cross(dFdy(wposition), dFdx(wposition)))' if state.curshader.shader_type == 'frag' else 'wnormal'
     # Incoming
     elif out_socket == node.outputs[4]:
         state.dxdy_varying_input_value = True
@@ -172,10 +172,18 @@ def parse_geometry(node: bpy.types.ShaderNodeNewGeometry, out_socket: bpy.types.
         return '(1.0 - float(gl_FrontFacing))' if state.context == ParserContext.OBJECT else '0.0'
     # Pointiness
     elif out_socket == node.outputs[7]:
-        return '0.0'
+        state.dxdy_varying_input_value = True
+        if state.curshader.shader_type == 'frag':
+            return 'length(cross(n, normalize(cross(dFdy(wposition), dFdx(wposition)))))'
+        else:
+            return '0.0'
     # Random Per Island
     elif out_socket == node.outputs[8]:
-        return '0.0'
+        state.dxdy_varying_input_value = True
+        if state.curshader.shader_type == 'frag':
+            return '((sin(mposition.x * 5.12 + sin(mposition.y * 8.63)) * sin(mposition.y * 6.41 + sin(mposition.z * 9.15)) * sin(mposition.z * 7.34 + sin(mposition.x * 4.82))) * 0.5 + 0.5)'
+        else:
+            return '0.0'
 
 
 def parse_hairinfo(node: bpy.types.ShaderNodeHairInfo, out_socket: bpy.types.NodeSocket, state: ParserState) -> Union[floatstr, vec3str]:
