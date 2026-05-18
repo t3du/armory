@@ -2,6 +2,7 @@ package armory.logicnode;
 
 import iron.data.SceneFormat;
 import iron.data.WorldData;
+import armory.renderpath.RenderPathCreator;
 
 class SetWorldNode extends LogicNode {
 
@@ -18,9 +19,7 @@ class SetWorldNode extends LogicNode {
 			});
 
 			iron.Scene.active.raw.world_ref = world;
-			var npath = armory.renderpath.RenderPathCreator.get();
-			npath.loadShader("shader_datas/World_" + world + "/World_" + world);
-			iron.RenderPath.setActive(npath);
+			RenderPathCreator.path.loadShader("shader_datas/World_" + world + "/World_" + world);
 		}
 
 		runOutput(0);
