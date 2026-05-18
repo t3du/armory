@@ -28,6 +28,9 @@ class FollowCurve extends iron.Trait {
 	@prop
 	var forward: Bool = true;
 
+	@prop
+	var cyclic: Bool = true;
+
 	public function new() {
 		super();
 
@@ -44,8 +47,10 @@ class FollowCurve extends iron.Trait {
 
 			progress += (speed * iron.system.Time.delta * (forward ? 1.0 : -1.0));
 
-			if (progress > 1.0) progress -= 1.0;
-			else if (progress < 0.0) progress += 1.0;
+			if (cyclic){
+				if (progress > 1.0) progress -= 1.0;
+				else if (progress < 0.0) progress += 1.0;
+			}
 
 			curve.follow(object, progress, splineIndex, forwardAxis, advanced);
 		});
