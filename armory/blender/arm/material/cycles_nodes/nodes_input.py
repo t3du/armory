@@ -381,10 +381,11 @@ def parse_uvmap(node: bpy.types.ShaderNodeUVMap, out_socket: bpy.types.NodeSocke
 def parse_fresnel(node: bpy.types.ShaderNodeFresnel, out_socket: bpy.types.NodeSocket, state: ParserState) -> floatstr:
     state.curshader.add_function(c_functions.str_fresnel)
     ior = c.parse_value_input(node.inputs[0])
+    
     if node.inputs[1].is_linked:
-        dotnv = 'dot({0}, vVec)'.format(c.parse_vector_input(node.inputs[1]))
+        dotnv = 'clamp(dot({0}, vVec), 0.0, 1.0)'.format(c.parse_vector_input(node.inputs[1]))
     else:
-        dotnv = 'dotNV'
+        dotnv = 'clamp(dotNV, 0.0, 1.0)'
 
     state.dxdy_varying_input_value = True
     return 'fresnel({0}, {1})'.format(ior, dotnv)
@@ -392,20 +393,24 @@ def parse_fresnel(node: bpy.types.ShaderNodeFresnel, out_socket: bpy.types.NodeS
 
 def parse_layerweight(node: bpy.types.ShaderNodeLayerWeight, out_socket: bpy.types.NodeSocket, state: ParserState) -> floatstr:
     blend = c.parse_value_input(node.inputs[0])
+    
     if node.inputs[1].is_linked:
-        dotnv = 'dot({0}, vVec)'.format(c.parse_vector_input(node.inputs[1]))
+        dotnv = 'clamp(dot({0}, vVec), 0.0, 1.0)'.format(c.parse_vector_input(node.inputs[1]))
     else:
-        dotnv = 'dotNV'
+        dotnv = 'clamp(dotNV, 0.0, 1.0)'
 
     state.dxdy_varying_input_value = True
 
     # Fresnel
     if out_socket == node.outputs[0]:
         state.curshader.add_function(c_functions.str_fresnel)
-        return 'fresnel(1.0 / (1.0 - {0}), {1})'.format(blend, dotnv)
+        return 'fresnel((1.0 + sqrt(clamp({0}, 0.0, 0.99))) / max(1.0 - sqrt(clamp({0}, 0.0, 0.99)), 1e-5), {1})'.format(blend, dotnv)
+        
     # Facing
     elif out_socket == node.outputs[1]:
-        return '(1.0 - pow({0}, ({1} < 0.5) ? 2.0 * {1} : 0.5 / (1.0 - {1})))'.format(dotnv, blend)
+        return '({0} < 0.5) ? 1.0 - pow({1}, 2.0 * {0}) : 1.0 - pow({1}, 0.5 / max(1.0 - {0}, 1e-5))'.format(blend, dotnv)
+
+    return '0.0'
 
 
 def parse_lightpath(node: bpy.types.ShaderNodeLightPath, out_socket: bpy.types.NodeSocket, state: ParserState) -> floatstr:
