@@ -276,14 +276,30 @@ def export_data(fp, sdk_path):
                 if o.name not in export_coll_names:
                     export_coll.objects.link(o)
                     export_coll_names.add(o.name)
+    
+    initial_window_scene = bpy.context.window.scene
     depsgraph = bpy.context.evaluated_depsgraph_get()
-    bpy.data.collections.remove(export_coll)  # Destroy the "zoo" collection
+    bpy.data.collections.remove(export_coll)
 
     for scene in bpy.data.scenes:
         if scene.arm_export:
             ext = '.lz4' if ArmoryExporter.compress_enabled else '.arm'
             asset_path = build_dir + '/compiled/Assets/' + arm.utils.safestr(scene.name) + ext
-            ArmoryExporter.export_scene(bpy.context, asset_path, scene=scene, depsgraph=depsgraph)
+            
+            try:
+                if bpy.context.window.scene != scene:
+                    bpy.context.window.scene = scene
+                    bpy.context.view_layer.update()
+                
+                scene_depsgraph = bpy.context.evaluated_depsgraph_get()
+                
+                ArmoryExporter.export_scene(bpy.context, asset_path, scene=scene, depsgraph=scene_depsgraph)
+                
+            finally:
+                if bpy.context.window.scene != initial_window_scene:
+                    bpy.context.window.scene = initial_window_scene
+                    bpy.context.view_layer.update()
+
             if ArmoryExporter.export_physics:
                 physics_found = True
             if ArmoryExporter.export_navigation:
