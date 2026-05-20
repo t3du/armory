@@ -15,37 +15,30 @@ class SetObjectInstancedNode extends LogicNode {
 
 	override function run(from: Int) {
 		var object: Object =inputs[1].get();
-		var instanced: Bool = inputs[2].get();
-		var array = inputs[3].get();
-		var include: Bool = inputs[4].get();
+		var array = inputs[2].get();
+		var include: Bool = inputs[3].get();
 
 		if (object == null) return;
 
 		var geom = cast(object, MeshObject).data.geom;
 
-		if (instanced != geom.instanced) geom.instanced = instanced;
+		var base = [];
+		if (property0 == '1') base = [0.0, 0.0, 0.0];
+		else if (property0 == '2') base = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0];
+		else if (property0 == '3') base = [0.0, 0.0, 0.0, 1.0, 1.0, 1.0];
+		else base = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0];
 
-		if (instanced) {
-			if (array == null)
-				geom.instanced = false;
-			else {
-				var nid = null;
-				if (property0 == '1') nid = fromArray(include ? [0.0, 0.0, 0.0].concat(array) : array);
-				else
-				if (property0 == '2')
-					nid = fromArray(include ? [0.0, 0.0, 0.0, 0.0, 0.0, 0.0].concat(array) : array);
-				else
-				if (property0 == '3')
-					nid = fromArray(include ? [0.0, 0.0, 0.0, 1.0, 1.0, 1.0].concat(array) : array);
-				else
-					nid = fromArray(include ? [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0].concat(array) : array);
+		var nid: Float32Array = null;
 
-				@:privateAccess geom.data.raw.instanced_data = nid;
+		if (array != null)
+			nid = fromArray(include ? base.concat(array) : array);
+		else
+			nid = fromArray(base);
 
-				geom.setupInstanced(nid, @:privateAccess geom.data.raw.instanced_type, Usage.StaticUsage);
-			}
+		@:privateAccess geom.data.raw.instanced_data = nid;
 
-		}
+		geom.setupInstanced(nid, @:privateAccess geom.data.raw.instanced_type, Usage.StaticUsage);
+	
 
 		runOutput(0);
 	}

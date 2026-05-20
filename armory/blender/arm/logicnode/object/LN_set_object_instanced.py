@@ -17,7 +17,6 @@ class SetObjectInstancedNode(ArmLogicTreeNode):
     def arm_init(self, context):
         self.add_input('ArmNodeSocketAction', 'In')
         self.add_input('ArmNodeSocketObject', 'Object')
-        self.add_input('ArmBoolSocket', 'Instanced', default_value=True)
         self.add_input('ArmNodeSocketArray', 'Array Instanced')
         self.add_input('ArmBoolSocket', 'Include original', default_value=True)
 
