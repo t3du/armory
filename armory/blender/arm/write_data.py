@@ -534,6 +534,11 @@ class Main {
         f.write("""
         armory.system.Starter.assets = """ + str([os.path.basename(path) for path in asset_references if 'Bundled' in path]) + """;""")
 
+        scenes_list = [f"'{scene.name}'" for scene in bpy.data.scenes if getattr(scene, 'arm_export', True)]
+        scenes_array = "[" + ", ".join(scenes_list) + "]"
+
+        f.write("armory.system.Starter.scenes = " + scenes_array + ";")
+
         if wrd.arm_ui == 'Enabled':
             if wrd.arm_canvas_img_scaling_quality == 'low':
                 f.write("""
