@@ -7,6 +7,7 @@ class GetWorldStrengthNode extends LogicNode {
 	}
 
 	override function get(from: Int): Dynamic {
-		return iron.Scene.active.world.raw.probe.strength;
+		var world = iron.Scene.active.world.raw;
+		return world.turbidity != null ? world.probe.strength * 10 : world.probe.strength;
 	}
 }

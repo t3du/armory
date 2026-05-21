@@ -8,7 +8,10 @@ class SetWorldStrengthNode extends LogicNode {
 
 	override function run(from: Int) {
 
-		iron.Scene.active.world.raw.probe.strength = inputs[1].get();
+		if (iron.Scene.active.world.raw.turbidity != null)
+			iron.Scene.active.world.raw.probe.strength = inputs[1].get() * 0.1;
+		else
+			iron.Scene.active.world.raw.probe.strength = inputs[1].get();
 
 		runOutput(0);
 		
