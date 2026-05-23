@@ -11,6 +11,6 @@ class GroupNode extends LogicNode {
 	}
 
 	override function get(from: Int): Dynamic {
-		return Scene.active.getGroup(property0);
+		return from == 0 ? Scene.active.getGroup(property0) : Scene.active.getGroup(property0).length;
 	}
 }

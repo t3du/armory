@@ -11,3 +11,4 @@ class GetChildrenNode(ArmLogicTreeNode):
         self.add_input('ArmNodeSocketObject', 'Parent')
 
         self.add_output('ArmNodeSocketArray', 'Children')
+        self.add_output('ArmIntSocket', 'Length')

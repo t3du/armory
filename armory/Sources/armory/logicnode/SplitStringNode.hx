@@ -11,6 +11,6 @@ class SplitStringNode extends LogicNode {
 		var s2: String = inputs[1].get();
 		if (s1 == null || s2 == null) return null;
 
-        return s1.split(s2);
+        return from == 0 ? s1.split(s2) : s1.split(s2).length;
 	}
 }

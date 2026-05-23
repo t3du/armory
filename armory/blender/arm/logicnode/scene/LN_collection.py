@@ -16,6 +16,7 @@ class GroupNode(ArmLogicTreeNode):
 
     def arm_init(self, context):
         self.add_output('ArmNodeSocketArray', 'Array')
+        self.add_output('ArmIntSocket', 'Length')
 
     def draw_buttons(self, context, layout):
         layout.prop_search(self, 'property0', bpy.data, 'collections', icon='NONE', text='')

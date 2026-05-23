@@ -7,7 +7,7 @@ class SplitStringNode(ArmLogicTreeNode):
     arm_version = 1
 
     def arm_init(self, context):
-        self.add_output('ArmNodeSocketArray', 'Array')
-
         self.add_input('ArmStringSocket', 'String')
         self.add_input('ArmStringSocket', 'Split')
+
+        self.add_output('ArmNodeSocketArray', 'Array')

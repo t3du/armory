@@ -13,6 +13,6 @@ class GetChildrenNode extends LogicNode {
 
 		if (object == null) return null;
 
-		return object.children;
+		return from == 0 ? object.children : object.children.length;
 	}
 }

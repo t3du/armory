@@ -10,3 +10,4 @@ class GetObjectTraitsNode(ArmLogicTreeNode):
         self.add_input('ArmNodeSocketObject', 'Object')
 
         self.add_output('ArmNodeSocketArray', 'Traits')
+        self.add_output('ArmIntSocket', 'Length')

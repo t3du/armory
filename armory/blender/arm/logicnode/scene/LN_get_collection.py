@@ -14,3 +14,4 @@ class GetGroupNode(ArmLogicTreeNode):
         self.add_input('ArmStringSocket', 'Name')
 
         self.add_output('ArmNodeSocketArray', 'Objects')
+        self.add_output('ArmIntSocket', 'Length')
