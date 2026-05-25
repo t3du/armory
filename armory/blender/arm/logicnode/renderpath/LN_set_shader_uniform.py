@@ -18,8 +18,10 @@ class SetShaderUniformNode(ArmLogicTreeNode):
             self.add_input('ArmIntSocket', 'Int')
         elif self.property0 == 'float':
             self.add_input('ArmFloatSocket', 'Float')
-        elif self.property0 in ('vec2', 'vec3', 'vec4'):
+        elif self.property0 in ('vec2', 'vec3'):
             self.add_input('ArmVectorSocket', 'Vector')
+        elif self.property0 in ('vec4'):
+            self.add_input('ArmColorSocket', 'Color')
         else: self.add_input('ArmStringSocket', 'Sample2D')
 
     property0: HaxeEnumProperty(

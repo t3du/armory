@@ -53,7 +53,6 @@ class ShaderDataNode(Node):
     def draw_buttons(self, context, layout):
         col = layout.column(align=True)
         col.label(text="Input Type:")
-        # Use a row to expand horizontally
         col.row().prop(self, "input_type", expand=True)
 
         split = layout.split(factor=0.5, align=True)
@@ -72,13 +71,18 @@ class ShaderDataNode(Node):
     def init(self, context):
         self.outputs.new('NodeSocketColor', 'Color')
         self.outputs.new('NodeSocketVector', 'Vector')
-        self.outputs.new('NodeSocketFloat', 'Float')
-        self.outputs.new('NodeSocketInt', 'Int')
+        self.outputs.new('NodeSocketFloat', 'Float/Int')
 
     def __parse(self, out_socket: NodeSocket, state: ParserState) -> str:
         if self.input_type == "uniform":
-            state.frag.add_uniform(f'{self.variable_type} {self.variable_name}', link=self.variable_name)
-            state.vert.add_uniform(f'{self.variable_type} {self.variable_name}', link=self.variable_name)
+            if self.variable_type == "vec4":
+                state.frag.add_uniform(f'vec3 {self.variable_name}_xyz', link=f'{self.variable_name}_xyz')
+                state.frag.add_uniform(f'float {self.variable_name}_w', link=f'{self.variable_name}_w')
+                state.vert.add_uniform(f'vec3 {self.variable_name}_xyz', link=f'{self.variable_name}_xyz')
+                state.vert.add_uniform(f'float {self.variable_name}_w', link=f'{self.variable_name}_w')
+            else:
+                state.frag.add_uniform(f'{self.variable_type} {self.variable_name}', link=self.variable_name)
+                state.vert.add_uniform(f'{self.variable_type} {self.variable_name}', link=self.variable_name)
 
             if self.variable_type == "sampler2D":
                 state.frag.add_uniform('vec2 screenSize', link='_screenSize')
@@ -87,20 +91,41 @@ class ShaderDataNode(Node):
             if self.variable_type == "vec2":
                 return f'vec3({self.variable_name}.xy, 0)'
 
+            if self.variable_type == "vec4":
+                if out_socket == self.outputs[2]:
+                    return f'{self.variable_name}_w'
+                else:
+                    return f'{self.variable_name}_xyz'
+
             return self.variable_name
 
         else:
-            if self.input_source == "frag":
-                state.frag.add_in(f'{self.variable_type} {self.variable_name}')
-                return self.variable_name
+            if self.variable_type == "vec4":
+                if self.input_source == "frag":
+                    state.frag.add_in(f'vec3 {self.variable_name}_xyz')
+                    state.frag.add_in(f'float {self.variable_name}_w')
+                else:
+                    state.vert.add_out(f'vec3 out_{self.variable_name}_xyz')
+                    state.frag.add_in(f'vec3 out_{self.variable_name}_xyz')
+                    state.vert.write(f'out_{self.variable_name}_xyz = {self.variable_name}_xyz;')
 
-            # Reroute input from vertex shader to fragment shader (input must exist!)
+                    state.vert.add_out(f'float out_{self.variable_name}_w')
+                    state.frag.add_in(f'float out_{self.variable_name}_w')
+                    state.vert.write(f'out_{self.variable_name}_w = {self.variable_name}_w;')
+
+                if out_socket == self.outputs[2]:
+                    return f'out_{self.variable_name}_w' if self.input_source != "frag" else f'{self.variable_name}_w'
+                else:
+                    return f'out_{self.variable_name}_xyz' if self.input_source != "frag" else f'{self.variable_name}_xyz'
             else:
-                state.vert.add_out(f'{self.variable_type} out_{self.variable_name}')
-                state.frag.add_in(f'{self.variable_type} out_{self.variable_name}')
-
-                state.vert.write(f'out_{self.variable_name} = {self.variable_name};')
-                return 'out_' + self.variable_name
+                if self.input_source == "frag":
+                    state.frag.add_in(f'{self.variable_type} {self.variable_name}')
+                    return self.variable_name
+                else:
+                    state.vert.add_out(f'{self.variable_type} out_{self.variable_name}')
+                    state.frag.add_in(f'{self.variable_type} out_{self.variable_name}')
+                    state.vert.write(f'out_{self.variable_name} = {self.variable_name};')
+                    return 'out_' + self.variable_name
 
     @staticmethod
     def parse(node: 'ShaderDataNode', out_socket: NodeSocket, state: ParserState) -> str:

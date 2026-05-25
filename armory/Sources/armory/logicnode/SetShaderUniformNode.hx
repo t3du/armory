@@ -38,7 +38,10 @@ class SetShaderUniformNode extends LogicNode {
 			case "float": floatMap.set(uniformName, inputs[2].get());
 			case "vec2": vec2Map.set(uniformName, inputs[2].get());
 			case "vec3": vec3Map.set(uniformName, inputs[2].get());
-			case "vec4": vec4Map.set(uniformName, inputs[2].get());
+			case "vec4":
+				//vec4Map.set(uniformName, inputs[2].get());
+				vec3Map.set(uniformName+'_xyz', inputs[2].get());
+				floatMap.set(uniformName+'_w', inputs[2].get().w);
 			case "sampler2D":
 			    var assetName: String = inputs[2].get();
 			    if (assetName == null || assetName == "") return;
