@@ -15,10 +15,20 @@ class TransformMathNode extends LogicNode {
 		var m1: Mat4 = inputs[0].get();
 		var m2: Mat4 = inputs[1].get();
 
-		if (m1 == null || m2 == null) return null;
+		if (m1 == null) return null;
 
 		m.setFrom(m1);
-		transformMath(m, m2);
+
+		switch (property0) {
+			case "Multiply":
+				if (m2 == null) return null;
+				m.multmat(m2);
+			case "Invert":
+				m.getInverse(m);
+			case "Transform Math":
+				if (m2 == null) return null;
+				transformMath(m, m2);
+		}
 
 		return m;
 	}
