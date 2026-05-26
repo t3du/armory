@@ -3,6 +3,7 @@ package armory.logicnode;
 class MergedSurfaceNode extends LogicNode {
 
 	public var property0: String;
+	var lastTime: Float = -1.0;
 
 	public function new(tree: LogicTree) {
 		super(tree);
@@ -23,7 +24,14 @@ class MergedSurfaceNode extends LogicNode {
 		case "moved":
 			b = surface.moved;
 		}
-		if (b) runOutput(0);
+		if (b) {
+			if (property0 == "started" || property0 == "released") {
+				var currentTime = iron.system.Time.time();
+				if (currentTime == lastTime) return;
+				lastTime = currentTime;
+			}
+			runOutput(0);
+		}
 	}
 
 	override function get(from: Int): Dynamic {

@@ -9,6 +9,7 @@ class MergedMouseNode extends LogicNode {
 	public var property0: String;
 	public var property1: String;
 	public var property2: Bool;
+	var lastTime: Float = -1.0;
 
 	public function new(tree: LogicTree) {
 		super(tree);
@@ -33,7 +34,14 @@ class MergedMouseNode extends LogicNode {
 		case "moved":
 			b = mouse.moved;
 		}
-		if (b) runOutput(0);
+		if (b) {
+			if (property0 == "started" || property0 == "released") {
+				var currentTime = iron.system.Time.time();
+				if (currentTime == lastTime) return;
+				lastTime = currentTime;
+			}
+			runOutput(0);
+		}
 	}
 
 	override function get(from: Int): Dynamic {
