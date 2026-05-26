@@ -10,9 +10,10 @@ class GetTransformNode extends LogicNode {
 
 	override function get(from: Int): Dynamic {
 		var object: Object = inputs[0].get();
+		var relative: Bool = inputs[1].get();
 
 		if (object == null) return null;
 
-		return object.transform.world;
+		return relative && object.parent != null ? object.transform.local : object.transform.world;
 	}
 }
