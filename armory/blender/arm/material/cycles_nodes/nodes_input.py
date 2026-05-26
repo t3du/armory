@@ -36,7 +36,7 @@ def parse_attribute(node: bpy.types.ShaderNodeAttribute, out_socket: bpy.types.N
         return c.cast_value('time', from_type='float', to_type=out_type)
 
     # UV maps (higher priority) and vertex colors
-    if node.attribute_type == 'GEOMETRY':
+    if node.attribute_type == 'GEOMETRY' and state.context == ParserContext.OBJECT:
 
         # Alpha output. Armory doesn't support vertex colors with alpha
         # values yet and UV maps don't have an alpha channel
