@@ -14,18 +14,22 @@ class RotationNode(ArmLogicVariableNodeMixin, ArmLogicTreeNode):
         self.add_input('ArmFloatSocket', 'Angle / W')
 
         self.add_output('ArmRotationSocket', 'Out', is_var=True)
+        
+        self.inputs[1].hide = True
 
     def on_property_update(self, context):
         """called by the EnumProperty, used to update the node socket labels"""
         if self.property0 == "Quaternion":
             self.inputs[0].name = "Quaternion XYZ"
             self.inputs[1].name = "Quaternion W"
+            self.inputs[1].hide = False
         elif self.property0 == "EulerAngles":
             self.inputs[0].name = "Euler Angles"
-            self.inputs[1].name = "[unused for Euler input]"
+            self.inputs[1].hide = True
         elif self.property0 == "AxisAngle":
             self.inputs[0].name = "Axis"
             self.inputs[1].name = "Angle"
+            self.inputs[1].hide = False
         else:
             raise ValueError('No nodesocket labels for current input mode: check self-consistancy of LN_rotation.py')
 
