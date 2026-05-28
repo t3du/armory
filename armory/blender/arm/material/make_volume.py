@@ -12,11 +12,14 @@ if arm.is_reload(__name__):
 else:
     arm.enable_reload(__name__)
 
-
 def make(context_id):
+
+    rpdat = arm.utils.get_rp()
+    rid = rpdat.rp_renderer
+
     con = {
         'name': context_id,
-        'depth_write': True,
+        'depth_write': True if rid == 'Forward' else False,
         'compare_mode': 'less',
         'cull_mode': 'none',
         'blend_source': 'source_alpha',
@@ -38,7 +41,9 @@ def make(context_id):
     frag.add_uniform('float time', link='_time')
     frag.add_uniform('mat4 W', link='_worldMatrix')
 
-    frag.add_include('common.inc')
+    if rid == 'Deferred':
+        frag.add_uniform('vec2 screenSize', link='_screenSize')
+        frag.add_uniform('sampler2D gbufferD', link='gbufferD')
 
     color_r, color_g, color_b = 0.5, 0.5, 0.5
     density = 1.0
@@ -69,6 +74,39 @@ def make(context_id):
                     elif input_slot.name == 'Anisotropy':
                         anisotropy = input_slot.default_value
 
+    str_hash = "\nfloat fhash(float n) { return fract(sin(n) * 43758.5453); }"
+    frag.add_function(str_hash)
+
+    str_noise = """
+    float noise(vec3 x) {
+        vec3 p = floor(x);
+        vec3 f = fract(x);
+        f = f * f * (3.0 - 2.0 * f);
+        float n = p.x + p.y * 57.0 + 113.0 * p.z;
+        return mix(mix(mix(fhash(n + 0.0), fhash(n + 1.0), f.x),
+                       mix(fhash(n + 57.0), fhash(n + 58.0), f.x), f.y),
+                   mix(mix(fhash(n + 113.0), fhash(n + 114.0), f.x),
+                       mix(fhash(n + 170.0), fhash(n + 171.0), f.x), f.y), f.z);
+    }
+    """
+    frag.add_function(str_noise)
+
+    str_fbm = """
+    float fbm(vec3 p, float t) {
+        vec3 p_time = p * 1.8 + t * 0.03;
+        float v = 0.5 * noise(p_time);
+        v += 0.25 * noise(p_time * 2.02);
+        v += 0.125 * noise(p_time * 4.1006);
+        return v;
+    }
+    """
+    frag.add_function(str_fbm)
+
+    depth = """
+        float sceneDepth = texture(gbufferD, gl_FragCoord.xy / screenSize).r; 
+        float depthDiff = sceneDepth - gl_FragCoord.z;
+        alpha *= smoothstep(0.0, 0.02, depthDiff);""" if rid == 'Deferred' else ""
+
     shader_code = """
     vec3 cloudColor = vec3({0}, {1}, {2});
     vec3 emiColor = vec3({4}, {5}, {6});
@@ -80,53 +118,13 @@ def make(context_id):
     float finalLight = 0.0;
     vec3 p = localPos - normalize(localPos - (inverse(W) * vec4(eye, 1.0)).xyz) * 0.1;
     for(int i = 0; i < 80; i++) {{
-        float nPos_x = p.x * 1.8 + time * 0.03;
-        float nPos_y = p.y * 1.8 + time * 0.03;
-        float nPos_z = p.z * 1.8 + time * 0.03;
-        float p_noise = floor(nPos_x) + floor(nPos_y) * 57.0 + floor(nPos_z) * 113.0;
-        vec3 f_noise = fract(vec3(nPos_x, nPos_y, nPos_z));
-        f_noise = f_noise * f_noise * (3.0 - 2.0 * f_noise);
-        float res_noise = mix(mix(mix(fract(sin(p_noise + 0.0) * 43758.5453), fract(sin(p_noise + 1.0) * 43758.5453), f_noise.x), mix(fract(sin(p_noise + 57.0) * 43758.5453), fract(sin(p_noise + 58.0) * 43758.5453), f_noise.x), f_noise.y), mix(mix(fract(sin(p_noise + 113.0) * 43758.5453), fract(sin(p_noise + 114.0) * 43758.5453), f_noise.x), mix(fract(sin(p_noise + 170.0) * 43758.5453), fract(sin(p_noise + 171.0) * 43758.5453), f_noise.x), f_noise.y), f_noise.z);
-        float fbm_val = 0.5000 * res_noise;
-        vec3 p_fbm2 = vec3(nPos_x, nPos_y, nPos_z) * 2.02;
-        float p_noise2 = floor(p_fbm2.x) + floor(p_fbm2.y) * 57.0 + floor(p_fbm2.z) * 113.0;
-        vec3 f_noise2 = fract(p_fbm2);
-        f_noise2 = f_noise2 * f_noise2 * (3.0 - 2.0 * f_noise2);
-        float res_noise2 = mix(mix(mix(fract(sin(p_noise2 + 0.0) * 43758.5453), fract(sin(p_noise2 + 1.0) * 43758.5453), f_noise2.x), mix(fract(sin(p_noise2 + 57.0) * 43758.5453), fract(sin(p_noise2 + 58.0) * 43758.5453), f_noise2.x), f_noise2.y), mix(mix(fract(sin(p_noise2 + 113.0) * 43758.5453), fract(sin(p_noise2 + 114.0) * 43758.5453), f_noise2.x), mix(fract(sin(p_noise2 + 170.0) * 43758.5453), fract(sin(p_noise2 + 171.0) * 43758.5453), f_noise2.x), f_noise2.y), f_noise2.z);
-        fbm_val += 0.2500 * res_noise2;
-        vec3 p_fbm3 = p_fbm2 * 2.03;
-        float p_noise3 = floor(p_fbm3.x) + floor(p_fbm3.y) * 57.0 + floor(p_fbm3.z) * 113.0;
-        vec3 f_noise3 = fract(p_fbm3);
-        f_noise3 = f_noise3 * f_noise3 * (3.0 - 2.0 * f_noise3);
-        float res_noise3 = mix(mix(mix(fract(sin(p_noise3 + 0.0) * 43758.5453), fract(sin(p_noise3 + 1.0) * 43758.5453), f_noise3.x), mix(fract(sin(p_noise3 + 57.0) * 43758.5453), fract(sin(p_noise3 + 58.0) * 43758.5453), f_noise3.x), f_noise3.y), mix(mix(fract(sin(p_noise3 + 113.0) * 43758.5453), fract(sin(p_noise3 + 114.0) * 43758.5453), f_noise3.x), mix(fract(sin(p_noise3 + 170.0) * 43758.5453), fract(sin(p_noise3 + 171.0) * 43758.5453), f_noise3.x), f_noise3.y), f_noise3.z);
-        fbm_val += 0.1250 * res_noise3;
-        float d = smoothstep(0.4, 0.6, fbm_val) * {3};
+        float d = smoothstep(0.4, 0.6, fbm(p, time)) * {3};
         if (d > 0.01) {{
             float lightAccum = 0.0;
             vec3 lightP = p;
             for(int j = 0; j < 6; j++) {{
                 lightP += L * 0.12;
-                float lp_x = lightP.x * 1.8 + time * 0.03;
-                float lp_y = lightP.y * 1.8 + time * 0.03;
-                float lp_z = lightP.z * 1.8 + time * 0.03;
-                float l_p_noise = floor(lp_x) + floor(lp_y) * 57.0 + floor(lp_z) * 113.0;
-                vec3 l_f_noise = fract(vec3(lp_x, lp_y, lp_z));
-                l_f_noise = l_f_noise * l_f_noise * (3.0 - 2.0 * l_f_noise);
-                float l_res_noise = mix(mix(mix(fract(sin(l_p_noise + 0.0) * 43758.5453), fract(sin(l_p_noise + 1.0) * 43758.5453), l_f_noise.x), mix(fract(sin(l_p_noise + 57.0) * 43758.5453), fract(sin(l_p_noise + 58.0) * 43758.5453), l_f_noise.x), l_f_noise.y), mix(mix(fract(sin(l_p_noise + 113.0) * 43758.5453), fract(sin(l_p_noise + 114.0) * 43758.5453), l_f_noise.x), mix(fract(sin(l_p_noise + 170.0) * 43758.5453), fract(sin(l_p_noise + 171.0) * 43758.5453), l_f_noise.x), l_f_noise.y), l_f_noise.z);
-                float l_fbm_val = 0.5000 * l_res_noise;
-                vec3 l_p_fbm2 = vec3(lp_x, lp_y, lp_z) * 2.02;
-                float l_p_noise2 = floor(l_p_fbm2.x) + floor(l_p_fbm2.y) * 57.0 + floor(l_p_fbm2.z) * 113.0;
-                vec3 l_f_noise2 = fract(l_p_fbm2);
-                l_f_noise2 = l_f_noise2 * l_f_noise2 * (3.0 - 2.0 * l_f_noise2);
-                float l_res_noise2 = mix(mix(mix(fract(sin(l_p_noise2 + 0.0) * 43758.5453), fract(sin(l_p_noise2 + 1.0) * 43758.5453), l_f_noise2.x), mix(fract(sin(l_p_noise2 + 57.0) * 43758.5453), fract(sin(l_p_noise2 + 58.0) * 43758.5453), l_f_noise2.x), l_f_noise2.y), mix(mix(fract(sin(l_p_noise2 + 113.0) * 43758.5453), fract(sin(l_p_noise2 + 114.0) * 43758.5453), l_f_noise2.x), mix(fract(sin(l_p_noise2 + 170.0) * 43758.5453), fract(sin(l_p_noise2 + 171.0) * 43758.5453), l_f_noise2.x), l_f_noise2.y), l_f_noise2.z);
-                l_fbm_val += 0.2500 * l_res_noise2;
-                vec3 l_p_fbm3 = l_p_fbm2 * 2.03;
-                float l_p_noise3 = floor(l_p_fbm3.x) + floor(l_p_fbm3.y) * 57.0 + floor(l_p_fbm3.z) * 113.0;
-                vec3 l_f_noise3 = fract(l_p_fbm3);
-                l_f_noise3 = l_f_noise3 * l_f_noise3 * (3.0 - 2.0 * l_f_noise3);
-                float l_res_noise3 = mix(mix(mix(fract(sin(l_p_noise3 + 0.0) * 43758.5453), fract(sin(l_p_noise3 + 1.0) * 43758.5453), l_f_noise3.x), mix(fract(sin(l_p_noise3 + 57.0) * 43758.5453), fract(sin(l_p_noise3 + 58.0) * 43758.5453), l_f_noise3.x), l_f_noise3.y), mix(mix(fract(sin(l_p_noise3 + 113.0) * 43758.5453), fract(sin(l_p_noise3 + 114.0) * 43758.5453), l_f_noise3.x), mix(fract(sin(l_p_noise3 + 170.0) * 43758.5453), fract(sin(l_p_noise3 + 171.0) * 43758.5453), l_f_noise3.x), l_f_noise3.y), l_f_noise3.z);
-                l_fbm_val += 0.1250 * l_res_noise3;
-                lightAccum += smoothstep(0.4, 0.6, l_fbm_val);
+                lightAccum += smoothstep(0.4, 0.6, fbm(lightP, time));
             }}
             float shadow = 0.1 + exp(-lightAccum * 1.5) * 0.9;
             finalLight += d * transmission * shadow;
@@ -138,9 +136,10 @@ def make(context_id):
         if(length(p) > 2.5) break;
     }}
     float alpha = 1.0 - transmission;
+    {8}
     if (alpha < 0.15) discard;
     fragColor = vec4(mix(shadowColor, cloudColor, clamp(finalLight, 0.0, 1.0)) + emiColor, alpha);
-    """.format(color_r, color_g, color_b, density * 0.8, emission_r, emission_g, emission_b, anisotropy)
+    """.format(color_r, color_g, color_b, density * 0.8, emission_r, emission_g, emission_b, anisotropy, depth)
 
     frag.write(shader_code)
     frag.add_out('vec4 fragColor')
