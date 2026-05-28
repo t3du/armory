@@ -116,14 +116,18 @@ def make(context_id):
     float densityAccum = 0.0;
     float transmission = 1.0;
     float finalLight = 0.0;
-    vec3 p = localPos - normalize(localPos - (inverse(W) * vec4(eye, 1.0)).xyz) * 0.1;
-    for(int i = 0; i < 80; i++) {{
+    
+    float jitter = fhash(gl_FragCoord.x + gl_FragCoord.y * 1000.0 + time);
+    vec3 viewDir = normalize(localPos - (inverse(W) * vec4(eye, 1.0)).xyz);
+    vec3 p = localPos - viewDir * 0.1 + viewDir * jitter * 0.05;
+    
+    for(int i = 0; i < 32; i++) {{
         float d = smoothstep(0.4, 0.6, fbm(p, time)) * {3};
         if (d > 0.01) {{
             float lightAccum = 0.0;
             vec3 lightP = p;
-            for(int j = 0; j < 6; j++) {{
-                lightP += L * 0.12;
+            for(int j = 0; j < 4; j++) {{
+                lightP += L * 0.15;
                 lightAccum += smoothstep(0.4, 0.6, fbm(lightP, time));
             }}
             float shadow = 0.1 + exp(-lightAccum * 1.5) * 0.9;
@@ -132,7 +136,7 @@ def make(context_id):
             transmission *= exp(-d * 1.5);
             if (transmission < 0.01) break;
         }}
-        p += normalize(localPos - (inverse(W) * vec4(eye, 1.0)).xyz) * 0.03;
+        p += viewDir * 0.06;
         if(length(p) > 2.5) break;
     }}
     float alpha = 1.0 - transmission;
