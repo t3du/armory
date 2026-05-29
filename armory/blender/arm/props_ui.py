@@ -2437,10 +2437,8 @@ class ArmPrintTraitsButton(bpy.types.Operator):
         for s in bpy.data.scenes:
             print('Scene: {0}'.format(s.name))
             for t in s.arm_traitlist:
-                if not t.enabled_prop:
-                    continue
                 tname = "undefined"
-                if t.type_prop == 'Haxe Script' or "Bundled":
+                if t.type_prop in ('Haxe Script', 'Bundled Script'):
                     tname = t.class_name_prop
                 if t.type_prop == 'Logic Nodes':
                     tname = t.node_tree_prop.name
@@ -2448,13 +2446,13 @@ class ArmPrintTraitsButton(bpy.types.Operator):
                     tname = t.canvas_name_prop
                 if t.type_prop == 'WebAssembly':
                     tname = t.webassembly_prop
-                print('    Scene Trait: {0} ("{1}")'.format(s.name, tname))
+                status = "" if t.enabled_prop else "[D]"
+                fake_user = "[FU]" if t.fake_user else ""
+                print('    Scene Trait: {0} ("{1}") {2} {3}'.format(s.name, tname, status, fake_user))
             for o in s.objects:
                 for t in o.arm_traitlist:
-                    if not t.enabled_prop:
-                        continue
                     tname = "undefined"
-                    if t.type_prop == 'Haxe Script' or "Bundled":
+                    if t.type_prop in ('Haxe Script', 'Bundled Script'):
                         tname = t.class_name_prop
                     if t.type_prop == 'Logic Nodes':
                         tname = t.node_tree_prop.name
@@ -2462,7 +2460,9 @@ class ArmPrintTraitsButton(bpy.types.Operator):
                         tname = t.canvas_name_prop
                     if t.type_prop == 'WebAssembly':
                         tname = t.webassembly_prop
-                    print('    Object Trait: {0} ("{1}")'.format(o.name, tname))
+                    status = "" if t.enabled_prop else "[D]"
+                    fake_user = "[FU]" if t.fake_user else ""
+                    print('    Object Trait: {0} ("{1}") {2} {3}'.format(o.name, tname, status, fake_user))
         return{'FINISHED'}
 
 class ARM_PT_MaterialNodePanel(bpy.types.Panel):
