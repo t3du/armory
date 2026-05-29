@@ -14,8 +14,8 @@ class AddSoftBodyNode(ArmLogicTreeNode):
         self.add_input('ArmFloatSocket', 'Margin', default_value=0.04)
         self.add_input('ArmFloatSocket', 'Friction', default_value=0.5)
         self.add_input('ArmFloatSocket', 'Damping', default_value=0.01)
+        self.add_input('ArmFloatSocket', 'Linear Stiffness', default_value=0.9)
+        self.add_input('ArmFloatSocket', 'Angular Stiffness', default_value=0.9)
         self.add_input('ArmFloatSocket', 'Pressure', default_value=0.0)
-        self.add_input('ArmFloatSocket', 'Linear Stiffness', default_value=0.1)
-        self.add_input('ArmFloatSocket', 'Angular Stiffness', default_value=0.1)
         
         self.add_output('ArmNodeSocketAction', 'Out')
