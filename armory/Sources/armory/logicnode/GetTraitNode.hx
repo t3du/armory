@@ -17,6 +17,7 @@ class GetTraitNode extends LogicNode {
 		if (object == null) return null;
 		if (cname == null) cname = cast Type.resolveClass(Main.projectPackage + "." + name);
 		if (cname == null) cname = cast Type.resolveClass(Main.projectPackage + ".node." + name);
+		if (cname == null) cname = cast Type.resolveClass(name);
 
 		return object.getTrait(cname);
 	}
