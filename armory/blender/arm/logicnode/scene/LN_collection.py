@@ -10,7 +10,7 @@ class GroupNode(ArmLogicTreeNode):
     bl_idname = 'LNGroupNode'
     bl_label = 'Collection'
     arm_section = 'collection'
-    arm_version = 1
+    arm_version = 2
 
     property0: HaxePointerProperty('property0', name='', type=bpy.types.Collection)
 
@@ -20,3 +20,6 @@ class GroupNode(ArmLogicTreeNode):
 
     def draw_buttons(self, context, layout):
         layout.prop_search(self, 'property0', bpy.data, 'collections', icon='NONE', text='')
+
+    def get_replacement_node(self, node_tree: bpy.types.NodeTree):    
+        return NodeReplacement.Identity(self)
