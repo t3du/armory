@@ -37,8 +37,7 @@ class SetObjectInstancedNode extends LogicNode {
 
 		@:privateAccess geom.data.raw.instanced_data = nid;
 
-		geom.setupInstanced(nid, @:privateAccess geom.data.raw.instanced_type, Usage.StaticUsage);
-	
+		geom.setupInstanced(nid, @:privateAccess geom.data.raw.instanced_type, Usage.StaticUsage);	
 
 		runOutput(0);
 	}
