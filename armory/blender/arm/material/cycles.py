@@ -422,10 +422,11 @@ def parse_normal_map_color_input(inp, strength_input=None, space='TANGENT'):
             state.con.add_elem('tang', 'short4norm')
             
     elif space in ['OBJECT', 'BLENDER_OBJECT']:
+        frag.add_uniform('mat3 N', '_normalMatrix')
         frag.write(f'vec3 objn = ({color_val}) * 2.0 - 1.0;')
         if strength != '1.0':
             frag.write(f'objn = mix(vec3(0.0, 0.0, 1.0), objn, {strength});')
-        frag.write('n = normalize(nmat * objn);')
+        frag.write('n = normalize(N * objn);')
 
     elif space in ['WORLD', 'BLENDER_WORLD']:
         frag.write(f'vec3 worldn = ({color_val}) * 2.0 - 1.0;')
