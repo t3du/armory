@@ -68,6 +68,8 @@ class MeshDataExtension {
 		var naa = new kha.arrays.Int16Array(n * 2);
 		var texa = new kha.arrays.Int16Array(n * 2);
 		var invdim = 1 / maxdim;
+
+		var tanga = new kha.arrays.Int16Array(n * 4);
 		
 		for (i in 0...n) {
 			var px = pa[i * 3];
@@ -100,19 +102,37 @@ class MeshDataExtension {
 
 			texa.set(i * 2,     Std.int(u * 32767));
 			texa.set(i * 2 + 1, Std.int(v * 32767));
+
+			var tan = new Vec4();
+			if (nx > ny && nx > nz)
+			    tan.set(0, 0, 1); 
+			else if (ny > nx && ny > nz)
+			    tan.set(1, 0, 0);
+			else
+			    tan.set(1, 0, 0);
+			tan.normalize();
+
+			tanga.set(i * 4,     Std.int(tan.x * 32767));
+			tanga.set(i * 4 + 1, Std.int(tan.y * 32767));
+			tanga.set(i * 4 + 2, Std.int(tan.z * 32767));
+			tanga.set(i * 4 + 3, 32767);
+
 		}
+
 		var inda = new kha.arrays.Uint32Array(ind.length);
 		for (i in 0...ind.length) inda.set(i, ind[i]);
 
 		var pos: TVertexArray = { attrib: "pos", values: paa, data: "short4norm" };
 		var nor: TVertexArray = { attrib: "nor", values: naa, data: "short2norm" };
 		var tex: TVertexArray = { attrib: "tex", values: texa, data: "short2norm" };
+		var tang: TVertexArray = { attrib: "tang", values: tanga, data: "short4norm" };
+
 		var indices: TIndexArray = { material: 0, values: inda };
 
 		var rawmesh: TMeshData = {
 			name: "TempMesh" + (meshIndex++),
 			sorting_index: 0,
-			vertex_arrays: [pos, nor, tex],
+			vertex_arrays: [pos, nor, tex, tang],
 			index_arrays: [indices],
 			scale_pos: maxdim
 		};
