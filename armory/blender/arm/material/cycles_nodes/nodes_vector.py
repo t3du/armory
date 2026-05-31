@@ -197,13 +197,19 @@ def parse_displacement(node: bpy.types.ShaderNodeDisplacement, out_socket: bpy.t
     height = c.parse_value_input(node.inputs[0])
     midlevel = c.parse_value_input(node.inputs[1])
     scale = c.parse_value_input(node.inputs[2])
-    nor = c.parse_vector_input(node.inputs[3])
 
     if node.inputs[3].is_linked:
         nor = c.parse_vector_input(node.inputs[3])
-        return f'((vec3({height}) - vec3({midlevel})) * {scale} * {nor})'
     else:
-        return f'((vec3({height}) - vec3({midlevel})) * {scale})'
+        if node.space == 'OBJECT':
+            nor = 'vec3(nor.xy, pos.w)'
+        else:
+            nor = 'wnormal'
+
+    if node.space == 'OBJECT':
+        return f'(vec4(W * vec4(((vec3({height}) - vec3({midlevel})) * {scale} * {nor}), 0.0)).xyz)'
+    else:
+        return f'((vec3({height}) - vec3({midlevel})) * {scale} * {nor})'
 
 
 def parse_vectorrotate(node: bpy.types.ShaderNodeVectorRotate, out_socket: bpy.types.NodeSocket, state: ParserState) -> vec3str:

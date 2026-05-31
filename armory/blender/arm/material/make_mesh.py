@@ -196,7 +196,7 @@ def make_base(con_mesh, parse_opacity):
         if(con_mesh.is_elem('ipos')):
             vert.write('wposition = vec4(W * spos).xyz;')
         sh.add_uniform('mat4 VP', '_viewProjectionMatrix')
-        sh.write('wposition += wnormal * disp;')
+        sh.write('wposition += disp;')
         sh.write('gl_Position = VP * vec4(wposition, 1.0);')
 
 
