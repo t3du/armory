@@ -542,6 +542,7 @@ typedef TConstraint = {
 	@:optional public var invert_z: Null<Bool>;
 	@:optional public var use_offset: Null<Bool>;
 	@:optional public var influence: Null<FastFloat>;
+	@:optional public var use_min_x: Null<Bool>;
 	@:optional public var use_max_x: Null<Bool>;
 	@:optional public var use_min_y: Null<Bool>;
 	@:optional public var use_max_y: Null<Bool>;
