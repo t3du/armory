@@ -106,6 +106,7 @@ class Transform {
 		Rebuild the matrices, if needed.
 	**/
 	public function update() {
+		if (object.constraints != null && object.constraints.length > 0) dirty = true;
 		if (dirty) buildMatrix();
 	}
 
@@ -139,6 +140,9 @@ class Transform {
 			world.setFrom(local);
 		}
 
+		// Constraints
+		if (object.constraints != null) for (c in object.constraints) c.apply(this);
+
 		worldUnpack.setFrom(world);
 		if (scaleWorld != 1.0) {
 			worldUnpack._00 *= scaleWorld;
@@ -154,9 +158,6 @@ class Transform {
 			worldUnpack._22 *= scaleWorld;
 			worldUnpack._23 *= scaleWorld;
 		}
-
-		// Constraints
-		if (object.constraints != null) for (c in object.constraints) c.apply(this);
 
 		computeDim();
 

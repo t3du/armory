@@ -3050,7 +3050,7 @@ Make sure the mesh only has tris/quads.""")
             if bone:
                 out_constraint['bone'] = bobject.name
             if hasattr(constraint, 'target') and constraint.target is not None:
-                if constraint.type == 'COPY_LOCATION':
+                if constraint.type in ('COPY_LOCATION', 'COPY_ROTATION'):
                     out_constraint['target'] = constraint.target.name
                     out_constraint['use_x'] = constraint.use_x
                     out_constraint['use_y'] = constraint.use_y
@@ -3060,8 +3060,37 @@ Make sure the mesh only has tris/quads.""")
                     out_constraint['invert_z'] = constraint.invert_z
                     out_constraint['use_offset'] = constraint.use_offset
                     out_constraint['influence'] = constraint.influence
+                elif constraint.type in ('COPY_SCALE'):
+                    out_constraint['target'] = constraint.target.name
+                    out_constraint['use_x'] = constraint.use_x
+                    out_constraint['use_y'] = constraint.use_y
+                    out_constraint['use_z'] = constraint.use_z
+                    out_constraint['use_offset'] = constraint.use_offset
+                    out_constraint['influence'] = constraint.influence
+                elif constraint.type == 'COPY_TRANSFORMS':
+                    out_constraint['target'] = constraint.target.name
+                    out_constraint['influence'] = constraint.influence
                 elif constraint.type == 'CHILD_OF':
                     out_constraint['target'] = constraint.target.name
+                    out_constraint['influence'] = constraint.influence
+            elif constraint.type in ('LIMIT_LOCATION', 'LIMIT_ROTATION', 'LIMIT_SCALE'):
+                    if constraint.type == 'LIMIT_ROTATION':
+                        out_constraint['use_limit_x'] = constraint.use_limit_x
+                        out_constraint['use_limit_y'] = constraint.use_limit_y
+                        out_constraint['use_limit_z'] = constraint.use_limit_z
+                    else:
+                        out_constraint['use_min_x'] = constraint.use_min_x
+                        out_constraint['use_min_y'] = constraint.use_min_y
+                        out_constraint['use_min_z'] = constraint.use_min_z
+                        out_constraint['use_max_x'] = constraint.use_max_x
+                        out_constraint['use_max_y'] = constraint.use_max_y
+                        out_constraint['use_max_z'] = constraint.use_max_z
+                    out_constraint['min_x'] = constraint.min_x
+                    out_constraint['min_y'] = constraint.min_y
+                    out_constraint['min_z'] = constraint.min_z
+                    out_constraint['max_x'] = constraint.max_x
+                    out_constraint['max_y'] = constraint.max_y
+                    out_constraint['max_z'] = constraint.max_z
                     out_constraint['influence'] = constraint.influence
 
             o['constraints'].append(out_constraint)
