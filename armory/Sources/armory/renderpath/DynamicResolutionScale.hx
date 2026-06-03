@@ -1,51 +1,81 @@
 package armory.renderpath;
 
 import iron.RenderPath;
+import iron.Scene;
 
 class DynamicResolutionScale {
 
 	public static var dynamicScale = 1.0;
-
-	static var firstFrame = true;
-	static inline var startScaleMs = 30;
-	static inline var scaleRangeMs = 10;
-	static inline var maxScale = 0.6;
+	static var lastTime = -1.0;
+	static var totalTime = 0.0;
+	static var frames = 0;
+	static var frameTimeAvg = 0.0;
+	static var stabilityCounter = 0;
+	static var lastFrame = -1;
 
 	public static function run(path: RenderPath) {
-		if (firstFrame) {
-			iron.App.notifyOnRender(render);
-			firstFrame = false;
+		if (path.frame == lastFrame) {
+			return;
+		}
+		lastFrame = path.frame;
+
+		var currentTime = kha.Scheduler.realTime();
+		if (lastTime < 0) {
+			lastTime = currentTime;
 			return;
 		}
 
-		// TODO: execute once per frame max
-		if (frameTimeAvg > startScaleMs && frameTimeAvg < 100) {
-			var overTime = Math.min(scaleRangeMs, frameTimeAvg - startScaleMs);
-			var scale = 1.0 - (overTime / scaleRangeMs) * (1.0 - maxScale);
-			var w = Std.int(iron.App.w() * scale);
-			var h = Std.int(iron.App.h() * scale);
-			path.setCurrentViewport(w, h);
-			path.setCurrentScissor(w, h);
-			dynamicScale = scale;
+		var delta = currentTime - lastTime;
+		lastTime = currentTime;
+
+		totalTime += delta;
+		frames++;
+
+		if (totalTime >= 1.0) {
+			frameTimeAvg = (totalTime / frames) * 1000.0;
+			totalTime = 0.0;
+			frames = 0;
+
+			if (frameTimeAvg > 33.3) {
+				stabilityCounter++;
+				if (stabilityCounter > 2 && dynamicScale > 0.5) {
+					dynamicScale -= 0.15;
+					applyScale(path, dynamicScale);
+					stabilityCounter = 0;
+				}
+			}
+			else if (frameTimeAvg < 28.0) {
+				stabilityCounter--;
+				if (stabilityCounter < -2 && dynamicScale < 1.0) {
+					dynamicScale += 0.15;
+					applyScale(path, dynamicScale);
+					stabilityCounter = 0;
+				}
+			}
+			else {
+				stabilityCounter = 0;
+			}
 		}
-		else dynamicScale = 1.0;
 	}
 
-	static var frameTime: Float;
-    static var lastTime: Float = 0;
-    static var totalTime: Float = 0;
-    static var frames = 0;
-    static var frameTimeAvg = 0.0;
+	static function applyScale(path: RenderPath, scale: Float) {
+		var changed = false;
+		for (rt in path.renderTargets) {
+			if (rt.raw.scale != null) {
+				rt.raw.scale = scale;
+				changed = true;
+			}
+		}
+		if (changed) {
+			path.resize();
+			updateCameraDimensions();
+		}
+	}
 
-	public static function render(g: kha.graphics4.Graphics) {
-		frameTime = kha.Scheduler.realTime() - lastTime;
-        lastTime = kha.Scheduler.realTime();
-        totalTime += frameTime;
-        frames++;
-        if (totalTime >= 1) {
-            frameTimeAvg = Std.int(totalTime / frames * 10000) / 10;
-            totalTime = 0;
-            frames = 0;
-        }
+	static function updateCameraDimensions() {
+		var camera = Scene.active.camera;
+		if (camera != null) {
+			camera.buildMatrix();
+		}
 	}
 }
