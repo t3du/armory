@@ -417,6 +417,14 @@ class RenderPathForward {
 		}
 		#end
 
+		#if rp_dynres
+		{
+			if (armory.data.Config.raw.rp_dynres != false) {
+				DynamicResolutionScale.run(path);
+			}
+		}
+		#end
+
 		#if rp_stereo
 		{
 			path.drawStereo(drawMeshes);
