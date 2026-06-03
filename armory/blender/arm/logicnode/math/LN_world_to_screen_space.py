@@ -6,7 +6,7 @@ class WorldToScreenSpaceNode(ArmLogicTreeNode):
     bl_idname = 'LNWorldToScreenSpaceNode'
     bl_label = 'World to Screen Space'
     arm_section = 'matrix'
-    arm_version = 2
+    arm_version = 3
 
     def remove_extra_inputs(self, context):
         while len(self.inputs) > 1:
@@ -31,7 +31,7 @@ class WorldToScreenSpaceNode(ArmLogicTreeNode):
         layout.prop(self, 'property0')
 
     def get_replacement_node(self, node_tree: bpy.types.NodeTree):
-        if self.arm_version not in (0, 1):
+        if self.arm_version not in (0, 1, 2):
             raise LookupError()
 
         return NodeReplacement.Identity(self)
