@@ -24,6 +24,7 @@ class DrawStringNode extends LogicNode {
 		super(tree);
 	}
 
+	#if arm_ui
 	override function run(from: Int) {
 		RenderToTexture.ensure2DContext("DrawStringNode");
 
@@ -55,13 +56,13 @@ class DrawStringNode extends LogicNode {
 			return;
 		}
 
-					switch(property1){
-				case 'TextLeft': horA = TextLeft;
-				case 'TextCenter': horA = TextCenter;
-				case 'TextRight': horA = TextRight;
-			}
+		switch(property1){
+			case 'TextLeft': horA = TextLeft;
+			case 'TextCenter': horA = TextCenter;
+			case 'TextRight': horA = TextRight;
+		}
 
-					switch(property2){
+		switch(property2){
 			case 'TextTop': verA = TextTop;
 			case 'TextMiddle': verA = TextMiddle;
 			case 'TextBottom': verA = TextBottom;
@@ -87,4 +88,5 @@ class DrawStringNode extends LogicNode {
 		return from == 1 ? RenderToTexture.g.font.width(RenderToTexture.g.fontSize, string) : RenderToTexture.g.font.height(RenderToTexture.g.fontSize);
 	
 	}
+	#end
 }

@@ -6,7 +6,9 @@ class OnRender2DNode extends LogicNode {
 
 	public function new(tree: LogicTree) {
 		super(tree);
+		#if arm_ui
 		tree.notifyOnRender2D(onRender2D);
+		#end
 	}
 
 	function onRender2D(g: kha.graphics2.Graphics) {

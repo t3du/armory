@@ -16,8 +16,8 @@ class DrawRoundedRectNode extends LogicNode {
 		super(tree);
 	}
 
+	#if arm_ui
 	override function run(from: Int) {
-		#if arm_ui
 		RenderToTexture.ensure2DContext("DrawPolygonNode");
 
 		final anchorH: Int = inputs[4].get();
@@ -61,7 +61,6 @@ class DrawRoundedRectNode extends LogicNode {
 		} else {
 			RenderToTexture.g.drawPolygon(0, 0, vertices, inputs[3].get());
 		}
-		#end
 
 		RenderToTexture.g.rotate(-angle, x, y);
 		runOutput(0);
@@ -115,4 +114,5 @@ class DrawRoundedRectNode extends LogicNode {
 
         return vertices;
     }
+    #end
 }
