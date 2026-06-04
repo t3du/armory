@@ -1,34 +1,34 @@
 package armory.renderpath;
 
 import iron.RenderPath;
-import iron.Scene;
 
 class DynamicResolutionScale {
 
+	public static var enabled = true;
 	public static var dynamicScale = 1.0;
-	static var lastTime = -1.0;
+	
+	static inline var targetMs = 30.0;
+	static inline var rangeMs = 10.0;
+	static inline var minScale = 0.6;
+
+	static var lastTime = 0.0;
 	static var totalTime = 0.0;
 	static var frames = 0;
 	static var frameTimeAvg = 0.0;
-	static var stabilityCounter = 0;
-	static var lastFrame = -1;
+	static var needsResize = false;
 
 	public static function run(path: RenderPath) {
-		if (path.frame == lastFrame) {
-			return;
-		}
-		lastFrame = path.frame;
-
-		var currentTime = kha.Scheduler.realTime();
-		if (lastTime < 0) {
-			lastTime = currentTime;
+		if (!enabled) {
+			if (dynamicScale != 1.0) {
+				dynamicScale = 1.0;
+				needsResize = true;
+			}
 			return;
 		}
 
-		var delta = currentTime - lastTime;
-		lastTime = currentTime;
-
-		totalTime += delta;
+		var now = kha.Scheduler.realTime();
+		totalTime += (now - lastTime);
+		lastTime = now;
 		frames++;
 
 		if (totalTime >= 1.0) {
@@ -36,46 +36,23 @@ class DynamicResolutionScale {
 			totalTime = 0.0;
 			frames = 0;
 
-			if (frameTimeAvg > 33.3) {
-				stabilityCounter++;
-				if (stabilityCounter > 2 && dynamicScale > 0.5) {
-					dynamicScale -= 0.15;
-					applyScale(path, dynamicScale);
-					stabilityCounter = 0;
-				}
-			}
-			else if (frameTimeAvg < 28.0) {
-				stabilityCounter--;
-				if (stabilityCounter < -2 && dynamicScale < 1.0) {
-					dynamicScale += 0.15;
-					applyScale(path, dynamicScale);
-					stabilityCounter = 0;
-				}
-			}
-			else {
-				stabilityCounter = 0;
+			var newScale = (frameTimeAvg > targetMs) ? 
+				(1.0 - (Math.min(rangeMs, frameTimeAvg - targetMs) / rangeMs) * (1.0 - minScale)) : 1.0;
+			
+			if (newScale != dynamicScale) {
+				dynamicScale = newScale;
+				needsResize = true;
 			}
 		}
-	}
 
-	static function applyScale(path: RenderPath, scale: Float) {
-		var changed = false;
-		for (rt in path.renderTargets) {
-			if (rt.raw.scale != null) {
-				rt.raw.scale = scale;
-				changed = true;
-			}
-		}
-		if (changed) {
-			path.resize();
-			updateCameraDimensions();
-		}
-	}
-
-	static function updateCameraDimensions() {
-		var camera = Scene.active.camera;
-		if (camera != null) {
-			camera.buildMatrix();
+		if (needsResize) {
+			iron.App.notifyOnRender(function(g: kha.graphics4.Graphics) {
+				for (rt in path.renderTargets) {
+					if (rt.raw.scale != null) rt.raw.scale = dynamicScale;
+				}
+				path.resize();
+			});
+			needsResize = false;
 		}
 	}
 }
