@@ -65,34 +65,34 @@ class AddParticleToObjectNode extends LogicNode {
 
 			Data.getSceneRaw(sceneName, (rawScene: TSceneFormat) -> {
 
-			for (obj in rawScene.objects) {
-				if (obj.name == objectName) {
-					mobjTo.setupParticleSystem(sceneName, obj.particle_refs[slot]);
-					mobjTo.render_emitter = inputs[5].get();
+				for (obj in rawScene.objects) {
+					if (obj.name == objectName) {
+						mobjTo.setupParticleSystem(sceneName, obj.particle_refs[slot]);
+						mobjTo.render_emitter = inputs[5].get();
 
-					for (i => ps in rawScene.particle_datas)
-						if (obj.particle_refs[slot].particle == ps.name){
-							slot = i;
-							break;
-						}
+						for (i => ps in rawScene.particle_datas)
+							if (obj.particle_refs[slot].particle == ps.name){
+								slot = i;
+								break;
+							}
 
-					iron.Scene.active.spawnObject(rawScene.particle_datas[slot].instance_object, null, function(o: Object) {
-						if (o != null) {
-							var c: iron.object.MeshObject = cast o;
-							if (mobjTo.particleChildren == null) mobjTo.particleChildren = [];
-							mobjTo.particleChildren.push(c);
-							c.particleOwner = mobjTo;
-							c.particleIndex = mobjTo.particleChildren.length - 1;
-						}
-					}, true, rawScene);
+						iron.Scene.active.spawnObject(rawScene.particle_datas[slot].instance_object, null, function(o: Object) {
+							if (o != null) {
+								var c: iron.object.MeshObject = cast o;
+								if (mobjTo.particleChildren == null) mobjTo.particleChildren = [];
+								mobjTo.particleChildren.push(c);
+								c.particleOwner = mobjTo;
+								c.particleIndex = mobjTo.particleChildren.length - 1;
+							}
+						}, true, rawScene);
 
-					var oslot: Int = mobjTo.particleSystems.length-1;
-					var opsys = mobjTo.particleSystems[oslot];
-					@:privateAccess opsys.setupGeomGpu(mobjTo.particleChildren[oslot]);
+						var oslot: Int = mobjTo.particleSystems.length-1;
+						var opsys = mobjTo.particleSystems[oslot];
+						@:privateAccess opsys.setupGeomGpu(mobjTo.particleChildren[oslot]);
 
-					break;
+						break;
+					}
 				}
-			}
 
 			});
 
