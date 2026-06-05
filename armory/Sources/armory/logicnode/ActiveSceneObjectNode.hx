@@ -6,5 +6,7 @@ class ActiveSceneObjectNode extends LogicNode {
 		super(tree);
 	}
 
-	override function get(from: Int): Dynamic { return iron.Scene.active; }
+	override function get(from: Int): Dynamic { 
+		return iron.Scene.active.root.getChild(iron.Scene.active.raw.name); 
+	}
 }

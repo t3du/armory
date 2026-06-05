@@ -7,4 +7,4 @@ class ActiveSceneObjectNode(ArmLogicTreeNode):
     arm_version = 1
 
     def arm_init(self, context):
-        self.add_output('ArmDynamicSocket', 'Scene')
+        self.add_output('ArmNodeSocketObject', 'Scene')
