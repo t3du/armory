@@ -8,7 +8,7 @@ class ArrayResizeNode extends LogicNode {
 
 	override function run(from: Int) {
 		var ar: Array<Dynamic> = inputs[1].get();
-		if (ar == null) return;
+		assert(Error, ar != null, 'Array should not be null');
 
 		var len = inputs[2].get();
 

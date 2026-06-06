@@ -12,7 +12,7 @@ class ArrayAddNode extends LogicNode {
 	override function run(from: Int) {
 		ar = inputs[1].get();
 		
-		if (ar == null) return;
+		assert(Error, ar != null, 'Array should not be null');
 
 		// "Modify Original" == `false` -> Copy the input array
 		if (!inputs[2].get()) {

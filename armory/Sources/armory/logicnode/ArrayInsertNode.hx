@@ -13,7 +13,7 @@ class ArrayInsertNode extends LogicNode {
 		var index: Int = inputs[2].get();
 		var value: Dynamic = inputs[3].get();
 		
-		if (ar == null || value == null) return;
+		assert(Error, ar != null && value != null, 'Array or Value should not be null');
 
 		ar.insert(index, value);
 
