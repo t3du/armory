@@ -57,6 +57,25 @@ class MorphTarget {
             morphWeights.set(i, value);
         }
     }
+
+    public function getMorphValue(name: String): Float {
+        var i = morphMap.get(name);
+        return (i != null) ? morphWeights.get(i) : 0.0;
+    }
+
+    public function hasMorph(name: String): Bool {
+        return morphMap.exists(name);
+    }
+
+    public function resetWeights() {
+        for (i in 0...morphWeights.length) {
+            morphWeights.set(i, 0.0);
+        }
+    }
+
+    public function getMorphNames(): Array<String> {
+        return [for (key in morphMap.keys()) key];
+    }
 }
 
 #end
