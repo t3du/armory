@@ -29,6 +29,7 @@ class SetScreenCamerasNode extends LogicNode {
 
                 var cam: CameraObject = inputs[2 + i * 5].get();
                 cam.buildProjection(vw / vh);
+                cam.buildMatrix();
                 cameras.push(cam);
             }
 
