@@ -282,7 +282,7 @@ def init_properties():
     bpy.types.World.arm_export_debug_json = BoolProperty(name="Export Debug JSON", description="Export Debug JSON to debug_json", default=False)
     bpy.types.World.arm_minify_js = BoolProperty(name="Minify JS", description="Minimize JavaScript output.", default=True)
     bpy.types.World.arm_no_traces = BoolProperty(name="No Traces", description="Don't compile trace calls in the program", default=False)
-    bpy.types.World.arm_optimize_data = BoolProperty(name="Optimize Data", description="Export more efficient geometry and shader data when publishing, prolongs build times", default=True, update=assets.invalidate_compiled_data)
+    bpy.types.World.arm_optimize_data = BoolProperty(name="Optimize Data", description="Export more efficient geometry and shader data when publishing, prolongs build times", default=False, update=assets.invalidate_compiled_data)
     bpy.types.World.arm_deinterleaved_buffers = BoolProperty(name="Deinterleaved Buffers", description="Use deinterleaved vertex buffers", default=False, update=assets.invalidate_compiler_cache)
     bpy.types.World.arm_export_tangents = BoolProperty(name="Precompute Tangents", description="Precompute tangents for normal mapping, otherwise computed in shader", default=True, update=assets.invalidate_compiled_data)
     bpy.types.World.arm_batch_meshes = BoolProperty(name="Batch Meshes", description="Group meshes by materials to speed up rendering", default=False, update=assets.invalidate_compiler_cache)
