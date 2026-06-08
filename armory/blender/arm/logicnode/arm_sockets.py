@@ -206,10 +206,11 @@ class ArmRotationSocket(ArmCustomSocket):
             for direction in param3[::-1]:
                 qwi, qxi,qyi,qzi = {'X': (cx,sx,0,0), 'Y': (cy,0,sy,0), 'Z': (cz,0,0,sz)}[direction]
 
-                qw = qw*qwi -qx*qxi -qy*qyi -qz*qzi
-                qx = qx*qwi +qw*qxi +qy*qzi -qz*qyi
-                qy = qy*qwi +qw*qyi +qz*qxi -qx*qzi
-                qz = qz*qwi +qw*qzi +qx*qyi -qy*qxi
+                _w = qw*qwi -qx*qxi -qy*qyi -qz*qzi
+                _x = qx*qwi +qw*qxi +qy*qzi -qz*qyi
+                _y = qy*qwi +qw*qyi +qz*qxi -qx*qzi
+                _z = qz*qwi +qw*qzi +qx*qyi -qy*qxi
+                qw, qx, qy, qz = _w, _x, _y, _z
             return mathutils.Vector((qx,qy,qz,qw))
 
 
