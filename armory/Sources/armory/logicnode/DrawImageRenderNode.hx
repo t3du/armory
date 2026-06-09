@@ -1,6 +1,7 @@
 package armory.logicnode;
 
 import iron.math.Vec4;
+import iron.RenderPath;
 import kha.Image;
 import kha.Color;
 import armory.renderpath.RenderToTexture;
@@ -52,6 +53,8 @@ class DrawImageRenderNode extends LogicNode {
 	}
 
 	function render(g: kha.graphics4.Graphics) {
+		final rpPaused = RenderPath.active.paused;
+		RenderPath.active.paused = false;
 
 		var camera = inputs[2].get();
 
@@ -95,6 +98,8 @@ class DrawImageRenderNode extends LogicNode {
 
 		camera.renderTarget = oldRT;
 		iron.Scene.active.camera = sceneCam;
+
+		RenderPath.active.paused = rpPaused;
 
 		tree.removeRender(render);
 
