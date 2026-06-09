@@ -58,6 +58,8 @@ class DrawImageRenderNode extends LogicNode {
 
 		var camera = inputs[2].get();
 
+		if (img != null) img.unload();
+
 		img = kha.Image.createRenderTarget(iron.App.w(), iron.App.h(),
 			kha.graphics4.TextureFormat.RGBA32,
 			kha.graphics4.DepthStencilFormat.NoDepthAndStencil);
@@ -70,9 +72,9 @@ class DrawImageRenderNode extends LogicNode {
 
 		camera.renderFrame(g);
 
-		img = camera.renderTarget;
-
 		if (inputs[15].get() || kha.Image.renderTargetsInvertedY()) {
+
+			img.unload();
 
 			img = kha.Image.createRenderTarget(iron.App.w(), iron.App.h(),
 				kha.graphics4.TextureFormat.RGBA32,
@@ -101,7 +103,8 @@ class DrawImageRenderNode extends LogicNode {
 
 		RenderPath.active.paused = rpPaused;
 
-		tree.removeRender(render);
+		if (!inputs[16].get())
+			tree.removeRender(render);
 
 	}
 

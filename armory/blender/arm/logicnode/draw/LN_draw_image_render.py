@@ -48,5 +48,6 @@ class DrawImageRenderNode(ArmLogicTreeNode):
         self.add_input('ArmFloatSocket', 'sHeight')
         self.add_input('ArmFloatSocket', 'Angle')
         self.add_input('ArmBoolSocket', 'Render2D')
+        self.add_input('ArmBoolSocket', 'Continuous')
 
         self.add_output('ArmNodeSocketAction', 'Out')
