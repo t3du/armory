@@ -42,6 +42,7 @@ class SetScreenCamerasNode extends LogicNode {
                     for (i in 0...cameras.length) {
                         RenderPathCreator.setTargetMeshes();
                         Scene.active.camera = cameras[i];
+                        Scene.active.camera.buildMatrix();
                         g.viewport(viewports[i].x, viewports[i].y, viewports[i].w, viewports[i].h);
                         originalDrawMeshes();
                     }
