@@ -8,6 +8,7 @@ import armory.renderpath.RenderToTexture;
 
 class DrawImageRenderNode extends LogicNode {
 	var img: Image;
+	var img2D: Image;
 
 	public function new(tree: LogicTree) {
 		super(tree);
@@ -15,8 +16,16 @@ class DrawImageRenderNode extends LogicNode {
 
 	override function run(from: Int) {
 
-		if (from == 1)
+		if (from == 1){
+			img = kha.Image.createRenderTarget(iron.App.w(), iron.App.h(),
+				kha.graphics4.TextureFormat.RGBA32,
+				kha.graphics4.DepthStencilFormat.NoDepthAndStencil);
+			if (inputs[15].get() || kha.Image.renderTargetsInvertedY())
+				img2D = kha.Image.createRenderTarget(iron.App.w(), iron.App.h(),
+					kha.graphics4.TextureFormat.RGBA32,
+					kha.graphics4.DepthStencilFormat.NoDepthAndStencil);
 			tree.notifyOnRender(render);
+		}
 		else {
 			RenderToTexture.ensure2DContext("DrawImageRenderNode");
 
@@ -38,12 +47,14 @@ class DrawImageRenderNode extends LogicNode {
 
 			RenderToTexture.g.rotate(angle, x, y);
 
-			if (img != null){
-				RenderToTexture.g.color = 0xff000000;
-				RenderToTexture.g.fillRect(drawx, drawy,  width, height);
-				RenderToTexture.g.color = RenderToTexture.g.color = Color.fromFloats(colorVec.x, colorVec.y, colorVec.z, colorVec.w);
+			RenderToTexture.g.color = 0xff000000;
+			RenderToTexture.g.fillRect(drawx, drawy,  width, height);
+			RenderToTexture.g.color = RenderToTexture.g.color = Color.fromFloats(colorVec.x, colorVec.y, colorVec.z, colorVec.w);
+			
+			if ((inputs[15].get() || kha.Image.renderTargetsInvertedY()) && img2D != null)
+				RenderToTexture.g.drawScaledSubImage(img2D, sx, sy, swidth, sheight, drawx, drawy, width, height);
+			else if(img != null)
 				RenderToTexture.g.drawScaledSubImage(img, sx, sy, swidth, sheight, drawx, drawy, width, height);
-			}
 
 			RenderToTexture.g.rotate(-angle, x, y);
 
@@ -58,12 +69,6 @@ class DrawImageRenderNode extends LogicNode {
 
 		var camera = inputs[2].get();
 
-		if (img != null) img.unload();
-
-		img = kha.Image.createRenderTarget(iron.App.w(), iron.App.h(),
-			kha.graphics4.TextureFormat.RGBA32,
-			kha.graphics4.DepthStencilFormat.NoDepthAndStencil);
-
 		final sceneCam = iron.Scene.active.camera;
 		final oldRT = camera.renderTarget;
 
@@ -74,28 +79,19 @@ class DrawImageRenderNode extends LogicNode {
 
 		if (inputs[15].get() || kha.Image.renderTargetsInvertedY()) {
 
-			img.unload();
+			img2D.g2.begin(true, Color.Transparent);
+			img2D.g2.color = Color.White;
 
-			img = kha.Image.createRenderTarget(iron.App.w(), iron.App.h(),
-				kha.graphics4.TextureFormat.RGBA32,
-				kha.graphics4.DepthStencilFormat.NoDepthAndStencil);
+			if (kha.Image.renderTargetsInvertedY())
+				img2D.g2.drawScaledImage(camera.renderTarget, 0, iron.App.h(), iron.App.w(), -iron.App.h());
+			else
+				img2D.g2.drawImage(camera.renderTarget, 0, 0);
 
-			img.g2.begin(true, Color.Transparent);
-			img.g2.color = Color.White;
+			if (inputs[15].get())
+				for (f in @:privateAccess iron.App.traitRenders2D)
+					f(img2D.g2);
 
-			if (kha.Image.renderTargetsInvertedY()) {
-				img.g2.drawScaledImage(camera.renderTarget, 0, iron.App.h(), iron.App.w(), -iron.App.h());
-			} else {
-				img.g2.drawImage(camera.renderTarget, 0, 0);
-			}
-
-			if (inputs[15].get()) {
-				for (f in @:privateAccess iron.App.traitRenders2D) {
-					f(img.g2);
-				}
-			}
-			
-			img.g2.end();
+			img2D.g2.end();
 		}
 
 		camera.renderTarget = oldRT;
