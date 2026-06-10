@@ -18,7 +18,7 @@ class KeyboardNode(ArmLogicTreeNode):
         items = [('started', 'Started', 'The keyboard button starts to be pressed'),
                  ('down', 'Down', 'The keyboard button is pressed'),
                  ('released', 'Released', 'The keyboard button stops being pressed')],
-        name='', default='down', update=upd)
+        name='', default='started', update=upd)
 
     property1: HaxeEnumProperty(
         'property1',
