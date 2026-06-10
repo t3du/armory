@@ -16,7 +16,7 @@ class DrawCameraNode(ArmLogicTreeNode):
     bl_idname = 'LNDrawCameraNode'
     bl_label = 'Draw Camera'
     arm_section = 'draw'
-    arm_version = 3
+    arm_version = 4
 
     num_choices: IntProperty(default=0, min=0)
 
@@ -28,6 +28,7 @@ class DrawCameraNode(ArmLogicTreeNode):
         self.add_input('ArmIntSocket', 'Y')
         self.add_input('ArmIntSocket', 'Width')
         self.add_input('ArmIntSocket', 'Height')
+        self.add_input('ArmBoolSocket', 'Paused')
 
         self.add_output('ArmNodeSocketAction', 'On Start')
         self.add_output('ArmNodeSocketAction', 'On Stop')

@@ -44,6 +44,7 @@ class DrawCameraNode extends LogicNode {
 	}
 
 	function render(g:kha.graphics4.Graphics) {
+		if (inputs[7].get()) return;
 		final rpPaused = RenderPath.active.paused;
 		RenderPath.active.paused = false;
 
@@ -64,6 +65,7 @@ class DrawCameraNode extends LogicNode {
 	}
 
 	function render2D(g: kha.graphics2.Graphics) {
+		if (inputs[7].get()) return;
 		final rt = renderTarget;
 
 		position.set(
