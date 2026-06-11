@@ -122,11 +122,13 @@ class ARM_OT_AddNodeOverride(bpy.types.Operator):
         # https://github.com/blender/blender/blob/cf1e1ed46b7ec80edb0f43cb514d3601a1696ec1/source/blender/python/intern/bpy_rna.c#L2033-L2043
         setting_dicts = []
         for setting in self.settings.values():
-            setting_dicts.append({
+            item = {
                 "name": setting.name,
-                "value": setting.value,
-                "array_index": setting.array_index
-            })
+                "value": setting.value
+            }
+            if hasattr(setting, "array_index"):
+                item["array_index"] = setting.array_index
+            setting_dicts.append(item)
 
         bpy.ops.node.add_node('INVOKE_DEFAULT', type=self.type, use_transform=self.use_transform, settings=setting_dicts)
         return {'FINISHED'}
