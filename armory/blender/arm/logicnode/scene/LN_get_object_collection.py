@@ -1,9 +1,9 @@
 from arm.logicnode.arm_nodes import *
 
 class GetObjectGroupNode(ArmLogicTreeNode):
-    """Get Object collection."""
+    """Get Object collections."""
     bl_idname = 'LNGetObjectGroupNode'
-    bl_label = 'Get Object Collection'
+    bl_label = 'Get Object Collections'
     arm_section = 'collection'
     arm_version = 1
 
