@@ -14,7 +14,7 @@ class SetObjectShapeKeyNode extends LogicNode {
 		var shapeKey: String = inputs[2].get();
 		var value: Dynamic = inputs[3].get();
 
-		assert(Error, object != null, "Object should not be null");
+		if (object == null){ runOutput(0); return; }
 		var morph = cast(object, MeshObject).morphTarget;
 
 		assert(Error, morph != null, "Object does not have shape keys");
