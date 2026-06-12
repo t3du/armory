@@ -24,7 +24,7 @@ class BoneFKNode extends LogicNode {
 		var boneName: String = inputs[2].get();
 		var transform: Mat4 = inputs[3].get();
 
-		if (object == null) return;
+		if (object == null){ runOutput(0); return; }
 		var anim = object.animation != null ? cast(object.animation, BoneAnimation) : null;
 		if (anim == null) anim = object.getParentArmature(object.name);
 

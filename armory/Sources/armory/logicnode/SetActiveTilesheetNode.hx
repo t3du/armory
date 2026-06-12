@@ -14,7 +14,7 @@ class SetActiveTilesheetNode extends LogicNode {
 		var tilesheet: String = inputs[2].get();
 		var action: String = inputs[3].get();
 
-		if (object == null) return;
+		if (object == null){ runOutput(0); return; }
 
 		object.setActiveTilesheet(Scene.active.raw.name, tilesheet, action);
 

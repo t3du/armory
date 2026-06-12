@@ -10,7 +10,7 @@ class SetVolumeSoundNode extends LogicNode {
 
 	override function run(from: Int) {
 		var object: SpeakerObject = cast(inputs[1].get(), SpeakerObject);
-		if (object == null) return;
+		if (object == null){ runOutput(0); return; }
 		object.setVolume(inputs[2].get());
 		runOutput(0);
 	}

@@ -13,7 +13,7 @@ class PlayActionNode extends LogicNode {
 		var action: String = inputs[2].get();
 		var blendTime: Float = inputs[3].get();
 
-		if (object == null) return;
+		if (object == null){ runOutput(0); return; }
 		var animation = object.animation;
 		if (animation == null) animation = object.getParentArmature(object.name);
 

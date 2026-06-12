@@ -12,7 +12,7 @@ class SetNameNode extends LogicNode {
 		var object: Object = inputs[1].get();
 		var name: String = inputs[2].get();
 
-		if (object == null) return;
+		if (object == null){ runOutput(0); return; }
 
 		#if arm_skin
 		for(a in iron.Scene.active.animations)

@@ -15,7 +15,7 @@ class TranslateOnLocalAxisNode extends LogicNode {
 		var l: Int = inputs[3].get();
 		var ini: Bool = inputs[4].get();
 
-		if (object == null) return;
+		if (object == null){ runOutput(0); return; }
 
 		if (ini) sp *= -1;
 

@@ -11,7 +11,7 @@ class SetHaxePropertyNode extends LogicNode {
 		var property: String = inputs[2].get();
 		var value: Dynamic = inputs[3].get();
 
-		if (object == null) return;
+		if (object == null){ runOutput(0); return; }
 
 		Reflect.setProperty(object, property, value);
 

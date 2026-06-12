@@ -13,7 +13,7 @@ class SetMeshNode extends LogicNode {
 		var object: MeshObject = inputs[1].get();
 		var mesh: MeshData = inputs[2].get();
 
-		if (object == null) return;
+		if (object == null){ runOutput(0); return; }
 
 		object.data = mesh;
 

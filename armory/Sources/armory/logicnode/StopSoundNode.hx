@@ -10,7 +10,7 @@ class StopSoundNode extends LogicNode {
 
 	override function run(from: Int) {
 		var object: SpeakerObject = cast(inputs[1].get(), SpeakerObject);
-		if (object == null) return;
+		if (object == null){ runOutput(0); return; }
 		object.stop();
 		runOutput(0);
 	}

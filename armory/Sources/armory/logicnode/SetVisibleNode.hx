@@ -16,7 +16,7 @@ class SetVisibleNode extends LogicNode {
 		var children: Bool = inputs[3].get();
 		var recursive: Bool = inputs[4].get();
 
-		if (object == null) return;
+		if (object == null){ runOutput(0); return; }
 
 		switch (property0) {
 			case "object":

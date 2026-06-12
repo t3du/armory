@@ -16,8 +16,8 @@ class SetMaterialTextureFilterNode extends LogicNode {
 		var name: String = inputs[4].get();
 		var filter: Int = inputs[5].get();
 
-		if (object == null) return;
-		if (slot >= object.materials.length) return;
+		if (object == null){ runOutput(0); return; }
+		if (slot >= object.materials.length){ runOutput(0); return; }
 
 		var mo = cast(object, iron.object.MeshObject);
 

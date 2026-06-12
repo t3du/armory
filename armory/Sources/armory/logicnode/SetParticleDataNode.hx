@@ -15,7 +15,7 @@ class SetParticleDataNode extends LogicNode {
 		var object: Object = inputs[1].get();
 		var slot: Int = inputs[2].get();
 
-		if (object == null) return;
+		if (object == null){ runOutput(0); return; }
 
 		var mo = cast(object, iron.object.MeshObject);
 

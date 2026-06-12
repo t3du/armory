@@ -14,14 +14,14 @@ class SetParticleSpeedNode extends LogicNode {
 		var slot: Int = inputs[2].get();
 		var speed: Float = inputs[3].get();
 
-		if (object == null) return;
+		if (object == null){ runOutput(0); return; }
 
 		var mo = cast(object, iron.object.MeshObject);
 	
 		var psys = mo.particleSystems != null ? mo.particleSystems[slot] : 
 			mo.particleOwner != null && mo.particleOwner.particleSystems != null ? mo.particleOwner.particleSystems[slot] : null;
 			
-		if (psys == null) return;
+		if (psys == null){ runOutput(0); return; }
 
 		psys.speed = speed;
 

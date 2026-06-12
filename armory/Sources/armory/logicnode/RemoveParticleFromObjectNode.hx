@@ -14,11 +14,11 @@ class RemoveParticleFromObjectNode extends LogicNode {
 		#if arm_gpu_particles
 		var object: Object = inputs[1].get();
 
-		if (object == null) return;
+		if (object == null){ runOutput(0); return; }
 
 		var mo = cast(object, iron.object.MeshObject);
 
-		if (mo.particleSystems == null) return;
+		if (mo.particleSystems == null){ runOutput(0); return; }
 
 		if (property0 == 'All'){
 			mo.particleSystems = null;

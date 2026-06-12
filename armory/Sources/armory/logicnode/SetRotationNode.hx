@@ -17,9 +17,9 @@ class SetRotationNode extends LogicNode {
 
 	override function run(from: Int) {
 		var object: Object = inputs[1].get();
-		if (object == null) return;
+		if (object == null){ runOutput(0); return; }
 		var _q: Quat = inputs[2].get();
-		if (_q == null) return;
+		if (_q == null){ runOutput(0); return; }
 
 		final q = new Quat(_q.x, _q.y, _q.z, _q.w).normalize();
 

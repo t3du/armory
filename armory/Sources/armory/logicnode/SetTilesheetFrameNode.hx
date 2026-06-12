@@ -12,7 +12,7 @@ class SetTilesheetFrameNode extends LogicNode {
 		var object: MeshObject = inputs[1].get();
 		var frame: Int = inputs[2].get();
 
-		if (object == null) return;
+		if (object == null){ runOutput(0); return; }
 
 		object.activeTilesheet.setFrameOffset(frame);
 

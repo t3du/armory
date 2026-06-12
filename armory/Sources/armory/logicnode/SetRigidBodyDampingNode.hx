@@ -14,7 +14,7 @@ class SetRigidBodyDampingNode extends LogicNode {
 		var linear: Float = inputs[2].get();
 		var angular: Float = inputs[3].get();
 
-		if (object == null) return;
+		if (object == null){ runOutput(0); return; }
 
 		#if arm_physics
 		var rb = object.getTrait(RigidBody);

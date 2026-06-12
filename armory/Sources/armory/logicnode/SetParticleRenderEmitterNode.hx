@@ -12,7 +12,7 @@ class SetParticleRenderEmitterNode extends LogicNode {
 		#if arm_gpu_particles
 		var object: Object = inputs[1].get();
 
-		if (object == null) return;
+		if (object == null){ runOutput(0); return; }
 
 		cast(object, iron.object.MeshObject).render_emitter = inputs[2].get();
 

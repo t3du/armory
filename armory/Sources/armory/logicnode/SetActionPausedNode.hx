@@ -12,7 +12,7 @@ class SetActionPausedNode extends LogicNode {
 		var object: Object = inputs[1].get();
 		var paused: Bool = inputs [2].get();
 
-		if (object == null) return;
+		if (object == null){ runOutput(0); return; }
 
 		var animation = object.animation;
 

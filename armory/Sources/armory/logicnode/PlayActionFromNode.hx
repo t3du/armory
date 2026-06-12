@@ -45,7 +45,7 @@ class PlayActionFromNode extends LogicNode {
 		loop = inputs[7].get();
 		reverse = inputs[8].get();
 
-		if (object == null) return;
+		if (object == null){ runOutput(0); return; }
 		animation = object.animation;
 		if (animation == null) animation = object.getParentArmature(object.name);
 

@@ -14,7 +14,7 @@ class RemoveObjectNode extends LogicNode {
 		var removeChildren: Bool = inputs[2].get();
 		var keepChildrenTransforms: Bool = inputs[3].get();
 
-		if (object == null) return;
+		if (object == null){ runOutput(0); return; }
 		
 		if (removeChildren == false) {
 			for (c in object.children.copy()) {
@@ -27,8 +27,7 @@ class RemoveObjectNode extends LogicNode {
 			}
 		}
 		
-		var raw = iron.Scene.active.raw;
-		for (g in raw.groups) 
+		for (g in iron.Scene.active.raw.groups) 
 			iron.Scene.active.getGroup(g.name).remove(object);
 		
 		object.remove();

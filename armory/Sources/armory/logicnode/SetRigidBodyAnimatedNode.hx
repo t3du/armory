@@ -13,7 +13,7 @@ class SetRigidBodyAnimatedNode extends LogicNode {
 		var object: Object = inputs[1].get();
 		var isAnimated: Bool = inputs[2].get();
 
-		if (object == null) return;
+		if (object == null){ runOutput(0); return; }
 
 		#if arm_physics
 		var rb = object.getTrait(RigidBody);

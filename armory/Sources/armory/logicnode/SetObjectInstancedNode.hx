@@ -18,7 +18,7 @@ class SetObjectInstancedNode extends LogicNode {
 		var array = inputs[2].get();
 		var include: Bool = inputs[3].get();
 
-		if (object == null) return;
+		if (object == null){ runOutput(0); return; }
 
 		var geom = cast(object, MeshObject).data.geom;
 

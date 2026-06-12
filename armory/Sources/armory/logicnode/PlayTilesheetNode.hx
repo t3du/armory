@@ -12,7 +12,7 @@ class PlayTilesheetNode extends LogicNode {
 		var object: MeshObject = inputs[1].get();
 		var action: String = inputs[2].get();
 
-		if (object == null) return;
+		if (object == null){ runOutput(0); return; }
 
 		object.activeTilesheet.play(action, function() {
 			runOutput(1);

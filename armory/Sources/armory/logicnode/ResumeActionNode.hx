@@ -11,7 +11,7 @@ class ResumeActionNode extends LogicNode {
 	override function run(from: Int) {
 		var object: Object = inputs[1].get();
 
-		if (object == null) return;
+		if (object == null){ runOutput(0); return; }
 		var animation = object.animation;
 		if (animation == null) animation = object.getParentArmature(object.name);
 

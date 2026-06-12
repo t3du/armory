@@ -14,8 +14,8 @@ class SetMaterialSlotNode extends LogicNode {
 		var mat: MaterialData = inputs[2].get();
 		var slot: Int = inputs[3].get();
 
-		if (object == null) return;
-		if (slot >= object.materials.length) return;
+		if (object == null){ runOutput(0); return; }
+		if (slot >= object.materials.length){ runOutput(0); return; }
 
 		object.materials[slot] = mat;
 

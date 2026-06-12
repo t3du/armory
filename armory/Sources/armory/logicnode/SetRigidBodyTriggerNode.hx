@@ -13,7 +13,7 @@ class SetRigidBodyTriggerNode extends LogicNode {
 		var object: Object = inputs[1].get();
 		var isTrigger: Bool = inputs[2].get();
 
-		if (object == null) return;
+		if (object == null){ runOutput(0); return; }
 
 		#if arm_physics
 		var rb = object.getTrait(RigidBody);
