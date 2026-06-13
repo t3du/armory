@@ -20,19 +20,19 @@ class SetMaterialImageParamNode extends LogicNode {
 		var img: String;
 		
 		object = inputs[1].get();
-		if(object == null) return;
+		if(object == null){ runOutput(0); return; }
 
 		perObject = inputs[2].get();
 		if(perObject == null) perObject = false;
 
 		mat = inputs[3].get();
-		if(mat == null) return;
+		if(mat == null){ runOutput(0); return; }
 
 		link = inputs[4].get();
-		if(link == null) return;
+		if(link == null){ runOutput(0); return; }
 
 		img = inputs[5].get();
-		if(img == null) return;
+		if(img == null){ runOutput(0); return; }
 
 		if(! perObject){
 			UniformsManager.removeTextureValue(object, mat, link);

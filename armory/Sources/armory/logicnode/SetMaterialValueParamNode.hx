@@ -19,19 +19,19 @@ class SetMaterialValueParamNode extends LogicNode {
 		var value: Null<kha.FastFloat>;
 		
 		object = inputs[1].get();
-		if(object == null) return;
+		if (object == null){ runOutput(0); return; }
 
 		perObject = inputs[2].get();
 		if(perObject == null) perObject = false;
 
 		mat = inputs[3].get();
-		if(mat == null) return;
+		if(mat == null){ runOutput(0); return; }
 
 		link = inputs[4].get();
-		if(link == null) return;
+		if(link == null){ runOutput(0); return; }
 
 		value = inputs[5].get();
-		if(value == null) return;
+		if(value == null){ runOutput(0); return; }
 
 		if(! perObject){
 			UniformsManager.removeFloatValue(object, mat, link);
