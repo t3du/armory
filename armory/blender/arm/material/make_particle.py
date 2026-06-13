@@ -172,7 +172,8 @@ def write(vert, particle_info=None, shadowmap=False):
         vert.add_out('vec3 p_location')
     vert.write(prep + 'p_location = p_velocity * p_age;')
 
-    vert.write('spos.xyz += p_location;')
+    if mat_state.material.arm_billboard == 'off':
+        vert.write('spos.xyz += p_location;')
 
     # Rotation
     if use_rotations:
