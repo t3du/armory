@@ -28,31 +28,34 @@ def write(vert, particle_info=None, shadowmap=False):
             psettings = psys.settings
 
             if psettings.instance_object:
-                if psettings.instance_object.active_material:
-                    # FIXME: Different particle systems may share the same particle object. This ideally should check the correct `ParticleSystem` using an id or name in the particle's object material.
-                    if psettings.instance_object.active_material.name.replace(".", "_") == vert.context.matname:
-                        # Rotation data
-                        use_rotations = psettings.use_rotations
-                        rotation_mode = psettings.rotation_mode
-                        rotation_factor_random = psettings.rotation_factor_random
-                        phase_factor = psettings.phase_factor
-                        phase_factor_random = psettings.phase_factor_random
-                        
-                        normal_factor = psettings.normal_factor
+                mat_found = False
+                for slot in psettings.instance_object.material_slots:
+                    if slot.material and slot.material.name.replace(".", "_") == vert.context.matname:
+                        mat_found = True
+                        break
+                if mat_found:
+                    # Rotation data
+                    use_rotations = psettings.use_rotations
+                    rotation_mode = psettings.rotation_mode
+                    rotation_factor_random = psettings.rotation_factor_random
+                    phase_factor = psettings.phase_factor
+                    phase_factor_random = psettings.phase_factor_random
+                    
+                    normal_factor = psettings.normal_factor
 
-                        # Texture slots data
-                        if psettings.texture_slots and len(psettings.texture_slots.items()) != 0:
-                            for tex_slot in psettings.texture_slots:
-                                if not tex_slot: break
-                                if not tex_slot.use_map_size: break # TODO: check also for other influences
-                                if tex_slot.texture and tex_slot.texture.use_color_ramp:
-                                    if tex_slot.texture.color_ramp and tex_slot.texture.color_ramp.elements:
-                                        ramp_el_len = len(tex_slot.texture.color_ramp.elements.items())
-                                        for element in tex_slot.texture.color_ramp.elements:
-                                            ramp_positions.append(element.position)
-                                            ramp_colors_b.append(element.color[2])
-                                        size_over_time_factor = tex_slot.size_factor
-                                        break
+                    # Texture slots data
+                    if psettings.texture_slots and len(psettings.texture_slots.items()) != 0:
+                        for tex_slot in psettings.texture_slots:
+                            if not tex_slot: break
+                            if not tex_slot.use_map_size: break # TODO: check also for other influences
+                            if tex_slot.texture and tex_slot.texture.use_color_ramp:
+                                if tex_slot.texture.color_ramp and tex_slot.texture.color_ramp.elements:
+                                    ramp_el_len = len(tex_slot.texture.color_ramp.elements.items())
+                                    for element in tex_slot.texture.color_ramp.elements:
+                                        ramp_positions.append(element.position)
+                                        ramp_colors_b.append(element.color[2])
+                                    size_over_time_factor = tex_slot.size_factor
+                                    break
 
     # Outs
     out_index = True if particle_info != None and particle_info['index'] else False
