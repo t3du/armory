@@ -3,7 +3,7 @@ from arm.logicnode.arm_nodes import *
 class GetParticleNode(ArmLogicTreeNode):
     """Returns the Particle Systems of an object."""
     bl_idname = 'LNGetParticleNode'
-    bl_label = 'Get Particle'
+    bl_label = 'Get Particle Systems'
     arm_version = 1
 
     def arm_init(self, context):
