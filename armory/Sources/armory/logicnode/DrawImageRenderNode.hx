@@ -9,6 +9,7 @@ import armory.renderpath.RenderToTexture;
 class DrawImageRenderNode extends LogicNode {
 	var img: Image;
 	var img2D: Image;
+	var initialized: Bool = false;
 
 	public function new(tree: LogicTree) {
 		super(tree);
@@ -17,6 +18,11 @@ class DrawImageRenderNode extends LogicNode {
 	override function run(from: Int) {
 
 		if (from == 1){
+			if (inputs[16].get()){
+				if (initialized) return;
+				initialized = true;
+			}
+
 			img = kha.Image.createRenderTarget(iron.App.w(), iron.App.h(),
 				kha.graphics4.TextureFormat.RGBA32,
 				kha.graphics4.DepthStencilFormat.NoDepthAndStencil);
@@ -48,7 +54,7 @@ class DrawImageRenderNode extends LogicNode {
 			RenderToTexture.g.rotate(angle, x, y);
 
 			RenderToTexture.g.color = 0xff000000;
-			RenderToTexture.g.fillRect(drawx, drawy,  width, height);
+			RenderToTexture.g.fillRect(drawx, drawy, width, height);
 			RenderToTexture.g.color = RenderToTexture.g.color = Color.fromFloats(colorVec.x, colorVec.y, colorVec.z, colorVec.w);
 			
 			if ((inputs[15].get() || kha.Image.renderTargetsInvertedY()) && img2D != null)
