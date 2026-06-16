@@ -18,7 +18,8 @@ class SetObjectInstancedNode(ArmLogicTreeNode):
         self.add_input('ArmNodeSocketAction', 'In')
         self.add_input('ArmNodeSocketObject', 'Object')
         self.add_input('ArmNodeSocketArray', 'Array Instanced')
-        self.add_input('ArmBoolSocket', 'Include original', default_value=True)
+        self.add_input('ArmBoolSocket', 'Include original', default_value=False)
+        self.add_input('ArmBoolSocket', 'Dynamic Usage', default_value=False)
 
 
         self.add_output('ArmNodeSocketAction', 'Out')

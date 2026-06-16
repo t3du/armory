@@ -4,6 +4,36 @@ uniform vec2 morphScaleOffset;
 uniform vec2 morphDataDim;
 uniform vec4 morphWeights[8];
 
+void getMorphedVertex(vec2 uvCoord, inout vec3 A, vec4 imorph) {
+    vec3 morph = texture(morphDataPos, uvCoord).rgb * morphScaleOffset.x + morphScaleOffset.y;
+    A += imorph.x * morph; 
+
+    morph = texture(morphDataPos, vec2(uvCoord.x, uvCoord.y - morphDataDim.y)).rgb * morphScaleOffset.x + morphScaleOffset.y;
+    A += imorph.y * morph;
+
+    morph = texture(morphDataPos, vec2(uvCoord.x, uvCoord.y - 2.0 * morphDataDim.y)).rgb * morphScaleOffset.x + morphScaleOffset.y;
+    A += imorph.z * morph;
+
+    morph = texture(morphDataPos, vec2(uvCoord.x, uvCoord.y - 3.0 * morphDataDim.y)).rgb * morphScaleOffset.x + morphScaleOffset.y;
+    A += imorph.w * morph;
+}
+
+void getMorphedNormal(vec2 uvCoord, vec3 oldNor, inout vec3 morphNor, vec4 imorph) {
+    vec3 norm = oldNor + imorph.x * (texture(morphDataNor, uvCoord).rgb * 2.0 - 1.0);
+    morphNor += norm;
+
+    norm = oldNor + imorph.y * (texture(morphDataNor, vec2(uvCoord.x, uvCoord.y - morphDataDim.y)).rgb * 2.0 - 1.0);
+    morphNor += norm;
+
+    norm = oldNor + imorph.z * (texture(morphDataNor, vec2(uvCoord.x, uvCoord.y - 2.0 * morphDataDim.y)).rgb * 2.0 - 1.0);
+    morphNor += norm;
+
+    norm = oldNor + imorph.w * (texture(morphDataNor, vec2(uvCoord.x, uvCoord.y - 3.0 * morphDataDim.y)).rgb * 2.0 - 1.0);
+    morphNor += norm;
+    
+    morphNor = normalize(morphNor);
+}
+
 void getMorphedVertex(vec2 uvCoord, inout vec3 A){
     for(int i = 0; i<8; i++ )
     {        

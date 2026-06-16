@@ -56,7 +56,7 @@ def make(context_id, rpasses, shadowmap=False):
         frag.write('float ior;')
     
     if(con_depth).is_elem('morph'):
-        make_morph_target.morph_pos(vert)
+        make_morph_target.morph_pos(con_depth, vert)
 
     if con_depth.is_elem('bone'):
         make_skin.skin_pos(vert)

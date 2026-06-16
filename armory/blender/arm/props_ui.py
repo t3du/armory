@@ -45,6 +45,25 @@ if arm.is_reload(__name__):
 else:
     arm.enable_reload(__name__)
 
+class ArmInstancedAttr(bpy.types.PropertyGroup):
+    name: bpy.props.StringProperty()
+    size: bpy.props.IntProperty(min=1, max=4, default=1)
+
+class ARM_OT_add_instanced_attr(bpy.types.Operator):
+    bl_idname = "arm.add_instanced_attr"
+    bl_label = ""
+    def execute(self, context):
+        context.object.arm_instanced_attrs.add()
+        return {'FINISHED'}
+
+class ARM_OT_del_instanced_attr(bpy.types.Operator):
+    bl_idname = "arm.del_instanced_attr"
+    bl_label = ""
+    idx: bpy.props.IntProperty()
+    def execute(self, context):
+        context.object.arm_instanced_attrs.remove(self.idx)
+        return {'FINISHED'}
+
 class ARM_PT_ObjectPropsPanel(bpy.types.Panel):
     """Menu in object region."""
     bl_label = "Armory Props"
@@ -74,6 +93,18 @@ class ARM_PT_ObjectPropsPanel(bpy.types.Panel):
             layout.prop(obj, 'arm_instanced')
             if 'Rot' in obj.arm_instanced:
                 layout.prop(obj, 'arm_instanced_rot_type')
+
+            if obj.arm_instanced != 'Off':
+                box = layout.box()
+                box.label(text="Instanced Attributes (must start with i)")
+                for i, item in enumerate(obj.arm_instanced_attrs):
+                    row = box.row()
+                    row.prop(item, "name", text="")
+                    row.prop(item, "size", text="")
+                    op = row.operator("arm.del_instanced_attr", icon='X', text="")
+                    op.idx = i
+                box.operator("arm.add_instanced_attr", icon='ADD')
+
             wrd = bpy.data.worlds['Arm']
             layout.prop_search(obj, "arm_tilesheet", wrd, "arm_tilesheetlist", text="Tilesheet")
             if obj.arm_tilesheet != '':
@@ -3014,7 +3045,9 @@ __REG_CLASSES = (
     scene.TLM_PT_Encoding,
     scene.TLM_PT_Utility,
     scene.TLM_PT_Additional,
-    ARM_OT_EditCustomCompositor,
+    ArmInstancedAttr,
+    ARM_OT_add_instanced_attr,
+    ARM_OT_del_instanced_attr
 )
 __reg_classes, __unreg_classes = bpy.utils.register_classes_factory(__REG_CLASSES)
 
@@ -3030,6 +3063,7 @@ def register():
     bpy.types.Material.arm_bind_textures_list = CollectionProperty(type=ARM_PG_BindTexturesListItem)
     bpy.types.Material.arm_bind_textures_list_index = IntProperty(name='Index for arm_bind_textures_list', default=0)
 
+    bpy.types.Object.arm_instanced_attrs = bpy.props.CollectionProperty(type=ArmInstancedAttr)
 
 def unregister():
     bpy.types.NODE_MT_context_menu.remove(draw_custom_node_menu)

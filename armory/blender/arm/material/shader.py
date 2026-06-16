@@ -98,6 +98,12 @@ class ShaderContext:
     def sort_vs(self):
         vs = []
         ar = ['pos', 'nor', 'tex', 'tex1', 'morph', 'col', 'tang', 'bone', 'weight', 'ipos', 'irot', 'iscl']
+        
+        if 'vertex_elements' in self.data:
+            for elem in self.data['vertex_elements']:
+                if elem['name'] not in ar:
+                    ar.append(elem['name'])
+
         for ename in ar:
             elem = self.get_elem(ename)
             if elem != None:
@@ -396,7 +402,11 @@ class Shader:
             return
         vs = self.context.data['vertex_elements']
         for e in vs:
-            self.add_in('vec' + self.data_size(e['data']) + ' ' + e['name'])
+            size = self.data_size(e['data'])
+            if size == '1':
+                self.add_in('float ' + e['name'])
+            else:
+                self.add_in('vec' + size + ' ' + e['name'])
 
     def get(self):
         if self.noprocessing:

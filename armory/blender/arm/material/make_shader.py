@@ -209,6 +209,12 @@ def make_instancing_and_skinning(mat: Material, mat_users: Dict[Material, List[O
                     if 'Scale' in inst:
                         global_elems.append({'name': 'iscl', 'data': 'float3'})
 
+                    for attr in bo.arm_instanced_attrs:
+                        global_elems.append({'name': attr.name, 'data': f"float{attr.size}"})
+
+                    if arm.utils.export_morph_targets(bo):
+                        global_elems.append({'name': 'imorph', 'data': 'float4'})
+
             elif inst == 'Off':
                 # Ignore children of instanced objects, they are instanced even when set to 'Off'
                 instancing_usage[1] = bo.parent is None or bo.parent.arm_instanced == 'Off'

@@ -79,6 +79,8 @@ class ShaderContext {
 
 	var structure: VertexStructure;
 	var instancingType = 0;
+	var instanceElements: Array<{name: String, data: String}> = [];
+	var instanceStride: Int = 0;
 
 	public function new(raw: TShaderContext, done: ShaderContext->Void, overrideContext: TShaderOverride = null) {
 		this.raw = raw;
@@ -108,6 +110,11 @@ class ShaderContext {
 			if (instancingType == 3 || instancingType == 4) {
 				instStruct.add("iscl", VertexData.Float3);
 			}
+
+			for (e in instanceElements)
+				instStruct.add(e.name, parseData(e.data));
+			this.instanceStride = Std.int(instStruct.byteSize() / 4);
+
 			instStruct.instanced = true;
 			pipeState.inputLayout = [structure, instStruct];
 		}
@@ -265,10 +272,12 @@ class ShaderContext {
 			if (Reflect.field(elem, "name") == "ipos") { ipos = true; continue; }
 			if (Reflect.field(elem, "name") == "irot") { irot = true; continue; }
 			if (Reflect.field(elem, "name") == "iscl") { iscl = true; continue; }
+			if (Reflect.field(elem, "name").startsWith("i")) { instanceElements.push(elem); continue; }
 			#else
 			if (elem.name == "ipos") { ipos = true; continue; }
 			if (elem.name == "irot") { irot = true; continue; }
 			if (elem.name == "iscl") { iscl = true; continue; }
+			if (elem.name.startsWith("i")) { instanceElements.push(elem); continue; }
 			#end
 			structure.add(elem.name, parseData(elem.data));
 		}

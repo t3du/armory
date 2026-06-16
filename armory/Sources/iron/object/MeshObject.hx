@@ -50,6 +50,10 @@ class MeshObject extends Object {
 
 	public function setData(data: MeshData) {
 		this.data = data;
+
+		if (this.materials != null && this.materials.length > 0)
+        	data.geom.instanceElements = @:privateAccess this.materials[0].shader.contexts[0].instanceElements;
+
 		data.refcount++;
 
 		#if (!arm_batch)

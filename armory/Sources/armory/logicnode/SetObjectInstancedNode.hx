@@ -14,19 +14,23 @@ class SetObjectInstancedNode extends LogicNode {
 	}
 
 	override function run(from: Int) {
-		var object: Object =inputs[1].get();
+		var meshObject: MeshObject = cast inputs[1].get();
 		var array = inputs[2].get();
 		var include: Bool = inputs[3].get();
+		var usage: Bool = inputs[3].get();
 
-		if (object == null){ runOutput(0); return; }
+		if (meshObject == null){ runOutput(0); return; }
 
-		var geom = cast(object, MeshObject).data.geom;
+		var geom = meshObject.data.geom;
 
 		var base = [];
 		if (property0 == '1') base = [0.0, 0.0, 0.0];
 		else if (property0 == '2') base = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0];
 		else if (property0 == '3') base = [0.0, 0.0, 0.0, 1.0, 1.0, 1.0];
 		else base = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0];
+
+		while (base.length < geom.instanceStride)
+    		base.push(0.0);
 
 		var nid: Float32Array = null;
 
@@ -37,8 +41,11 @@ class SetObjectInstancedNode extends LogicNode {
 
 		@:privateAccess geom.data.raw.instanced_data = nid;
 
-		geom.setupInstanced(nid, @:privateAccess geom.data.raw.instanced_type, Usage.StaticUsage);	
-
+		if (Std.int(nid.length / geom.instanceStride) != geom.instanceCount)
+			geom.setupInstanced(nid, @:privateAccess geom.data.raw.instanced_type, usage ? Usage.DynamicUsage : Usage.StaticUsage);
+		else
+			geom.updateInstanced(nid);
+	
 		runOutput(0);
 	}
 

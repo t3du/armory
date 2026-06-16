@@ -2815,6 +2815,14 @@ Make sure the mesh only has tris/quads.""")
                     instanced_type = 4
                     instanced_data = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0]
 
+                attr_data_block = []
+                for attr in bobject.arm_instanced_attrs:
+                    attr_data_block.extend([0.0] * attr.size)
+                instanced_data.extend(attr_data_block)
+
+                if arm.utils.export_morph_targets(bobject):
+                    instanced_data.extend([0.0, 0.0, 0.0, 0.0])
+
                 for child in bobject.children:
                     if not child.arm_export or child.hide_render:
                         continue
@@ -2833,6 +2841,9 @@ Make sure the mesh only has tris/quads.""")
                         instanced_data.append(scale.x)
                         instanced_data.append(scale.y)
                         instanced_data.append(scale.z)
+                    instanced_data.extend(attr_data_block)
+                    if arm.utils.export_morph_targets(child):
+                        instanced_data.extend([0.0, 0.0, 0.0, 0.0])
                 break
 
             # Instance render collections with same children?

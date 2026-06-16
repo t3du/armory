@@ -5,7 +5,7 @@ if arm.is_reload(__name__):
 else:
     arm.enable_reload(__name__)
 
-def morph_pos(vert):
+def morph_pos(con, vert):
     rpdat = arm.utils.get_rp()
     vert.add_include('compiled.inc')
     vert.add_include('std/morph_target.glsl')
@@ -18,11 +18,17 @@ def morph_pos(vert):
     vert.add_uniform('float posUnpack', link='_posUnpack')
     vert.write_attrib('vec2 texCoordMorph = morph * texUnpack;')
     vert.write_attrib('spos.xyz *= posUnpack;')
-    vert.write_attrib('getMorphedVertex(texCoordMorph, spos.xyz);')
+    if con.is_elem('imorph'):
+        vert.write_attrib('getMorphedVertex(texCoordMorph, spos.xyz, imorph);')
+    else:
+        vert.write_attrib('getMorphedVertex(texCoordMorph, spos.xyz);')
     vert.write_attrib('spos.xyz /= posUnpack;')
 
-def morph_nor(vert, is_bone, prep):
+def morph_nor(con, vert, is_bone, prep):
     vert.write_attrib('vec3 morphNor = vec3(0, 0, 0);')
-    vert.write_attrib('getMorphedNormal(texCoordMorph, vec3(nor.xy, pos.w), morphNor);')
+    if con.is_elem('imorph'):
+        vert.write_attrib('getMorphedNormal(texCoordMorph, vec3(nor.xy, pos.w), morphNor, imorph);')
+    else:
+        vert.write_attrib('getMorphedNormal(texCoordMorph, vec3(nor.xy, pos.w), morphNor);')
     if not is_bone:
         vert.write_attrib(prep + 'wnormal = normalize(N * morphNor);')
