@@ -28,7 +28,7 @@ class MouseNode(ArmLogicTreeNode):
                  ('down', 'Down', 'The mouse button is pressed'),
                  ('released', 'Released', 'The mouse button stops being pressed'),
                  ('moved', 'Moved', 'Moved')],
-        name='', default='down', update=upd)
+        name='', default='started', update=upd)
     property1: HaxeEnumProperty(
         'property1',
         items = [('left', 'Left', 'Left mouse button'),
