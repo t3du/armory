@@ -12,6 +12,8 @@ class SeparateRotationNode(ArmLogicTreeNode):
 
         self.add_output('ArmVectorSocket', 'Euler Angles / Vector XYZ')
         self.add_output('ArmFloatSocket', 'Angle / W')
+
+        self.outputs[1].hide = True
         
 
     def on_property_update(self, context):
@@ -19,12 +21,14 @@ class SeparateRotationNode(ArmLogicTreeNode):
         if self.property0 == 'Quaternion':
             self.outputs[0].name = "Quaternion XYZ"
             self.outputs[1].name = "Quaternion W"
+            self.outputs[1].hide = False
         elif self.property0 == 'EulerAngles':
             self.outputs[0].name = "Euler Angles"
-            self.outputs[1].name = "[unused for Euler output]"
+            self.outputs[1].hide = True
         elif self.property0 == 'AxisAngle':
             self.outputs[0].name = "Axis"
             self.outputs[1].name = "Angle"
+            self.outputs[1].hide = False
         else:
             raise ValueError('No nodesocket labels for current input mode: check self-consistancy of LN_separate_rotation.py')
 
