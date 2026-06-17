@@ -62,6 +62,8 @@ class GetParticleDataNode extends LogicNode {
 				@:privateAccess psys.lapTime;
 			case 18:
 				@:privateAccess psys.count;
+			case 19:
+				cast(mo.particleChildren[slot], Object);
 			default:
 				null;
 		}

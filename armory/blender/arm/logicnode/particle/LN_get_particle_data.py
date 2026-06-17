@@ -32,3 +32,4 @@ class GetParticleDataNode(ArmLogicTreeNode):
         self.outputs.new('ArmFloatSocket', 'Lap')
         self.outputs.new('ArmFloatSocket', 'Lap Time')
         self.outputs.new('ArmIntSocket', 'Count')
+        self.outputs.new('ArmNodeSocketObject', 'Particle')
