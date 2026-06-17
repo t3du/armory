@@ -284,6 +284,11 @@ def write(vert, particle_info=None, shadowmap=False):
         vert.add_out('float p_random')
         vert.write('p_random = fract(sin(gl_InstanceID) * 43758.5453);')
 
+    if out_size:
+        vert.add_out('float p_size')
+        vert.write('p_size = pd_size * (1 - (fhash(gl_InstanceID + 3 * pd[0][3] + pd_random) * pd_size_random));')
+        
+
 def write_tilesheet(vert):
     # tilesx, tilesy, framerate - pd[3][0], pd[3][1], pd[3][2]
     vert.write('int frame = int((p_age) / pd[3][2]);')
