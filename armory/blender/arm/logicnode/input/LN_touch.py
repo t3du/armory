@@ -13,7 +13,7 @@ class SurfaceNode(ArmLogicTreeNode):
                  ('down', 'Down', 'The screen surface is touched'),
                  ('released', 'Released', 'The screen surface stops being touched'),
                  ('moved', 'Moved', 'Moved')],
-        name='', default='down')
+        name='', default='started')
 
     def arm_init(self, context):
         self.add_output('ArmNodeSocketAction', 'Out')
