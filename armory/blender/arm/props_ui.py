@@ -3045,6 +3045,7 @@ __REG_CLASSES = (
     scene.TLM_PT_Encoding,
     scene.TLM_PT_Utility,
     scene.TLM_PT_Additional,
+    ARM_OT_EditCustomCompositor,
     ArmInstancedAttr,
     ARM_OT_add_instanced_attr,
     ARM_OT_del_instanced_attr
