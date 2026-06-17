@@ -12,9 +12,9 @@ class SetLightStrengthNode extends LogicNode {
 		var light: LightObject = inputs[1].get();
 		var strength: Float = inputs[2].get();
 
-		if (light == null) return;
+		if (light == null){ runOutput(0); return; }
 
-		light.data.raw.strength = light.data.raw.type == "sun" ? strength * 0.325 : strength * 0.01;
+		light.strength = light.data.raw.type == "sun" ? strength * 0.325 : strength * 0.01;
 
 		runOutput(0);
 	}
