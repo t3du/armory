@@ -12,11 +12,9 @@ class SetLightColorNode extends LogicNode {
 		var light: LightObject = inputs[1].get();
 		var color: iron.math.Vec4 = inputs[2].get();
 
-		if (light == null) return;
+		if (light == null){ runOutput(0); return; }
 
-		light.data.raw.color[0] = color.x;
-		light.data.raw.color[1] = color.y;
-		light.data.raw.color[2] = color.z;
+		light.color = color;
 
 		runOutput(0);
 	}

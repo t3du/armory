@@ -11,6 +11,8 @@ import iron.object.CameraObject;
 class LightObject extends Object {
 
 	public var data: LightData;
+	public var color: Vec4;
+	public var strength: Float;
 
 	#if rp_shadowmap
 	#if arm_shadowmap_atlas
@@ -75,6 +77,8 @@ class LightObject extends Object {
 		super();
 
 		this.data = data;
+		this.color = new Vec4(data.raw.color[0], data.raw.color[1], data.raw.color[2]);
+		this.strength = data.raw.strength;
 
 		var type = data.raw.type;
 		var fov = data.raw.fov;
@@ -361,17 +365,17 @@ class LightObject extends Object {
 	}
 	#end // arm_csm
 
-	#if arm_clusters
-
 	// Centralize discarding conditions when iterating over lights
 	// Important to avoid issues later with "misaligned" data in uniforms (lightsArray, clusterData, LWVPSpotArray)
 	public inline static function discardLight(light: LightObject) {
-		return !light.visible || light.data.raw.strength == 0.0 || light.data.raw.type == "sun";
+		return !light.visible || light.strength == 0.0 || light.data.raw.type == "sun";
 	}
 	// Discarding conditions but with culling included
 	public inline static function discardLightCulled(light: LightObject) {
 		return #if arm_shadowmap_atlas light.culledLight || #end discardLight(light);
 	}
+
+	#if arm_clusters
 
 	#if (arm_shadowmap_atlas && arm_shadowmap_atlas_lod)
 	// Arbitrary function to map from [0-16] to [1.0-0.0]
@@ -446,7 +450,7 @@ class LightObject extends Object {
 			lpos.set(l.transform.worldx(), l.transform.worldy(), l.transform.worldz());
 			lpos.applymat4(camera.V);
 			lpos.z *= -1.0;
-			var radius = getRadius(l.data.raw.strength);
+			var radius = getRadius(l.strength);
 			var minX = 0;
 			var minY = 0;
 			var minZ = 0;
@@ -534,10 +538,10 @@ class LightObject extends Object {
 			lightsArray[i * 12 + 3] = 0.0; // padding or spot scale x
 
 			// light color
-			var f = l.data.raw.strength;
-			lightsArray[i * 12 + 4] = l.data.raw.color[0] * f;
-			lightsArray[i * 12 + 5] = l.data.raw.color[1] * f;
-			lightsArray[i * 12 + 6] = l.data.raw.color[2] * f;
+			var f = l.strength;
+			lightsArray[i * 12 + 4] = l.color.x * f;
+			lightsArray[i * 12 + 5] = l.color.y * f;
+			lightsArray[i * 12 + 6] = l.color.z * f;
 			lightsArray[i * 12 + 7] = 0.0; // padding or spot scale y
 
 			// other data
