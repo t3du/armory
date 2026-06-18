@@ -124,6 +124,7 @@ def add_world_defs():
     if not rpdat.rp_shadowmap_atlas:
         if point_lights == 1:
             wrd.world_defs += '_SinglePoint'
+            assets.add_khafile_def('arm_SinglePoint')
         elif point_lights > 1:
             wrd.world_defs += '_Clusters'
             assets.add_khafile_def('arm_clusters')

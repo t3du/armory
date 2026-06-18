@@ -14,7 +14,13 @@ class SetLightColorNode extends LogicNode {
 
 		if (light == null){ runOutput(0); return; }
 
+		#if arm_SinglePoint
+		light.data.raw.color[0] = color.x;
+		light.data.raw.color[1] = color.y;
+		light.data.raw.color[2] = color.z;
+		#else
 		light.color = color;
+		#end
 
 		runOutput(0);
 	}
