@@ -583,8 +583,19 @@ class DebugConsole extends Trait {
 							selectedType = "(Light)";
 							var light = cast(selectedObject, iron.object.LightObject);
 							var lightHandle = Id.handle();
+							#if arm_single_point
 							lightHandle.value = light.data.raw.strength / 10;
 							light.data.raw.strength = ui.slider(lightHandle, "Strength", 0.0, 5.0, true) * 10;
+							#else
+							if (light.data.raw.type == "sun"){
+								lightHandle.value = light.data.raw.strength / 10;
+								light.data.raw.strength = ui.slider(lightHandle, "Strength", 0.0, 5.0, true) * 10;
+							}
+							else{
+								lightHandle.value = light.strength / 10;
+								light.strength = ui.slider(lightHandle, "Strength", 0.0, 5.0, true) * 10;
+							}
+							#end
 							#if arm_shadowmap_atlas
 							ui.text("status: " + (light.culledLight ? "culled" : "rendered"));
 							ui.text("shadow map size: " + light.data.raw.shadowmap_size);
