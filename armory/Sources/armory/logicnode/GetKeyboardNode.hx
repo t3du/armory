@@ -32,7 +32,7 @@ class GetKeyboardNode extends LogicNode {
 			if (b) {
 				if (property0 == "started" || property0 == "released") {
 					var currentTime = Time.time();
-					if (currentTime == lastTime) continue;
+					if (currentTime == lastTime && Time.delta != 0) continue;
 					lastTime = currentTime;
 				}
 				activeKey = k;

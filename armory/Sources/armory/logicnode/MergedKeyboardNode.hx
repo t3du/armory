@@ -1,5 +1,7 @@
 package armory.logicnode;
 
+import iron.system.Time;
+
 class MergedKeyboardNode extends LogicNode {
 
 	public var property0: String;
@@ -25,8 +27,8 @@ class MergedKeyboardNode extends LogicNode {
 		}
 		if (b) {
 			if (property0 == "started" || property0 == "released") {
-				var currentTime = iron.system.Time.time();
-				if (currentTime == lastTime) return;
+				var currentTime = Time.time();
+				if (currentTime == lastTime && Time.delta != 0) return;
 				lastTime = currentTime;
 			}
 			runOutput(0);
