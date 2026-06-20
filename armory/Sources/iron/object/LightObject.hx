@@ -13,6 +13,10 @@ class LightObject extends Object {
 	public var data: LightData;
 	public var color: Vec4;
 	public var strength: Float;
+	#if arm_spot
+	public var size: Float;
+	public var blend: Float;
+	#end
 
 	#if rp_shadowmap
 	#if arm_shadowmap_atlas
@@ -79,6 +83,13 @@ class LightObject extends Object {
 		this.data = data;
 		this.color = new Vec4(data.raw.color[0], data.raw.color[1], data.raw.color[2]);
 		this.strength = data.raw.strength;
+
+		#if arm_spot
+		if (data.raw.type == "spot"){
+			this.size = data.raw.spot_size;
+			this.blend = data.raw.spot_blend;
+		}
+		#end
 
 		var type = data.raw.type;
 		var fov = data.raw.fov;
@@ -552,13 +563,13 @@ class LightObject extends Object {
 
 			#if arm_spot
 			if (l.data.raw.type == "spot") {
-				lightsArray[i * 12 + 9] = l.data.raw.spot_size;
+				lightsArray[i * 12 + 9] = l.size;
 
 				var dir = l.look().normalize();
 				lightsArraySpot[i * 8    ] = dir.x;
 				lightsArraySpot[i * 8 + 1] = dir.y;
 				lightsArraySpot[i * 8 + 2] = dir.z;
-				lightsArraySpot[i * 8 + 3] = l.data.raw.spot_blend;
+				lightsArraySpot[i * 8 + 3] = l.blend;
 
 				// Premultiply scale with z component
 				var scale = l.transform.scale;

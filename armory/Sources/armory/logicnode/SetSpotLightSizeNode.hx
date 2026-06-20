@@ -12,9 +12,17 @@ class SetSpotLightSizeNode extends LogicNode {
 		var light: LightObject = inputs[1].get();
 		var size: Float = inputs[2].get();
 
-		if (light == null) return;
+		if (light == null){ runOutput(0); return; }
 		
-		light.data.raw.spot_size = size;
+		#if arm_spot
+		if (light.data.raw.type == "spot"){
+			#if arm_single_point
+			light.data.raw.spot_size = Math.cos(size / 2);
+			#else
+			light.size = Math.cos(size / 2);
+			#end
+		}
+		#end
 
 		runOutput(0);
 	}
