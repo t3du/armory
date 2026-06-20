@@ -145,6 +145,11 @@ class DebugConsole extends Trait {
 
 	var debugDrawSet = false;
 
+	override public function remove() {
+	    selectedObject = null;
+	    super.remove();
+	}
+
 	function selectObject(o: iron.object.Object) {
 		selectedObject = o;
 
