@@ -1,10 +1,10 @@
 from arm.logicnode.arm_nodes import *
 
 
-class AsyncArrayLoopNode(ArmLogicTreeNode):
+class ArrayAsyncLoopNode(ArmLogicTreeNode):
     """Loops through each item of the given array."""
-    bl_idname = 'LNAsyncArrayLoopNode'
-    bl_label = 'Async Array Loop'
+    bl_idname = 'LNArrayAsyncLoopNode'
+    bl_label = 'Array Async Loop'
     arm_version = 1
 
     def arm_init(self, context):
