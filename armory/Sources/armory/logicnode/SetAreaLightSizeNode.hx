@@ -14,12 +14,14 @@ class SetAreaLightSizeNode extends LogicNode {
 		var size_y: Float = inputs[3].get();
 
 		if (light == null){ runOutput(0); return; }
-		
-		if (data.raw.type == "area"){
+
+		#if arm_ltc
+		if (light.data.raw.type == "area"){
 			light.data.raw.size = size;
 			light.data.raw.size_y = size_y;
 		}
-		
+		#end
+
 		runOutput(0);
 	}
 }
