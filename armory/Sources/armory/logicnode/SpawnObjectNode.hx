@@ -14,7 +14,7 @@ class SpawnObjectNode extends LogicNode {
 
 	override function run(from: Int) {
 		var objectInput = inputs[1].get();
-		if (objectInput == null) return;
+		if (objectInput == null){ runOutput(0); return; }
 
 		var objectName = objectInput.name;
 		if (objectName == "") objectName = tree.object.name;

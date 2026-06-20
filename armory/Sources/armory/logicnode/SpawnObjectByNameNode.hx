@@ -19,7 +19,7 @@ class SpawnObjectByNameNode extends LogicNode {
 
 	override function run(from: Int) {
 		var objectName = inputs[1].get();
-		if (objectName == null) return;
+		if (objectName == null){ runOutput(0); return; }
 
 		var sceneName = property0;
 		#if arm_json
@@ -43,7 +43,7 @@ class SpawnObjectByNameNode extends LogicNode {
 					break;
 				}
 			}
-			if (! objPresent) return;
+			if (! objPresent){ runOutput(0); return; }
 
 			//Spawn object if present
 			iron.Scene.active.spawnObject(objectName, null, function(o: Object) {
