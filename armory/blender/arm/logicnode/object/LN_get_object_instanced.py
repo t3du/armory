@@ -12,4 +12,5 @@ class GetObjectInstancedNode(ArmLogicTreeNode):
         self.add_output('ArmBoolSocket', 'Instanced', default_value=True)
         self.add_output('ArmIntSocket', 'Type')
         self.add_output('ArmIntSocket', 'Count')
+        self.add_output('ArmIntSocket', 'Stride')
         self.add_output('ArmNodeSocketArray', 'Array Instanced')

@@ -22,7 +22,8 @@ class GetObjectInstancedNode extends LogicNode {
 			case 0: geom.instanced;
 			case 1: @:privateAccess geom.data.raw.instanced_type;
 			case 2: geom.instanceCount;
-			case 3: toArray(@:privateAccess geom.data.raw.instanced_data);
+			case 3: geom.instanceStride;
+			case 4: toArray(@:privateAccess geom.data.raw.instanced_data);
 			default: null;
 		}
 
