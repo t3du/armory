@@ -11,6 +11,8 @@ class GetSpotLightDataNode extends LogicNode {
 	override function get(from: Int): Dynamic {
 		var light: LightObject = inputs[0].get();
 
+		if (light == null) return null;
+
 		#if arm_spot
 		if (light.data.raw.type == "spot"){
 			#if arm_single_point

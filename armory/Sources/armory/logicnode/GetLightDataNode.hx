@@ -13,7 +13,7 @@ class GetLightDataNode extends LogicNode {
 	override function get(from: Int): Dynamic {
 		var light: LightObject = inputs[0].get();
 
-		if (light.data == null || light.data.raw == null) return null;
+		if (light.data == null) return null;
 
 		return switch (from) {
 			case 0:
