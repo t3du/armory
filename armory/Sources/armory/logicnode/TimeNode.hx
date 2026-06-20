@@ -1,5 +1,7 @@
 package armory.logicnode;
 
+import iron.system.Time;
+
 class TimeNode extends LogicNode {
 
 	public function new(tree: LogicTree) {
@@ -7,7 +9,10 @@ class TimeNode extends LogicNode {
 	}
 
 	override function get(from: Int): Dynamic {
-		if (from == 0) return iron.system.Time.time();
-		else return iron.system.Time.delta;
+		return switch (from) {
+			case 0: Time.time();
+			case 1: Time.delta;
+			default: Time.realTime();
+		}
 	}
 }

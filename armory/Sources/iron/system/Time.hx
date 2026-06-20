@@ -43,8 +43,10 @@ class Time {
 		return _renderDelta;
 	}
 
+	static var _time = 0.0;
+
 	public static inline function time(): Float {
-		return kha.Scheduler.time() * scale;
+		return _time;
 	}
 
 	public static inline function realTime(): Float {
@@ -52,12 +54,17 @@ class Time {
 	}
 
 	public static function update() {
-		_delta = realTime() - lastTime;
-		lastTime = realTime();
+		var now = kha.Scheduler.realTime();
+		if (lastTime == 0.0) lastTime = now;
+		_delta = scale == 0.0 ? 0.0 : (now - lastTime) * scale;
+		_time += _delta;
+		lastTime = now;
 	}
 
 	public static function render() {
-		_renderDelta = realTime() - lastRenderTime;
-		lastRenderTime = realTime();
+		var now = kha.Scheduler.realTime();
+		if (lastRenderTime == 0.0) lastRenderTime = now;
+		_renderDelta = scale == 0.0 ? 0.0 : (now - lastRenderTime) * scale;
+		lastRenderTime = now;
 	}
 }
