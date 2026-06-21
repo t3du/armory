@@ -55,7 +55,7 @@ class MeshGenerator extends Trait {
 		if (numPoints < 4) numPoints = 4;
 		if (radius < 0.1) radius = 0.1;
 
-		var md: iron.data.MeshData = null;
+		var md: MeshData = null;
 
 		while (md == null){
 			var points: Array<Vec4> = [];
@@ -125,14 +125,14 @@ class MeshGenerator extends Trait {
 		}
 		*/
 
-		var mat = new haxe.ds.Vector<iron.data.MaterialData>(1);
+		var mat = new haxe.ds.Vector<MaterialData>(1);
 
 		if (material != '')
-			Data.getMaterial(iron.Scene.active.raw.name, material, function(data:MaterialData) {
-				mat[0] = data != null ? data : iron.Scene.active.meshes[0].materials[0];	
+			Data.getMaterial(Scene.active.raw.name, material, function(data:MaterialData) {
+				mat[0] = data != null ? data : Scene.active.meshes[0].materials[0];	
 			});
 		 else
-		    mat[0] = iron.Scene.active.meshes[0].materials[0];	
+		    mat[0] = Scene.active.meshes[0].materials[0];	
 
 		var obj: Object = cast new MeshObject(md, mat);
 		obj.name = md.name;
@@ -154,7 +154,7 @@ class MeshGenerator extends Trait {
 		    dimensions: dims
 		};
 
-		obj.setParent(iron.Scene.active.root);
+		obj.setParent(Scene.active.root);
 		obj.transform.loc.setFrom(loc);
 		var degToRad = Math.PI / 180;
 		obj.transform.setRotation(rot.x * degToRad, rot.y * degToRad, rot.z * degToRad);
