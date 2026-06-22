@@ -160,6 +160,7 @@ class MeshGenerator extends Trait {
 		obj.transform.setRotation(rot.x * degToRad, rot.y * degToRad, rot.z * degToRad);
 		obj.transform.buildMatrix();
 		//obj.addTrait(new armory.trait.physics.RigidBody());
+		obj.addTrait(new armory.trait.internal.UniformsManager());
 		if (traitName != ''){
 			var cname = Type.resolveClass(Main.projectPackage + "." + traitName);
 			if (cname == null) cname = Type.resolveClass(Main.projectPackage + ".node." + traitName);
