@@ -37,6 +37,9 @@ class MeshGenerator extends Trait {
 	var scaleUV: Float = 0.3;
 
 	@prop
+	var flatShading: Float = true;
+
+	@prop
 	var loc: Vec4 = new Vec4(0, 0, 0);
 
 	@prop
@@ -89,7 +92,7 @@ class MeshGenerator extends Trait {
 			        points.push(new Vec4(-x, -y, -z));
 			}
  
-		md = MeshDataExtension.makeMeshData(points, scaleUV);
+		md = MeshDataExtension.makeMeshData(points, scaleUV, flatShading);
 
 		}
 

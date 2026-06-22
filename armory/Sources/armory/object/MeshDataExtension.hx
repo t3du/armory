@@ -7,7 +7,7 @@ import iron.data.SceneFormat;
 class MeshDataExtension {
 
 	static var meshIndex = 0;
-	static public function makeMeshData(points: Array<Vec4>, scaleUV: Float = 0.3): MeshData {
+	static public function makeMeshData(points: Array<Vec4>, scaleUV: Float = 0.3, flatShading: Bool = true): MeshData {
 		// Need at least 4 points for a 3D hull
 		if (points.length < 4) return null;
 
@@ -38,28 +38,50 @@ class MeshDataExtension {
 		maxdim *= 2;
 
 		var ind = new Array<Int>();
-		function addFlatNormal(normal: Vec4, fi: Int) {
-			if (na[fi * 3] != 0.0 || na[fi * 3 + 1] != 0.0 || na[fi * 3 + 2] != 0.0) {
-				pa.push(pa[fi * 3    ]);
-				pa.push(pa[fi * 3 + 1]);
-				pa.push(pa[fi * 3 + 2]);
-				na.push(normal.x);
-				na.push(normal.y);
-				na.push(normal.z);
-				ind.push(Std.int(pa.length / 3 - 1));
+
+		if (flatShading) {
+			function addFlatNormal(normal: Vec4, fi: Int) {
+				if (na[fi * 3] != 0.0 || na[fi * 3 + 1] != 0.0 || na[fi * 3 + 2] != 0.0) {
+					pa.push(pa[fi * 3    ]);
+					pa.push(pa[fi * 3 + 1]);
+					pa.push(pa[fi * 3 + 2]);
+					na.push(normal.x);
+					na.push(normal.y);
+					na.push(normal.z);
+					ind.push(Std.int(pa.length / 3 - 1));
+				}
+				else {
+					na[fi * 3    ] = normal.x;
+					na[fi * 3 + 1] = normal.y;
+					na[fi * 3 + 2] = normal.z;
+					ind.push(fi);
+				}
 			}
-			else {
-				na[fi * 3    ] = normal.x;
-				na[fi * 3 + 1] = normal.y;
-				na[fi * 3 + 2] = normal.z;
-				ind.push(fi);
+			for (f in cm.face3s) {
+				// Duplicate vertex for flat normals
+				addFlatNormal(f.normal, f.a);
+				addFlatNormal(f.normal, f.b);
+				addFlatNormal(f.normal, f.c);
 			}
-		}
-		for (f in cm.face3s) {
-			// Duplicate vertex for flat normals
-			addFlatNormal(f.normal, f.a);
-			addFlatNormal(f.normal, f.b);
-			addFlatNormal(f.normal, f.c);
+		}else {
+			var vNormals = [for (i in 0...cm.vertices.length) new Vec4(0, 0, 0)];
+			for (f in cm.face3s) {
+				vNormals[f.a].add(f.normal);
+				vNormals[f.b].add(f.normal);
+				vNormals[f.c].add(f.normal);
+			}
+			for (vn in vNormals) vn.normalize();
+			na = [];
+			for (vn in vNormals) {
+				na.push(vn.x);
+				na.push(vn.y);
+				na.push(vn.z);
+			}
+			for (f in cm.face3s) {
+				ind.push(f.a);
+				ind.push(f.b);
+				ind.push(f.c);
+			}
 		}
 
 		// TODO:
