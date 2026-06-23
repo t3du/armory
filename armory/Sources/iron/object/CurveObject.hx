@@ -12,6 +12,7 @@ import haxe.ds.Vector;
 import kha.arrays.Float32Array;
 import kha.arrays.Uint32Array;
 import kha.Color;
+import armory.trait.internal.RenderDraw;
 
 class CurveObject extends Object {
 
@@ -196,7 +197,7 @@ class CurveObject extends Object {
 	}
 
 	public function draw(strength: Float = 0.005, color: kha.Color = Color.Black) {
-		armory.trait.internal.RenderDraw.notifyOnRender(function(draw: armory.trait.internal.RenderDraw) {
+		RenderDraw.notifyOnRender(function(draw: RenderDraw) {
 			if (!visible) return;
 			draw.color = color;
 			draw.strength = strength;
