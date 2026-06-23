@@ -186,19 +186,19 @@ class MeshObject extends Object {
 	}
 
 	function cullMesh(context: String, camera: CameraObject, light: LightObject): Bool {
+		var isShadow = context == "shadowmap";
 		if (camera == null) return false;
 
 		if (camera.data.raw.frustum_culling && frustumCulling) {
 			// Scale radius for skinned mesh and particle system
 			// TODO: define skin & particle bounds
 			var radiusScale = data.isSkinned ? 2.0 : 1.0;
-			#if arm_gpu_particles
+			/*#if arm_gpu_particles
 			// particleSystems for update, particleOwner for render
 			if (particleSystems != null || particleOwner != null) radiusScale *= 1000;
 			#end
 			if (context == "voxel") radiusScale *= 100;
-			if (data.geom.instanced) radiusScale *= 100;
-			var isShadow = context == "shadowmap";
+			if (data.geom.instanced) radiusScale *= 100;*/
 			var frustumPlanes = isShadow ? light.frustumPlanes : camera.frustumPlanes;
 
 			if (isShadow && light.data.raw.type != "sun") { // Non-sun light bounds intersect camera frustum
@@ -213,8 +213,9 @@ class MeshObject extends Object {
 			}
 		}
 
-		culled = false;
-		return culled;
+		//culled = false;
+		//return culled;
+		return setCulled(isShadow, false);
 	}
 
 	function skipContext(context: String, mat: MaterialData): Bool {
