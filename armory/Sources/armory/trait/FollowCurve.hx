@@ -1,6 +1,7 @@
 
 import iron.object.CurveObject;
 import iron.Scene;
+import iron.system.Time;
 
 class FollowCurve extends iron.Trait {
 
@@ -35,7 +36,7 @@ class FollowCurve extends iron.Trait {
 		super();
 
 		notifyOnInit(function() {
-			var obj = iron.Scene.active.getChild(curveName);
+			var obj = Scene.active.getChild(curveName);
 			if (obj != null && Std.isOfType(obj, CurveObject)) {
 				curve = cast obj;
 				curve.equidistantSamples = equidistantSamples;
@@ -45,7 +46,7 @@ class FollowCurve extends iron.Trait {
 		notifyOnUpdate(function() {
 			if (curve == null) return;
 
-			progress += (speed * iron.system.Time.delta * (forward ? 1.0 : -1.0));
+			progress += (speed * Time.delta * (forward ? 1.0 : -1.0));
 
 			if (cyclic){
 				if (progress > 1.0) progress -= 1.0;
