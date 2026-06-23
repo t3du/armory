@@ -248,12 +248,13 @@ def parse_tex_magic(node: bpy.types.ShaderNodeTexMagic, out_socket: bpy.types.No
         co = 'bposition'
 
     scale = c.parse_value_input(node.inputs[1])
+    distortion = c.parse_value_input(node.inputs[2])
     depth = node.turbulence_depth
 
     if out_socket == node.outputs[0]:
-        res = f'tex_magic({co} * {scale} * 5.0, {depth})'
+        res = f'tex_magic({co} * {scale}, {distortion}, {depth})'
     else:
-        res = f'tex_magic_f({co} * {scale} * 5.0, {depth})'
+        res = f'tex_magic_f({co} * {scale}, {distortion}, {depth})'
 
     return res
 

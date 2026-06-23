@@ -282,80 +282,71 @@ vec3 wavelength_to_rgb(const float t) {
 """
 
 str_tex_magic = """
-vec3 tex_magic(vec3 p, int depth) {
-    float x = p.x;
-    float y = p.y;
-    float z = p.z;
-    
-    // Blender usa un multiplicador de 5.0 internamente en los pasos intermedios
-    // pero el orden de las operaciones seno/coseno es estricto
+//https://github.com/blender/blender/blob/main/source/blender/gpu/shaders/material/gpu_shader_material_tex_magic.glsl
+vec3 tex_magic(vec3 p, float distortion, int depth) {
+    p = mod(p, 6.2831853f);
+
+    float x = sin((p.x + p.y + p.z) * 5.0f);
+    float y = cos((-p.x + p.y - p.z) * 5.0f);
+    float z = -cos((-p.x - p.y + p.z) * 5.0f);
+
     if (depth > 0) {
-        float dist = x + y + z;
-        x = 1.0 - sin(dist);
-        y = 1.0 - sin(x - y + z);
-        z = 1.0 - sin(-x - y + z);
-    }
-    if (depth > 1) {
-        float dist = x + y + z;
-        x = 1.0 - sin(dist);
-        y = 1.0 - sin(x - y + z);
-        z = 1.0 - sin(-x - y + z);
-    }
-    if (depth > 2) {
-        float dist = x + y + z;
-        x = 1.0 - sin(dist);
-        y = 1.0 - sin(x - y + z);
-        z = 1.0 - sin(-x - y + z);
-    }
-    if (depth > 3) {
-        float dist = x + y + z;
-        x = 1.0 - sin(dist);
-        y = 1.0 - sin(x - y + z);
-        z = 1.0 - sin(-x - y + z);
-    }
-    if (depth > 4) {
-        float dist = x + y + z;
-        x = 1.0 - sin(dist);
-        y = 1.0 - sin(x - y + z);
-        z = 1.0 - sin(-x - y + z);
-    }
-    if (depth > 5) {
-        float dist = x + y + z;
-        x = 1.0 - sin(dist);
-        y = 1.0 - sin(x - y + z);
-        z = 1.0 - sin(-x - y + z);
-    }
-    if (depth > 6) {
-        float dist = x + y + z;
-        x = 1.0 - sin(dist);
-        y = 1.0 - sin(x - y + z);
-        z = 1.0 - sin(-x - y + z);
-    }
-    if (depth > 7) {
-        float dist = x + y + z;
-        x = 1.0 - sin(dist);
-        y = 1.0 - sin(x - y + z);
-        z = 1.0 - sin(-x - y + z);
-    }
-    if (depth > 8) {
-        float dist = x + y + z;
-        x = 1.0 - sin(dist);
-        y = 1.0 - sin(x - y + z);
-        z = 1.0 - sin(-x - y + z);
-    }
-    if (depth > 9) {
-        float dist = x + y + z;
-        x = 1.0 - sin(dist);
-        y = 1.0 - sin(x - y + z);
-        z = 1.0 - sin(-x - y + z);
+        x *= distortion;
+        y *= distortion;
+        z *= distortion;
+        y = -cos(x - y + z);
+        y *= distortion;
+        if (depth > 1) {
+            x = cos(x - y - z);
+            x *= distortion;
+            if (depth > 2) {
+                z = sin(-x - y - z);
+                z *= distortion;
+                if (depth > 3) {
+                    x = -cos(-x + y - z);
+                    x *= distortion;
+                    if (depth > 4) {
+                        y = -sin(-x + y + z);
+                        y *= distortion;
+                        if (depth > 5) {
+                            y = -cos(-x + y + z);
+                            y *= distortion;
+                            if (depth > 6) {
+                                x = cos(x + y + z);
+                                x *= distortion;
+                                if (depth > 7) {
+                                    z = sin(x + y - z);
+                                    z *= distortion;
+                                    if (depth > 8) {
+                                        x = -cos(-x - y + z);
+                                        x *= distortion;
+                                        if (depth > 9) {
+                                            y = -sin(x - y + z);
+                                            y *= distortion;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
-    return vec3(x, y, z);
+    if (distortion != 0.0f) {
+        distortion *= 2.0f;
+        x /= distortion;
+        y /= distortion;
+        z /= distortion;
+    }
+
+    return vec3(0.5f - x, 0.5f - y, 0.5f - z);
 }
 
-float tex_magic_f(vec3 p, int depth) {
-    vec3 c = tex_magic(p, depth);
-    return (c.x + c.y + c.z) / 3.0;
+float tex_magic_f(vec3 p, float distortion, int depth) {
+    vec3 c = tex_magic(p, distortion, depth);
+    return (c.x + c.y + c.z) / 3.0f;
 }
 """
 
