@@ -5,6 +5,8 @@ import iron.math.Vec4;
 
 class GetObjectGeomNode extends LogicNode {
 
+	public var property0: String; 
+
 	public function new(tree: LogicTree) {
 		super(tree);
 	}
@@ -35,9 +37,24 @@ class GetObjectGeomNode extends LogicNode {
 		var scl = object.data.scalePos;
 		var normals = object.data.geom.normals.values;
 
+		var worldMat = object.transform.world;
+
 		for (i in 0...Std.int(positions.length/4)){
-			pos.push(new Vec4(positions[i*4]*scl/32767, positions[i*4+1]*scl/32767, positions[i*4+2]*scl/32767, 1));
-			nor.push(new Vec4(normals[i*2]/32767, normals[i*2+1]/32767, positions[i*4+3]/32767, 1));
+			var p = new Vec4(positions[i*4]*scl/32767, positions[i*4+1]*scl/32767, positions[i*4+2]*scl/32767, 1);
+			var n = new Vec4(normals[i*2]/32767, normals[i*2+1]/32767, positions[i*4+3]/32767, 1);
+			
+			if (property0 == "Global") {
+		        p.applymat(worldMat);
+				var m = worldMat.clone();
+				m.getInverse(m);
+				m.transpose3x3();
+				m._30 = 0; m._31 = 0; m._32 = 0;
+				n.applymat(m);
+				n.normalize();
+		    }
+
+			pos.push(p);
+			nor.push(n);
 		}
 
 		if (from == 0)
@@ -60,7 +77,7 @@ class GetObjectGeomNode extends LogicNode {
 
 			for (u in 0...unique.length)
 				for (i in 0...pos.length)
-					if(Std.string(pos[i]) == unique[u]) index[i] = u;  
+					if(Std.string(pos[i]) == unique[u]) index[i] = u;
 
 			return index;
 		}
@@ -100,7 +117,7 @@ class GetObjectGeomNode extends LogicNode {
 						unique.push(item);
 				faceIndex.push(face);
 				if (unique.length == ar.length)
-					face+=1;			
+					face+=1;
 			}
 			faceIndex.push(face);
 

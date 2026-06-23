@@ -20,6 +20,12 @@ class GetObjectGeomNode(ArmLogicTreeNode):
     arm_section = 'relations'
     arm_version = 1
 
+    property0: HaxeEnumProperty(
+        'property0',
+        items = [('Local', 'Local', 'Local'),
+                 ('Global', 'Global', 'Global')],
+        name='', default='Local', update='')
+
     def arm_init(self, context):
         self.add_input('ArmNodeSocketObject', 'Object')
 
@@ -30,3 +36,6 @@ class GetObjectGeomNode(ArmLogicTreeNode):
         self.add_output('ArmNodeSocketArray', 'Vertices Face Indices')
         self.add_output('ArmDynamicSocket', 'Vertex Groups Maps')
         self.add_output('ArmNodeSocketArray', 'Vertex Groups Names')
+
+    def draw_buttons(self, context, layout):
+        layout.prop(self, 'property0')
