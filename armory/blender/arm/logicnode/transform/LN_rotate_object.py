@@ -51,16 +51,9 @@ class RotateObjectNode(ArmLogicTreeNode):
         name='', default='Local')
 
 
-
-
-
-
-
-
     def get_replacement_node(self, node_tree: bpy.types.NodeTree):
         if self.arm_version not in (0, 1):
             raise LookupError()
-
         
         # transition from version 1 to version 2: make rotations their own sockets
         # this transition is a mess, I know.
