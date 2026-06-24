@@ -143,7 +143,7 @@ class DebugDraw {
 	static var corner4 = new Vec4();
 	static var cameraLook = new Vec4();
 	public function line(x1: Float, y1: Float, z1: Float, x2: Float, y2: Float, z2: Float) {
-
+		if (vbData == null) return;
 		if (lines >= maxLines) { end(); begin(); }
 
 		midPoint.set(x1 + x2, y1 + y2, z1 + z2);

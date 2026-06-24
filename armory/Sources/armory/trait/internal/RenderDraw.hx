@@ -212,13 +212,6 @@ class RenderDraw {
 			}
 		}
 
-		for (key in edgeToFace.keys()) {
-			var fIdx = edgeToFace.get(key);
-			if (faceIsFront[fIdx]) {
-				var coords = key.split("_");
-			}
-		}
-
 		var j = 0;
 		while (j < edgesToDraw.length) {
 			var a = edgesToDraw[j];
@@ -302,6 +295,7 @@ class RenderDraw {
 	static var corner4 = new iron.math.Vec4();
 
 	public function line(x1: Float, y1: Float, z1: Float, x2: Float, y2: Float, z2: Float) {
+		if (vbData == null) return;
 		if (lines >= maxLines) { end(); begin(); }
 
 		var camera = iron.Scene.active.camera;
