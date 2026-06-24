@@ -27,6 +27,12 @@ class LogicTree extends iron.Trait {
 
 	public function add() {}
 
+	public override function remove() {
+		if (paused)
+			_remove = null;
+		super.remove();
+	}
+
 	public var paused = false;
 
 	public function pause() {
