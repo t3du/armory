@@ -155,7 +155,7 @@ class DebugConsole extends Trait {
 
 		if (!debugDrawSet) {
 			debugDrawSet = true;
-			armory.trait.internal.DebugDraw.notifyOnRender(function(draw: armory.trait.internal.DebugDraw) {
+			armory.trait.internal.RenderDraw.notifyOnRender(function(draw: armory.trait.internal.RenderDraw) {
 				if (selectedObject != null) draw.bounds(selectedObject.transform);
 			});
 		}
@@ -678,6 +678,10 @@ class DebugConsole extends Trait {
 					ui.text(iron.RenderPath.drawCalls + "", Align.Right);
 
 					ui.row(lrow);
+				    ui.text("Draw 2D calls");
+				    ui.text(@:privateAccess iron.App.traitRenders2D.length + "", Align.Right);
+
+					ui.row(lrow);
 					ui.text("Tris mesh");
 					ui.text(iron.RenderPath.numTrisMesh + "", Align.Right);
 
@@ -707,6 +711,24 @@ class DebugConsole extends Trait {
 					#end
 
 					ui.unindent();
+				}
+
+				if (ui.panel(Id.handle({selected: false}), "Draw2D")) {
+				    ui.indent();
+				    ui.row(lrow);
+				    ui.text("Draw 2D calls");
+				    ui.text(@:privateAccess iron.App.traitRenders2D.length + "", Align.Right);
+				    for (o in iron.Scene.active.root.children) {
+				        if (o.traits != null) {
+				            for (t in o.traits) {
+				                var renders: Array<Dynamic> = Reflect.field(t, "_render2D");
+				                if (t != null && renders != null) {
+				                    ui.text(o.name + " : " + Type.getClassName(Type.getClass(t)) + " (" + renders.length + ")");
+				                }
+				            }
+				        }
+				    }
+				    ui.unindent();
 				}
 
 				#if arm_shadowmap_atlas

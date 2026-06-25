@@ -319,13 +319,13 @@ class RenderPath {
 
 		if (!drawn) submitDraw(context);
 
-		#if arm_debug
+		//#if arm_debug
 		// Callbacks to specific context
 		if (contextEvents != null) {
 			var ar = contextEvents.get(context);
 			if (ar != null) for (i in 0...ar.length) ar[i](currentG, i, ar.length);
 		}
-		#end
+		//#end
 
 		end();
 	}
