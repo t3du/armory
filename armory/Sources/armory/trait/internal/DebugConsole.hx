@@ -381,7 +381,7 @@ class DebugConsole extends Trait {
 						ui.unindent();
 					}
 
-					if (ui.panel(Id.handle({selected: false}), "Dynamic Objects (Runtime)")) {
+					if (ui.panel(Id.handle({selected: false}), "Dynamic Unparented Objects")) {
 						ui.indent();
 						for (c in iron.Scene.active.root.children) {
 							if (c.raw != null) {
