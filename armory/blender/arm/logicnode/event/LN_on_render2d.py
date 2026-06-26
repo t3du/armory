@@ -8,7 +8,18 @@ class OnRender2DNode(ArmLogicTreeNode):
     """
     bl_idname = 'LNOnRender2DNode'
     bl_label = 'On Render2D'
-    arm_version = 1
+    arm_version = 2
 
     def arm_init(self, context):
+        self.add_input('ArmIntSocket', 'Index')
+
         self.add_output('ArmNodeSocketAction', 'Out')
+        self.add_output('ArmDynamicSocket', 'Render2D')
+        self.add_output('ArmIntSocket', 'Index', default_value = -1)
+
+
+    def get_replacement_node(self, node_tree: bpy.types.NodeTree):
+        if self.arm_version not in (0, 1):
+            raise LookupError()
+            
+        return NodeReplacement.Identity(self)

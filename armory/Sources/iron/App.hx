@@ -203,8 +203,24 @@ class App {
 		traitRenders.remove(f);
 	}
 
-	public static function notifyOnRender2D(f: kha.graphics2.Graphics->Void) {
-		traitRenders2D.push(f);
+	public static function notifyOnRender2D(f: kha.graphics2.Graphics->Void, index: Int = -1) {
+		if (index < 0 || index >= traitRenders2D.length) {
+			traitRenders2D.push(f);
+		} else {
+			traitRenders2D.insert(index, f);
+		}
+	}
+
+	public static function moveRender2D(f: kha.graphics2.Graphics->Void, newIndex: Int) {
+		var oldIndex = traitRenders2D.indexOf(f);
+		if (oldIndex != -1) {
+			traitRenders2D.splice(oldIndex, 1);
+			if (newIndex >= traitRenders2D.length) {
+				traitRenders2D.push(f);
+			} else {
+				traitRenders2D.insert(newIndex, f);
+			}
+		}
 	}
 
 	public static function removeRender2D(f: kha.graphics2.Graphics->Void) {
