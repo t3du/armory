@@ -16,13 +16,30 @@ class GetObjectGeomNode extends LogicNode {
 
 		if (object == null) return null;
 
-		if (from == 5)
-			return object.vertex_groups;
+		var worldMat = object.transform.world;
+
+		if (from == 5) {
+			if (property0 == "Global") {
+				var vertexGroups = new Map<String, Array<Vec4>>();
+				for (key in object.vertexGroups.keys()) {
+					var vp = [];
+					for (p in object.vertexGroups.get(key)) {
+						var p = new Vec4(p.x, p.y, p.z, p.w);
+						p.applymat(worldMat);
+						vp.push(p);
+					}
+					vertexGroups.set(key, vp);
+				}
+				return vertexGroups;
+			}
+			else
+				return object.vertexGroups;
+		}
 
 		if (from == 6){
 			var keys = [];
-			if (object.vertex_groups != null)
-				for (key in object.vertex_groups.keys())
+			if (object.vertexGroups != null)
+				for (key in object.vertexGroups.keys())
 					keys.push(key);
 
 			return keys;
@@ -36,8 +53,6 @@ class GetObjectGeomNode extends LogicNode {
 		var positions = object.data.geom.positions.values;
 		var scl = object.data.scalePos;
 		var normals = object.data.geom.normals.values;
-
-		var worldMat = object.transform.world;
 
 		for (i in 0...Std.int(positions.length/4)){
 			var p = new Vec4(positions[i*4]*scl/32767, positions[i*4+1]*scl/32767, positions[i*4+2]*scl/32767, 1);

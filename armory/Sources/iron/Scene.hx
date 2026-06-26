@@ -824,6 +824,21 @@ class Scene {
 				cast(object, MeshObject).setupTilesheet(sceneName, o.tilesheet_ref, o.tilesheet_action_ref);
 			}
 
+			if (o.vertex_groups != null) {
+				cast(object, MeshObject).vertexGroups = new Map();
+				for (p in o.vertex_groups) {
+					var verts:Array<iron.math.Vec4> = [];
+					
+					var data:kha.arrays.Float32Array = cast p.value;
+
+					if (data != null) {
+						for (i in 0...Std.int(data.length / 3)) {
+							verts.push(new iron.math.Vec4(data[i * 3], data[i * 3 + 1], data[i * 3 + 2], 1.0));
+						}
+					}
+					cast(object, MeshObject).vertexGroups.set(p.name, verts);
+				}
+			}
 
 			if (o.camera_list != null){
 				cast(object, MeshObject).cameraList = o.camera_list;
@@ -874,22 +889,6 @@ class Scene {
 				object.properties = new Map();
 				for (p in o.properties) {
 					object.properties.set(p.name, cleanValue(p.value));
-				}
-			}
-
-			if (o.vertex_groups != null) {
-				object.vertex_groups = new Map();
-				for (p in o.vertex_groups) {
-					var verts:Array<iron.math.Vec4> = [];
-					
-					var data:kha.arrays.Float32Array = cast p.value;
-
-					if (data != null) {
-						for (i in 0...Std.int(data.length / 3)) {
-							verts.push(new iron.math.Vec4(data[i * 3], data[i * 3 + 1], data[i * 3 + 2], 1.0));
-						}
-					}
-					object.vertex_groups.set(p.name, verts);
 				}
 			}
 

@@ -35,6 +35,7 @@ class MeshObject extends Object {
 	#if arm_morph_target
 	public var morphTarget: MorphTarget = null;
 	#end
+	public var vertexGroups: Map<String, Array<Vec4>> = null;
 
 	#if arm_veloc
 	public var prevMatrix = Mat4.identity();

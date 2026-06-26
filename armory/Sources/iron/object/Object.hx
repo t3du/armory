@@ -26,7 +26,6 @@ class Object {
 	public var culled = false; // Object was culled last frame
 	public var culledMesh = false;
 	public var culledShadow = false;
-	public var vertex_groups: Map<String, Array<Vec4>> = null;
 	public var properties: Map<String, Dynamic> = null;
 	var isEmpty = false;
 
