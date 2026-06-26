@@ -125,10 +125,10 @@ class Trait {
     /**
       Add 2D render handler.
     **/
-	public function notifyOnRender2D(f: kha.graphics2.Graphics->Void) {
+	public function notifyOnRender2D(f: kha.graphics2.Graphics->Void, index: Int = -1) {
 		if (_render2D == null) _render2D = [];
 		_render2D.push(f);
-		App.notifyOnRender2D(f);
+		App.notifyOnRender2D(f, index);
 	}
 
     /**
