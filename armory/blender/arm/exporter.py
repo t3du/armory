@@ -1922,6 +1922,7 @@ Make sure the mesh only has tris/quads.""")
 
         out_curve = {
             'name': curve_id,
+            'object': bobject.name,
             'splines': [],
             'strength': curve_data.arm_draw_strength,
             'color': [curve_data.arm_draw_color[0], curve_data.arm_draw_color[1], curve_data.arm_draw_color[2], curve_data.arm_draw_color[3]]
@@ -1948,16 +1949,12 @@ Make sure the mesh only has tris/quads.""")
         temp_obj = bobject.to_mesh()
 
         if len(temp_obj.polygons) > 0:
+            temp_ref = [object_ref[0], {
+                "objectTable": table, 
+                "structName": arm.utils.safestr(curve_id)
+            }]
 
-            mesh_obj = bpy.data.objects.get(temp_obj.name)
-
-            if mesh_obj is not None:
-                temp_ref = [object_ref[0], {
-                    "objectTable": [mesh_obj], 
-                    "structName": arm.utils.safestr(mesh_obj.name)
-                }]
-
-                self.export_mesh(temp_ref)
+            self.export_mesh(temp_ref)
 
             out_curve['material_refs'] = []
             for i in range(len(bobject.material_slots)):

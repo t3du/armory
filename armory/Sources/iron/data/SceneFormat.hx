@@ -641,8 +641,10 @@ typedef TCurveData = {
 @:structInit class TCurveData {
 #end
 	public var name: String;
+	public var object: String;
 	public var splines: Array<TSpline>;
+	public var strength: Float;
+	public var color: Float32Array;
 	@:optional public var material_refs: Array<String>;
-	@:optional public var strength: Float;
-	@:optional public var color: Float32Array;
+
 }

@@ -19,6 +19,7 @@ class CurveObject extends Object {
 	public var data: TCurveData;
 	public var splinesLength: Int;
 	public var equidistantSamples: Int = 0;
+	public var meshData: MeshData = null;
 
 	static var _p0 = new Vec4();
 	static var _p1 = new Vec4();
@@ -30,45 +31,76 @@ class CurveObject extends Object {
 
 	public function new(data: TCurveData) {
 		super();
-		this.name = data.name;
-		this.data = data;
-		splinesLength = data.splines.length;
-		
-		if (data.material_refs != null){
-			Data.getMesh("mesh_" + data.name, data.name, function(meshData: MeshData) {
-				
-				var materials = new Vector<MaterialData>(data.material_refs.length);
-				var materialsLoaded = 0;
-				
-				for (i in 0...data.material_refs.length) {
-					var ref = data.material_refs[i];
-					
-					Data.getMaterial(Scene.active.raw.name, ref, function(mat: MaterialData) {
-						materials[i] = mat;
-						materialsLoaded++;
+		this.data = copyCurveData(data);
+		splinesLength = this.data.splines.length;
 
-						if (materialsLoaded == data.material_refs.length) {
-							addMeshObject(meshData, materials);
-						}
-					});
-				}
-			});
-		} else
-			draw(data.strength, Color.fromFloats(data.color[0], data.color[1], data.color[2], data.color[3]));
+		if (this.data.material_refs != null)
+			addMeshObject();
+		else
+			draw(this.data.strength, Color.fromFloats(this.data.color[0], this.data.color[1], this.data.color[2], this.data.color[3]));
 
 	}
 
-	function addMeshObject(meshData: MeshData, materials: Vector<MaterialData>) {
-		var meshObject = new MeshObject(meshData, materials);
-	    
-	   	meshObject.name = this.name + "_mesh";
-	    meshObject.raw = cast {
-		    name: data.name + "_mesh",
-		    type: "mesh_object",
-		};
+	public function addMeshObject(){
+		Data.getMesh("mesh_" + data.name, data.name, function(meshData: MeshData) {
+			var materials = new Vector<MaterialData>(data.material_refs.length);
+			var materialsLoaded = 0;
+			
+			for (i in 0...data.material_refs.length) {
+				var ref = data.material_refs[i];
+				
+				Data.getMaterial(Scene.active.raw.name, ref, function(mat: MaterialData) {
+					materials[i] = mat;
+					materialsLoaded++;
 
-    	meshObject.setParent(this);
-	
+					if (materialsLoaded == data.material_refs.length) {
+						this.meshData = meshData;
+						var meshObject = new MeshObject(meshData, materials);
+					   	meshObject.name = this.data.object + "_mesh";
+					    meshObject.raw = cast {
+						    name: this.data.object + "_mesh",
+						    type: "mesh_object",
+							};
+				    	meshObject.setParent(this);
+					}
+				});
+			}
+		});	
+	}
+
+	public static function copyCurveData(data: TCurveData): TCurveData {
+	    var newData: TCurveData = {
+	    	name: data.name,
+	        object: data.object,
+	        splines: [],
+	        strength: data.strength,
+	        color: copyFloat32Array(data.color),
+	        material_refs: data.material_refs	        
+	    };
+
+	    for (spline in data.splines) {
+	        var newSpline = {
+	            points: [],
+	            closed: spline.closed,
+	            resolution: spline.resolution
+	        };
+	        
+	        for (p in spline.points) {
+	            newSpline.points.push({
+	                co: copyFloat32Array(p.co),
+	                handle_left: copyFloat32Array(p.handle_left),
+	                handle_right: copyFloat32Array(p.handle_right)
+	            });
+	        }
+	        newData.splines.push(newSpline);
+	    }
+	    return newData;
+	}
+
+	public static function copyFloat32Array(arr: Float32Array): Float32Array {
+	    var newArr = new Float32Array(arr.length);
+	    for (i in 0...arr.length) newArr[i] = arr[i];
+	    return newArr;
 	}
 
 	public function getPoint(t: Float, splineIndex: Int = 0): Vec4 {
