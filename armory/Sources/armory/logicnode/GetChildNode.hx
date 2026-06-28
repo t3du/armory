@@ -7,6 +7,7 @@ import iron.object.LightObject;
 import iron.object.SpeakerObject;
 import iron.object.DecalObject;
 import iron.object.ProbeObject;
+import iron.object.CurveObject;
 
 class GetChildNode extends LogicNode {
 
@@ -41,6 +42,7 @@ class GetChildNode extends LogicNode {
 			case "SpeakerObject": object.getChildOfType(SpeakerObject);
 			case "DecalObject": object.getChildOfType(DecalObject);
 			case "ProbeObject": object.getChildOfType(ProbeObject);
+			case "CurveObject": object.getChildOfType(CurveObject);
 			default: null;
 		}
 	}

@@ -26,7 +26,8 @@ class GetChildNode(ArmLogicTreeNode):
                  ('LightObject', 'Light', 'LightObject'),
                  ('SpeakerObject', 'Speaker', 'SpeakerObject'),
                  ('DecalObject', 'Decal', 'DecalObject'),
-                 ('ProbeObject', 'Probe', 'ProbeObject')],
+                 ('ProbeObject', 'Probe', 'ProbeObject'),
+                 ('CurveObject', 'Curve', 'CurveObject')],
         name='Type', default='MeshObject')
 
     def arm_init(self, context):
