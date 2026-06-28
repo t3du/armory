@@ -1,3 +1,4 @@
+package armory.trait;
 
 import iron.object.CurveObject;
 import iron.Scene;
@@ -21,7 +22,7 @@ class FollowCurve extends iron.Trait {
 	var advanced: Bool = false;
 
 	@prop
-	var speed: Float = 0.1;
+	var speed: Float = 1;
 
 	@prop
 	var equidistantSamples: Int = 0;
@@ -32,6 +33,9 @@ class FollowCurve extends iron.Trait {
 	@prop
 	var cyclic: Bool = true;
 
+	@prop
+	var start: Float = 0.0;
+
 	public function new() {
 		super();
 
@@ -40,20 +44,24 @@ class FollowCurve extends iron.Trait {
 			if (obj != null && Std.isOfType(obj, CurveObject)) {
 				curve = cast obj;
 				curve.equidistantSamples = equidistantSamples;
+				progress = start;
+				notifyOnUpdate(update);
 			}
-		});
-
-		notifyOnUpdate(function() {
-			if (curve == null) return;
-
-			progress += (speed * Time.delta * (forward ? 1.0 : -1.0));
-
-			if (cyclic){
-				if (progress > 1.0) progress -= 1.0;
-				else if (progress < 0.0) progress += 1.0;
-			}
-
-			curve.follow(object, progress, splineIndex, forwardAxis, advanced);
 		});
 	}
+
+	function update() {
+			var len = curve.getLength(splineIndex);
+			var currentDist = progress * len;
+			currentDist += (speed * Time.delta * (forward ? 1.0 : -1.0));
+
+			if (cyclic){
+				if (currentDist > len) currentDist -= len;
+				else if (currentDist < 0) currentDist += len;
+			}
+
+			progress = (len > 0) ? currentDist / len : 0.0;
+
+			curve.follow(object, progress, splineIndex, forwardAxis, advanced);
+	};
 }
