@@ -379,8 +379,10 @@ void main() {
 	vec3 col4 = textureLod(tex, texCo + vec2(texStep.x, texStep.y) * SharpenSize, 0.0).rgb;
 	vec3 colavg = (col1 + col2 + col3 + col4) * 0.25;
 
-	float edgeMagnitude = length(fragColor.rgb - colavg); 
-	fragColor.rgb = mix(fragColor.rgb, SharpenColor, min(edgeMagnitude * strengthSharpen * 2.0, 1.0));
+	float edgeMagnitude = length(fragColor.rgb - colavg);
+	float luma = dot(fragColor.rgb, vec3(0.299, 0.587, 0.114));
+	float sharpenMask = 1.0 - smoothstep(0.5, 0.8, luma);
+	fragColor.rgb = mix(fragColor.rgb, SharpenColor, min(edgeMagnitude * strengthSharpen * 2.0, 1.0) * sharpenMask);
 #endif
 
 #ifdef _CFog
