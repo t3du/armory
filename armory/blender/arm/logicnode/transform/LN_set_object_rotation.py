@@ -57,10 +57,11 @@ class SetRotationNode(ArmLogicTreeNode):
         if self.arm_version not in (0, 1, 2):
             raise LookupError()
 
+        if self.arm_version == 2:
+            return NodeReplacement.Identity(self)
         
         # transition from version 1 to version 2: make rotations their own sockets
         # this transition is a mess, I know.
-
     
         newself = self.id_data.nodes.new('LNRotateObjectNode')
         inputnode = self.id_data.nodes.new('LNRotationNode')
