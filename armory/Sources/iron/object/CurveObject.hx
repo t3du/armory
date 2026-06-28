@@ -200,10 +200,9 @@ class CurveObject extends Object {
 		return tangent;
 	}
 
-	public function getClosestPoint(target: Vec4, splineIndex: Int = 0): Float {
+	public function getClosestPoint(target: Vec4, splineIndex: Int = 0, steps: Int = 200): Float {
 		var minD = 1e10;
 		var bestT = 0.0;
-		var steps = 200;
 		for (i in 0...steps + 1) {
 			var t = i / steps;
 			var p = getPoint(t, splineIndex);
@@ -216,9 +215,8 @@ class CurveObject extends Object {
 		return bestT;
 	}
 
-	public function getLength(splineIndex: Int = 0): Float {
+	public function getLength(splineIndex: Int = 0, steps: Int = 200): Float {
 		var length = 0.0;
-		var steps = 200;
 		var lastP = getPoint(0, splineIndex);
 		for (i in 1...steps + 1) {
 			var p = getPoint(i / steps, splineIndex);
