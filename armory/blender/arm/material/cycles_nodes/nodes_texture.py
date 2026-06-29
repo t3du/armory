@@ -487,7 +487,8 @@ def parse_tex_environment(node: bpy.types.ShaderNodeTexEnvironment, out_socket: 
             state.curshader.add_uniform('vec3 cameraPos', link='_cameraPosition')
             co = 'reflect(normalize(wposition - cameraPos), n)'
 
-        state.curshader.write(f'vec4 {tex_store} = texture({tex_name}, envMapEquirect(normalize({co})));')
+        state.curshader.write(f'vec2 uv = envMapEquirect(normalize({co}));')
+        state.curshader.write(f'vec4 {tex_store} = textureLod({tex_name}, uv, 0.0);')
         if image.colorspace_settings.name == 'sRGB':
             state.curshader.write(f'{tex_store}.rgb = pow({tex_store}.rgb, vec3(2.2));')
 
