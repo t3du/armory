@@ -438,12 +438,60 @@ def parse_sky_nishita(node: bpy.types.ShaderNodeTexSky, state: ParserState) -> v
 
 
 def parse_tex_environment(node: bpy.types.ShaderNodeTexEnvironment, out_socket: bpy.types.NodeSocket, state: ParserState) -> vec3str:
-    if state.context == ParserContext.OBJECT:
-        log.warn('Environment Texture node is not supported for object node trees, using default value')
-        return c.to_vec3([0.0, 0.0, 0.0])
-
     if node.image is None:
         return c.to_vec3([1.0, 0.0, 1.0])
+
+    image = node.image
+
+    # Object context: sample environment texture directly in material shader.
+    if state.context == ParserContext.OBJECT:
+        tex_store = c.store_var_name(node)
+
+        if c.node_need_reevaluation_for_screenspace_derivative(node):
+            tex_store += state.get_parser_pass_suffix()
+
+        if c.is_parsed(tex_store):
+            return f'{tex_store}.rgb'
+
+        state.parsed.add(tex_store)
+
+        tex_name = c.node_name(node.name)
+        tex_link = None
+        tex_default_file = None
+        is_arm_mat_param = None
+        if node.arm_material_param:
+            tex_link = node.name
+            is_arm_mat_param = True
+
+        tex = c.make_texture(
+            image,
+            tex_name,
+            c.mat_get_material(),
+            getattr(node, 'interpolation', 'Smart'),
+            getattr(node, 'extension', 'REPEAT')
+        )
+        if tex is None:
+            log.warn(f'Object "{state.tree_name}": missing environment texture image "{node.name}"')
+            return c.to_vec3([1.0, 0.0, 1.0])
+
+        if is_arm_mat_param is None:
+            c.mat_bind_texture(tex)
+
+        state.con.add_elem('tex', 'short2norm')
+        state.curshader.add_uniform(f'sampler2D {tex_name}', link=tex_link, default_value=tex_default_file, is_arm_mat_param=is_arm_mat_param)
+        state.curshader.add_include('std/math.glsl')
+
+        if node.inputs[0].is_linked:
+            co = c.parse_vector_input(node.inputs[0])
+        else:
+            state.curshader.add_uniform('vec3 cameraPos', link='_cameraPosition')
+            co = 'reflect(normalize(wposition - cameraPos), n)'
+
+        state.curshader.write(f'vec4 {tex_store} = texture({tex_name}, envMapEquirect(normalize({co})));')
+        if image.colorspace_settings.name == 'sRGB':
+            state.curshader.write(f'{tex_store}.rgb = pow({tex_store}.rgb, vec3(2.2));')
+
+        return f'{tex_store}.rgb'
 
     world = state.world
     world.world_defs += '_EnvTex'
@@ -453,7 +501,6 @@ def parse_tex_environment(node: bpy.types.ShaderNodeTexEnvironment, out_socket: 
     curshader.add_include('std/math.glsl')
     curshader.add_uniform('sampler2D envmap', link='_envmap')
 
-    image = node.image
     filepath = image.filepath
 
     if image.packed_file is None and not os.path.isfile(arm.utils.asset_path(filepath)):
