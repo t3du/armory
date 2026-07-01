@@ -323,8 +323,8 @@ class Quat {
 
 		// now define what is necessary to perform look-ups in that matrix
 		var ml: Array<Array<FastFloat>> = [[m._00, m._10, m._20],
-		                                   [m._01, m._11, m._21],
-		                                   [m._02, m._12, m._22]];
+										   [m._01, m._11, m._21],
+										   [m._02, m._12, m._22]];
 		var eull: Array<FastFloat> = [0, 0, 0];
 
 		var i: Int = p.charCodeAt(0) - "X".charCodeAt(0);

@@ -54,7 +54,7 @@ class ArrayFilterNode extends LogicNode {
 					case 'Not Equal': arr = ar.filter(item -> item != value);
 					case 'Between': { var value2 = inputs[2].get(); arr = ar.filter(item -> value <= item && item <= value2); }
 					case 'Less': arr = ar.filter(item -> item < value);
-					case 'Less Equal': arr = ar.filter(item -> item <=  value);
+					case 'Less Equal': arr = ar.filter(item -> item <= value);
 					case 'Greater': arr = ar.filter(item -> item > value);
 					case 'Greater Equal': arr = ar.filter(item -> item >= value);
 				}
@@ -112,7 +112,7 @@ class ArrayFilterNode extends LogicNode {
 					switch(property1){
 						case 'Equal': arr = ar.filter(item -> Reflect.field(item.properties.h, prop) == value);
 						case 'Not Equal': arr = ar.filter(item -> Reflect.field(item.properties.h, prop) != value);
-						case 'Contains': arr =  ar.filter(item -> Reflect.field(item.properties.h, prop).indexOf(value) >= 0);
+						case 'Contains': arr = ar.filter(item -> Reflect.field(item.properties.h, prop).indexOf(value) >= 0);
 						case 'Starts With': arr = ar.filter(item -> StringTools.startsWith(Reflect.field(item.properties.h, prop), value));
 						case 'Ends With': arr = ar.filter(item -> StringTools.endsWith(Reflect.field(item.properties.h, prop), value));				
 					}

@@ -10,6 +10,6 @@ class LengthStringNode extends LogicNode {
 		var s: String = inputs[0].get();
 		if (s == null) return null;
 
-        return s.length;
+		return s.length;
 	}
 }

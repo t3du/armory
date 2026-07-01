@@ -18,12 +18,12 @@ class LoadUrlNode extends LogicNode {
 			var window = inputs[3].get() ? js.Browser.window.open(inputs[1].get(), "_blank", "width="+inputs[4].get()+",height="+inputs[5].get()+",left="+inputs[6].get()+",top="+inputs[7].get())
 			: js.Browser.window.open(inputs[1].get(), "_blank");
 			
-	    	if(window != null)
-	    		runOutput(0);
-	    	else
-	    		runOutput(1);
+			if(window != null)
+				runOutput(0);
+			else
+				runOutput(1);
 		}
-	    else	
+		else	
 			js.Browser.window.open(inputs[1].get(), "_self"); 
 		#end
 	}

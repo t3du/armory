@@ -24,7 +24,7 @@ class GetRotationNode extends LogicNode {
 		case "Local":
 			return object.transform.rot;
 		case "Global":{
-		        var useless1 = new Vec4();
+				var useless1 = new Vec4();
 			var ret = new Quat();
 			object.transform.world.decompose(useless1, ret, useless1);
 			return ret;

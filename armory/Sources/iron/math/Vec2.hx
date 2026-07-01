@@ -47,14 +47,14 @@ class Vec2 {
 
 	public inline function normalize(): Vec2 {
 		var a = this.x;
-        var b = this.y;
-        var l = a * a + b * b;
-        if (l > 0.0) {
-            l = 1.0 / Math.sqrt(l);
-            this.x = a * l;
-            this.y = b * l;
-        }
-        return this;
+		var b = this.y;
+		var l = a * a + b * b;
+		if (l > 0.0) {
+			l = 1.0 / Math.sqrt(l);
+			this.x = a * l;
+			this.y = b * l;
+		}
+		return this;
 	}
 
 	public inline function mult(f: FastFloat): Vec2 {

@@ -10,8 +10,8 @@ class GetTraitNameNode extends LogicNode {
 
 	override function get(from: Int): Dynamic {
 		var trait: Dynamic = inputs[0].get();
-        if (trait == null) return null;
-       	switch (from) { 
+		if (trait == null) return null;
+		switch (from) { 
 			// Name
 			case 0: {
 			// Check CanvasScript
@@ -25,8 +25,8 @@ class GetTraitNameNode extends LogicNode {
 				return trait.wasmName;
 			}
 			// Other
-            var res_arr = (Type.getClassName(Type.getClass(trait))).split(".");
-            return res_arr[res_arr.length - 1];
+			var res_arr = (Type.getClassName(Type.getClass(trait))).split(".");
+			return res_arr[res_arr.length - 1];
 			}
 			// Class Type
 			case 1: {

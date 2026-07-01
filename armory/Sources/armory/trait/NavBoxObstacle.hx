@@ -19,7 +19,7 @@ class NavBoxObstacle extends Trait {
 	public var angle: Float = 0;
 
 	@prop 
-    public var isStatic: Bool = true;
+	public var isStatic: Bool = true;
 
 	var obstacleID: Int = -1;
 

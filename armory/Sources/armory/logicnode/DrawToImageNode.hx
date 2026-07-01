@@ -59,12 +59,12 @@ class DrawToImageNode extends LogicNode {
 
 		#elseif kha_html5
 		var blob = new js.html.Blob([bo.getBytes().getData()], {type: "application"});
-        var url = js.html.URL.createObjectURL(blob);
-        var a = cast(js.Browser.document.createElement("a"), js.html.AnchorElement);
-        a.href = url;
-        a.download = file;
-        a.click();
-        js.html.URL.revokeObjectURL(url);
+		var url = js.html.URL.createObjectURL(blob);
+		var a = cast(js.Browser.document.createElement("a"), js.html.AnchorElement);
+		a.href = url;
+		a.download = file;
+		a.click();
+		js.html.URL.revokeObjectURL(url);
 		#end
 	}
 

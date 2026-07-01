@@ -121,10 +121,10 @@ class PhysicsBreak extends Trait {
 					dims[2] = o.data.geom.aabb.z;
 
 					obj.raw = cast { 
-					    type: "mesh_object", 
-					    name: obj.name, 
-					    data_ref: obj.name,
-					    dimensions: dims
+						type: "mesh_object", 
+						name: obj.name, 
+						data_ref: obj.name,
+						dimensions: dims
 					};
 
 					if (traitName == '')

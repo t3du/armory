@@ -113,7 +113,7 @@ class DrawTextAreaStringNode extends LogicNode {
 			switch(property1){
 				case 'TextLeft': horA = TextLeft;
 				case 'TextCenter': {horA = TextCenter; xoffset = -width * 0.5; }
-				case 'TextRight': {horA = TextRight;  xoffset = -width; }
+				case 'TextRight': {horA = TextRight; xoffset = -width; }
 			}
 
 			RenderToTexture.g.rotate(angle, inputs[8].get(), inputs[9].get()+(ar_lines.length-1)/2*height*spacing);

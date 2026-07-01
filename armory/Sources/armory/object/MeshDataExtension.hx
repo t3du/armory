@@ -112,26 +112,26 @@ class MeshDataExtension {
 			var v: Float = 0;
 
 			if (nx > ny && nx > nz) {
-		        u = pz * invdim * scaleUV + 0.5;
-		        v = py * invdim * scaleUV + 0.5;
-		    } else if (ny > nx && ny > nz) {
-		        u = px * invdim * scaleUV + 0.5;
-		        v = pz * invdim * scaleUV + 0.5;
-		    } else {
-		        u = px * invdim * scaleUV + 0.5;
-		        v = py * invdim * scaleUV + 0.5;
-		    }
+				u = pz * invdim * scaleUV + 0.5;
+				v = py * invdim * scaleUV + 0.5;
+			} else if (ny > nx && ny > nz) {
+				u = px * invdim * scaleUV + 0.5;
+				v = pz * invdim * scaleUV + 0.5;
+			} else {
+				u = px * invdim * scaleUV + 0.5;
+				v = py * invdim * scaleUV + 0.5;
+			}
 
 			texa.set(i * 2,     Std.int(u * 32767));
 			texa.set(i * 2 + 1, Std.int(v * 32767));
 
 			var tan = new Vec4();
 			if (nx > ny && nx > nz)
-			    tan.set(0, 0, 1); 
+				tan.set(0, 0, 1); 
 			else if (ny > nx && ny > nz)
-			    tan.set(1, 0, 0);
+				tan.set(1, 0, 0);
 			else
-			    tan.set(1, 0, 0);
+				tan.set(1, 0, 0);
 			tan.normalize();
 
 			tanga.set(i * 4,     Std.int(tan.x * 32767));

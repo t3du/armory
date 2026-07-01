@@ -2,7 +2,7 @@ package armory.logicnode;
 
 
 class GetMapValueNode extends LogicNode {
-  
+
 	public function new(tree:LogicTree) {
 		super(tree);
 	}
@@ -12,6 +12,6 @@ class GetMapValueNode extends LogicNode {
 		if (map == null) return null;
 
 		var key: Dynamic = inputs[1].get();
-		return map.get(key);   
+		return map.get(key);
 	}
 }

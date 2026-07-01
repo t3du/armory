@@ -53,7 +53,7 @@ class MeshObject extends Object {
 		this.data = data;
 
 		if (this.materials != null && this.materials.length > 0)
-        	data.geom.instanceElements = @:privateAccess this.materials[0].shader.contexts[0].instanceElements;
+			data.geom.instanceElements = @:privateAccess this.materials[0].shader.contexts[0].instanceElements;
 
 		data.refcount++;
 
@@ -278,9 +278,9 @@ class MeshObject extends Object {
 		#end
 		#if arm_particles
 		if (particleSystems != null && particleSystems.length > 0 && !render_emitter) return;
-        if (particleSystems == null && cullMaterial(context)) return;
+		if (particleSystems == null && cullMaterial(context)) return;
 		#else
-        if (cullMaterial(context)) return;
+		if (cullMaterial(context)) return;
 		#end
 
 		// Get lod

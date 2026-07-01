@@ -25,7 +25,7 @@ class MathNode extends LogicNode {
 		} else {
 			return Math.abs(fract((a - b) / (b * 2.0)) * b * 2.0 - b);
 		}
-	}  
+	}
 
 	override function get(from: Int): Dynamic {
 		var r = 0.0;

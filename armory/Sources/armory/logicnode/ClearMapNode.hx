@@ -2,7 +2,7 @@ package armory.logicnode;
 
 
 class ClearMapNode extends LogicNode {
-  
+
 	public function new(tree:LogicTree) {
 		super(tree);
 	}

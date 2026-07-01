@@ -31,13 +31,13 @@ class GetObjectInstancedNode extends LogicNode {
 
 	public static function toArray(elements: Float32Array): Array<Float>{
 		if (elements == null) return null;
-        var len = elements.length;
-        var nid: Array<Float> = []; 
-        
-        for (i in 0...len) {
-            nid[i] = elements[i];
-        }
-       
-        return nid;
-    }
+		var len = elements.length;
+		var nid: Array<Float> = []; 
+		
+		for (i in 0...len) {
+			nid[i] = elements[i];
+		}
+	   
+		return nid;
+	}
 }

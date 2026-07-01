@@ -63,16 +63,16 @@ class GetImageColorNode extends LogicNode {
 
 		if (property0.indexOf('2D') > 0)
 			for (f in @:privateAccess iron.App.traitRenders2D)
-		    	f(renderTarget.g2);
+				f(renderTarget.g2);
 
 		if (Image.renderTargetsInvertedY()){
 			renderTarget.g2.scale(1, -1);
 			renderTarget.g2.translate(0, renderTarget.height);
 		}
 
-	    renderTarget.g2.end();
+		renderTarget.g2.end();
 
-	    var pixels = renderTarget.getPixels();
+		var pixels = renderTarget.getPixels();
 
 		var k = j * renderTarget.width + i;
 		

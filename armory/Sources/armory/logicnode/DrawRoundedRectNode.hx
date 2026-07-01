@@ -67,52 +67,52 @@ class DrawRoundedRectNode extends LogicNode {
 	}
 
 	function drawRoundedRect(x:Float, y:Float, width:Float, height:Float, radius:Float, segments:Int):Array<Array<Float>> {
-        var vertices:Array<Array<Float>> = [];
+		var vertices:Array<Array<Float>> = [];
 
-        vertices.push([x + radius, y]);
-        vertices.push([x + width - radius, y]);
-
-        for (i in 0...segments) {
-            var angle:Float = Math.PI / 2 * (segments - i) / segments;
-            vertices.push([
-                x + width - radius + Math.cos(angle) * radius,
-                y + radius - Math.sin(angle) * radius
-            ]);
-        }
-
-        vertices.push([x + width, y + radius]);
-        vertices.push([x + width, y + height - radius]);
-
-        for (i in 0...segments) {
-            var angle:Float = Math.PI / 2 * i / segments;
-            vertices.push([
-                x + width - radius + Math.cos(angle) * radius,
-                y + height - radius + Math.sin(angle) * radius
-            ]);
-        }
-		
-        vertices.push([x + width - radius, y + height]);
-        vertices.push([x + radius, y + height]);
+		vertices.push([x + radius, y]);
+		vertices.push([x + width - radius, y]);
 
 		for (i in 0...segments) {
-            var angle:Float = Math.PI / 2 * (segments - i) / segments;
-            vertices.push([
-                x + radius - Math.cos(angle) * radius,
-                y + height - radius + Math.sin(angle) * radius
-            ]);
-        }
+			var angle:Float = Math.PI / 2 * (segments - i) / segments;
+			vertices.push([
+				x + width - radius + Math.cos(angle) * radius,
+				y + radius - Math.sin(angle) * radius
+			]);
+		}
 
-        vertices.push([x, y + height - radius]);
+		vertices.push([x + width, y + radius]);
+		vertices.push([x + width, y + height - radius]);
 
-        for (i in 0...segments) {
-            var angle:Float = Math.PI / 2 * i / segments;
-            vertices.push([
-                x + radius - Math.cos(angle) * radius,
-                y + radius - Math.sin(angle) * radius
-            ]);
-        }
+		for (i in 0...segments) {
+			var angle:Float = Math.PI / 2 * i / segments;
+			vertices.push([
+				x + width - radius + Math.cos(angle) * radius,
+				y + height - radius + Math.sin(angle) * radius
+			]);
+		}
+		
+		vertices.push([x + width - radius, y + height]);
+		vertices.push([x + radius, y + height]);
 
-        return vertices;
-    }
-    #end
+		for (i in 0...segments) {
+			var angle:Float = Math.PI / 2 * (segments - i) / segments;
+			vertices.push([
+				x + radius - Math.cos(angle) * radius,
+				y + height - radius + Math.sin(angle) * radius
+			]);
+		}
+
+		vertices.push([x, y + height - radius]);
+
+		for (i in 0...segments) {
+			var angle:Float = Math.PI / 2 * i / segments;
+			vertices.push([
+				x + radius - Math.cos(angle) * radius,
+				y + radius - Math.sin(angle) * radius
+			]);
+		}
+
+		return vertices;
+	}
+	#end
 }

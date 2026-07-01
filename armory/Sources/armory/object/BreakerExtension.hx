@@ -139,11 +139,11 @@ class ConvexBreaker {
 
 		scope.cutByPlane(object, tempPlane2, scope.tempCutResult);
 
-	    var object1 = scope.tempCutResult.object1;
-	    var object2 = scope.tempCutResult.object2;
+		var object1 = scope.tempCutResult.object1;
+		var object2 = scope.tempCutResult.object2;
 
-	    if (object1 != null) debris.push(object1);
-	    if (object2 != null) debris.push(object2);
+		if (object1 != null) debris.push(object1);
+		if (object2 != null) debris.push(object2);
 
 		Scene.active.meshes.remove(object);
 

@@ -736,19 +736,19 @@ class Uniforms {
 	static function setObjectConstant(g: Graphics, object: Object, location: ConstantLocation, c: TShaderConstant) {
 		#if arm_spot
 		if (c.name == "LWVPSpot") {
-	        var light = getSpot(0); 
-	        if (light != null) {
-	            if (object == null) helpMat.setIdentity();
-	            else helpMat.setFrom(object.transform.worldUnpack);
+			var light = getSpot(0); 
+			if (light != null) {
+				if (object == null) helpMat.setIdentity();
+				else helpMat.setFrom(object.transform.worldUnpack);
 
-	            helpMat.multmat(light.VP);
-	            helpMat.multmat(biasMat);
+				helpMat.multmat(light.VP);
+				helpMat.multmat(biasMat);
 
-	            g.setMatrix(location, helpMat.self);
-	            return;
-	        }
+				g.setMatrix(location, helpMat.self);
+				return;
+			}
 		}
-	    #end
+		#end
 
 		if (c.link == null) return;
 

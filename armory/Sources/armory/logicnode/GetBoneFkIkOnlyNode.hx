@@ -22,11 +22,11 @@ class GetBoneFkIkOnlyNode extends LogicNode {
 		// Get bone in armature
 		var bone = anim.getBone(boneName);
 
-        //Get bone transform in world coordinates
-        return bone.is_ik_fk_only;
+		//Get bone transform in world coordinates
+		return bone.is_ik_fk_only;
  
-        #else
-        return null;
+		#else
+		return null;
 
 		#end
 	}

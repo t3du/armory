@@ -22,12 +22,12 @@ class GetLightDataNode extends LogicNode {
 			case 1:
 				return light.data.raw.type == "sun" ? light.data.raw.strength / 0.325 : light.data.raw.strength / 0.01;
 			case 2:
-				return new Vec4(light.data.raw.color[0],  light.data.raw.color[1], light.data.raw.color[2]);
+				return new Vec4(light.data.raw.color[0], light.data.raw.color[1], light.data.raw.color[2]);
 			#else
 			case 1:
 				return light.data.raw.type == "sun" ? light.data.raw.strength / 0.325 : light.strength / 0.01;
 			case 2:
-				return light.data.raw.type == "sun" ? new Vec4(light.data.raw.color[0],  light.data.raw.color[1], light.data.raw.color[2]) : light.color;
+				return light.data.raw.type == "sun" ? new Vec4(light.data.raw.color[0], light.data.raw.color[1], light.data.raw.color[2]) : light.color;
 			#end
 			case 3:
 				light.data.raw.cast_shadow;

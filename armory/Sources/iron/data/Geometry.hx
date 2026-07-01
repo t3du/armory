@@ -140,19 +140,19 @@ class Geometry {
 		}
 
 		if (instanceElements != null && instanceElements.length > 0) {
-		    for (elem in instanceElements) {
-		        if (StringTools.startsWith(elem.name, "i") && elem.name != "ipos" && elem.name != "irot" && elem.name != "iscl") {
-		            var vdata = VertexData.Float1;
-		            var dataStr: String = Reflect.field(elem, "data");
-		            switch (dataStr) {
-		                case "float1": vdata = VertexData.Float1;
-		                case "float2": vdata = VertexData.Float2;
-		                case "float3": vdata = VertexData.Float3;
-		                case "float4": vdata = VertexData.Float4;
-		            }
-		            structure.add(elem.name, vdata);
-		        }
-		    }
+			for (elem in instanceElements) {
+				if (StringTools.startsWith(elem.name, "i") && elem.name != "ipos" && elem.name != "irot" && elem.name != "iscl") {
+					var vdata = VertexData.Float1;
+					var dataStr: String = Reflect.field(elem, "data");
+					switch (dataStr) {
+						case "float1": vdata = VertexData.Float1;
+						case "float2": vdata = VertexData.Float2;
+						case "float3": vdata = VertexData.Float3;
+						case "float4": vdata = VertexData.Float4;
+					}
+					structure.add(elem.name, vdata);
+				}
+			}
 		}
 
 		this.instanceStride = Std.int(structure.byteSize() / 4);
@@ -165,13 +165,13 @@ class Geometry {
 	}
 
 	public function updateInstanced(data: Float32Array) {
-	    if (instancedVB == null) return;
+		if (instancedVB == null) return;
 
-	    var vertices = instancedVB.lock();
-	    for (i in 0...Std.int(vertices.byteLength / 4)) {
-	        vertices.setFloat32(i * 4, data[i]);
-	    }
-	    instancedVB.unlock();
+		var vertices = instancedVB.lock();
+		for (i in 0...Std.int(vertices.byteLength / 4)) {
+			vertices.setFloat32(i * 4, data[i]);
+		}
+		instancedVB.unlock();
 	}
 
 	public function copyVertices(vertices: ByteArray, offset = 0, fakeUVs = false) {

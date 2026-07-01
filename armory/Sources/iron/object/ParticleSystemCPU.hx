@@ -17,28 +17,28 @@ import kha.arrays.Int16Array;
 import kha.arrays.Uint32Array;
 
 class ParticleSystemCPU {
-    public var data: ParticleData;
+	public var data: ParticleData;
 	public var speed: FastFloat = 1.0; // Not used yet. Added to go in hand with `ParticleSystemGPU`
-    var r: TParticleData;
+	var r: TParticleData;
 
-    // Format
+	// Format
 	final baseFrameRate: FastFloat = 24.0;
-    var frameRate: FastFloat = 24.0;
+	var frameRate: FastFloat = 24.0;
 
-    // Emission
+	// Emission
 	var type: Int = 0; // type: 0 - Emission, 1 - Hair
-    var count: Int = 10; // count
-    var frameStart: FastFloat = 1; // frame_start
-    var frameEnd: FastFloat = 10.0; // frame_end
-    var lifetime: FastFloat = 24.0; // lifetime
-    var lifetimeRandom: FastFloat = 0.0; // lifetime_random
-    var emitFrom: Int = 1; // emit_from: 0 - Vert, 1 - Face, 2 - Volume // TODO: fully integrate Blender's properties
+	var count: Int = 10; // count
+	var frameStart: FastFloat = 1; // frame_start
+	var frameEnd: FastFloat = 10.0; // frame_end
+	var lifetime: FastFloat = 24.0; // lifetime
+	var lifetimeRandom: FastFloat = 0.0; // lifetime_random
+	var emitFrom: Int = 1; // emit_from: 0 - Vert, 1 - Face, 2 - Volume // TODO: fully integrate Blender's properties
 
-    // Velocity
-    var velocity: Vec3 = new Vec3(0.0, 0.0, 1.0); // object_align_factor: Float32Array
-    var velocityRandom: FastFloat = 0.0; // factor_random
+	// Velocity
+	var velocity: Vec3 = new Vec3(0.0, 0.0, 1.0); // object_align_factor: Float32Array
+	var velocityRandom: FastFloat = 0.0; // factor_random
 
-    // Rotation
+	// Rotation
 	var rotation: Bool = false; // use_rotations
 	var orientationAxis: Int = 0; // rotation_mode: 0 - None, 1 - Normal, 2 - Normal-Tangent, 3 - Velocity/Hair, 4 - Global X, 5 - Global Y, 6 - Global Z, 7 - Object X, 8 - Object Y, 9 - Object Z
 	var rotationRandom: FastFloat = 0.0; // rotation_factor_random
@@ -46,30 +46,30 @@ class ParticleSystemCPU {
 	var phaseRandom: FastFloat = 0.0; // phase_factor_random
 	var dynamicRotation: Bool = false; // use_dynamic_rotation
 
-    // Render
-    var instanceObject: String; // instance_object
-    var scale: FastFloat = 1.0; // particle_size
-    var scaleRandom: FastFloat = 0.0; // size_random
+	// Render
+	var instanceObject: String; // instance_object
+	var scale: FastFloat = 1.0; // particle_size
+	var scaleRandom: FastFloat = 0.0; // size_random
 
-    // Field weights
-    var gravity: Vec3 = new Vec3(0, 0, -9.8);
-    var gravityFactor: FastFloat = 1.0; // weight_gravity
+	// Field weights
+	var gravity: Vec3 = new Vec3(0, 0, -9.8);
+	var gravityFactor: FastFloat = 1.0; // weight_gravity
 	var textureFactor: FastFloat = 1.0; // weight_texture
 
 	// Textures
 	var textureSlots: Map<String, Dynamic> = [];
 
-    // Armory props
-    var autoStart: Bool = true; // auto_start
+	// Armory props
+	var autoStart: Bool = true; // auto_start
 	var localCoords: Bool = false; // local_coords
-    var loop: Bool = false; // loop
+	var loop: Bool = false; // loop
 
-    // Internal logic
-    var owner: MeshObject;
-    var lifetimeSeconds: FastFloat = 0.0;
-    var spawnRate: FastFloat = 0.0;
+	// Internal logic
+	var owner: MeshObject;
+	var lifetimeSeconds: FastFloat = 0.0;
+	var spawnRate: FastFloat = 0.0;
 	var spawnFactor: Int = 1;
-    var spawnedParticles: Int = 0;
+	var spawnedParticles: Int = 0;
 	var particleScale: FastFloat = 1.0;
 	var loopAnim: TAnim;
 	var spawnTime: FastFloat = 0;
@@ -87,20 +87,20 @@ class ParticleSystemCPU {
 	var particlePool: Array<Object> = [];
 	var particlePhysics: Map<Object, TParticlePhysics> = [];
 
-    public function new(sceneName: String, pref: TParticleReference, mo: MeshObject) {
-        Data.getParticle(sceneName, pref.particle, function (b: ParticleData) {
-            data = b;
-            r = data.raw;
+	public function new(sceneName: String, pref: TParticleReference, mo: MeshObject) {
+		Data.getParticle(sceneName, pref.particle, function (b: ParticleData) {
+			data = b;
+			r = data.raw;
 			owner = mo;
 
 			frameRate = r.fps;
 			type = r.type;
-            count = r.count;
-            frameStart = r.frame_start;
-            frameEnd = r.frame_end;
-            lifetime = r.lifetime;
-            lifetimeRandom = r.lifetime_random;
-            emitFrom = r.emit_from;
+			count = r.count;
+			frameStart = r.frame_start;
+			frameEnd = r.frame_end;
+			lifetime = r.lifetime;
+			lifetimeRandom = r.lifetime_random;
+			emitFrom = r.emit_from;
 
 			rotation = r.use_rotations;
 			orientationAxis = r.rotation_mode;
@@ -109,18 +109,18 @@ class ParticleSystemCPU {
 			phaseRandom = r.phase_factor_random;
 			dynamicRotation = r.use_dynamic_rotation;
 
-            instanceObject = r.instance_object;
+			instanceObject = r.instance_object;
 
-            scale = r.particle_size;
-            scaleRandom = r.size_random;
+			scale = r.particle_size;
+			scaleRandom = r.size_random;
 
 			velocity = new Vec3(r.object_align_factor[0], r.object_align_factor[1], r.object_align_factor[2]).mult(frameRate / baseFrameRate).mult(1 / scale);
-            velocityRandom = r.factor_random * (frameRate / baseFrameRate);
+			velocityRandom = r.factor_random * (frameRate / baseFrameRate);
 
-            if (Scene.active.raw.gravity != null) {
-                gravity = new Vec3(Scene.active.raw.gravity[0], Scene.active.raw.gravity[1], Scene.active.raw.gravity[2]).mult(frameRate / baseFrameRate).mult(1 / scale);
-            }
-            gravityFactor = r.weight_gravity * (frameRate / baseFrameRate);
+			if (Scene.active.raw.gravity != null) {
+				gravity = new Vec3(Scene.active.raw.gravity[0], Scene.active.raw.gravity[1], Scene.active.raw.gravity[2]).mult(frameRate / baseFrameRate).mult(1 / scale);
+			}
+			gravityFactor = r.weight_gravity * (frameRate / baseFrameRate);
 			textureFactor = r.weight_texture;
 
 			if (r.texture_slots != null) {
@@ -129,12 +129,12 @@ class ParticleSystemCPU {
 				}
 			}
 
-            autoStart = r.auto_start;
+			autoStart = r.auto_start;
 			localCoords = r.local_coords;
-            loop = r.loop;
+			loop = r.loop;
 
-            spawnRate = ((frameEnd - frameStart) / count) / frameRate;
-            lifetimeSeconds = lifetime / frameRate;
+			spawnRate = ((frameEnd - frameStart) / count) / frameRate;
+			lifetimeSeconds = lifetime / frameRate;
 
 			scaleElementsCount = getRampElementsLength();
 			scaleRampSizeFactor = getRampSizeFactor();
@@ -173,14 +173,14 @@ class ParticleSystemCPU {
 				default:
 			}
 		});
-    }
+	}
 
-    public function start() {
+	public function start() {
 		if (type != 0) return;
 		spawnTime = 0;
 		spawnedParticles = 0;
 		Tween.to(loopAnim);
-    }
+	}
 
 	// TODO
 	public function pause() {
@@ -192,15 +192,15 @@ class ParticleSystemCPU {
 
 	}
 
-    public function stop() {
+	public function stop() {
 		if (type != 0) return;
 		spawnTime = 0;
-        spawnedParticles = 0;
+		spawnedParticles = 0;
 		Tween.stop(loopAnim);
 
 		for (particle => physics in particlePhysics) releaseParticle(particle);
 		particlePhysics.clear();
-    }
+	}
 
 	function addToPool() {
 		Scene.active.spawnObject(instanceObject, localCoords ? owner : null, function (o: Object) {
@@ -226,7 +226,7 @@ class ParticleSystemCPU {
 		o.transform.scale = new Vec4(1, 1, 1, 1);
 	}
 
-    function spawnParticle() {
+	function spawnParticle() {
 		var o: Object = getFreeParticle();
 		if (o == null) {
 			addToPool();
@@ -366,7 +366,7 @@ class ParticleSystemCPU {
 
 		particlePhysics.set(o, physics);
 		o.transform.buildMatrix();
-    }
+	}
 
 	function updateParticles() {
 		for (particle => physics in particlePhysics) {

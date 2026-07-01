@@ -75,7 +75,7 @@ class CurveObject extends Object {
 			splines: [],
 			strength: data.strength,
 			color: copyFloat32Array(data.color),
-			material_refs: data.material_refs	        
+			material_refs: data.material_refs
 		};
 
 		for (spline in data.splines) {

@@ -9,10 +9,10 @@ class ColorMixNode extends LogicNode {
 	}
 
 	override function get(from: Int): Dynamic {
-        var c1: Vec4 = inputs[0].get();
-        var c2: Vec4 = inputs[1].get();
-        var factor: Float = inputs[2].get();
-        
-        return armory.trait.internal.Spectral.mix([c1, c2], [1.0 - factor, factor]);
-    }
+		var c1: Vec4 = inputs[0].get();
+		var c2: Vec4 = inputs[1].get();
+		var factor: Float = inputs[2].get();
+		
+		return armory.trait.internal.Spectral.mix([c1, c2], [1.0 - factor, factor]);
+	}
 }

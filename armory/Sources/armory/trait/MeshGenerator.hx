@@ -64,32 +64,32 @@ class MeshGenerator extends Trait {
 			var points: Array<Vec4> = [];
 
 			for (i in 0...numPoints) {
-			    var x = (Math.random() - 0.5) * radius;
-			    var y = (Math.random() - 0.5) * radius;
-			    var z = (Math.random() - 0.5) * radius;
+				var x = (Math.random() - 0.5) * radius;
+				var y = (Math.random() - 0.5) * radius;
+				var z = (Math.random() - 0.5) * radius;
 
-			    points.push(new Vec4(x, y, z));
+				points.push(new Vec4(x, y, z));
 
-			    if (mirrorX)
-			        points.push(new Vec4(-x, y, z));
+				if (mirrorX)
+					points.push(new Vec4(-x, y, z));
 
-			    if (mirrorY)
-			        points.push(new Vec4(x, -y, z));
-			    
-			    if (mirrorZ)
-			        points.push(new Vec4(x, y, -z));
+				if (mirrorY)
+					points.push(new Vec4(x, -y, z));
+				
+				if (mirrorZ)
+					points.push(new Vec4(x, y, -z));
 
-			    if (mirrorX && mirrorY)
-			        points.push(new Vec4(-x, -y, z));
-			    
-			    if (mirrorX && mirrorZ)
-			        points.push(new Vec4(-x, y, -z));
-			    
-			    if (mirrorY && mirrorZ)
-			        points.push(new Vec4(x, -y, -z));
+				if (mirrorX && mirrorY)
+					points.push(new Vec4(-x, -y, z));
+				
+				if (mirrorX && mirrorZ)
+					points.push(new Vec4(-x, y, -z));
+				
+				if (mirrorY && mirrorZ)
+					points.push(new Vec4(x, -y, -z));
 
-			    if (mirrorX && mirrorY && mirrorZ)
-			        points.push(new Vec4(-x, -y, -z));
+				if (mirrorX && mirrorY && mirrorZ)
+					points.push(new Vec4(-x, -y, -z));
 			}
  
 		md = MeshDataExtension.makeMeshData(points, scaleUV, flatShading);
@@ -99,32 +99,32 @@ class MeshGenerator extends Trait {
 		/*safe mesh
 		// Plane
 		points = [
-		    new Vec4(-1.0, 0.0, -1.0), //
-		    new Vec4( 1.0, 0.0, -1.0), //
-		    new Vec4( 1.0, 0.0,  1.0), //
-		    new Vec4(-1.0, 0.0,  1.0)  //
+			new Vec4(-1.0, 0.0, -1.0), //
+			new Vec4( 1.0, 0.0, -1.0), //
+			new Vec4( 1.0, 0.0,  1.0), //
+			new Vec4(-1.0, 0.0,  1.0)  //
 		];
 
 		if (md == null) {
-	        points = [
-	            new Vec4(-0.5, -0.5, -0.5), new Vec4(0.5, -0.5, -0.5),
-	            new Vec4(0.5, 0.5, -0.5), new Vec4(-0.5, 0.5, -0.5),
-	            new Vec4(-0.5, -0.5, 0.5), new Vec4(0.5, -0.5, 0.5),
-	            new Vec4(0.5, 0.5, 0.5), new Vec4(-0.5, 0.5, 0.5)
-	        ];
+			points = [
+				new Vec4(-0.5, -0.5, -0.5), new Vec4(0.5, -0.5, -0.5),
+				new Vec4(0.5, 0.5, -0.5), new Vec4(-0.5, 0.5, -0.5),
+				new Vec4(-0.5, -0.5, 0.5), new Vec4(0.5, -0.5, 0.5),
+				new Vec4(0.5, 0.5, 0.5), new Vec4(-0.5, 0.5, 0.5)
+			];
 
-	        for (p in points) {
-	            p.x *= radius;
-	            p.y *= radius;
-	            p.z *= radius;
+			for (p in points) {
+				p.x *= radius;
+				p.y *= radius;
+				p.z *= radius;
 
-	            var offset = radius * 0.1;
-	            p.x += (Math.random() - 0.5) * offset;
-	            p.y += (Math.random() - 0.5) * offset;
-	            p.z += (Math.random() - 0.5) * offset;
-	        }
+				var offset = radius * 0.1;
+				p.x += (Math.random() - 0.5) * offset;
+				p.y += (Math.random() - 0.5) * offset;
+				p.z += (Math.random() - 0.5) * offset;
+			}
 
-	        md = MeshDataExtension.makeMeshData(points);
+			md = MeshDataExtension.makeMeshData(points);
 		}
 		*/
 
@@ -135,7 +135,7 @@ class MeshGenerator extends Trait {
 				mat[0] = data != null ? data : Scene.active.meshes[0].materials[0];	
 			});
 		 else
-		    mat[0] = Scene.active.meshes[0].materials[0];	
+			mat[0] = Scene.active.meshes[0].materials[0];	
 
 		var obj: Object = cast new MeshObject(md, mat);
 		obj.name = md.name;
@@ -150,11 +150,11 @@ class MeshGenerator extends Trait {
 		dims[2] = md.geom.aabb.z;
 
 		obj.raw = { 
-		    type: "mesh_object", 
-		    name: md.name, 
-		    data_ref: md.name, 
-		    transform: { values: v },
-		    dimensions: dims
+			type: "mesh_object", 
+			name: md.name, 
+			data_ref: md.name, 
+			transform: { values: v },
+			dimensions: dims
 		};
 
 		obj.setParent(Scene.active.root);

@@ -146,8 +146,8 @@ class DebugConsole extends Trait {
 	var debugDrawSet = false;
 
 	override public function remove() {
-	    selectedObject = null;
-	    super.remove();
+		selectedObject = null;
+		super.remove();
 	}
 
 	function selectObject(o: iron.object.Object) {
@@ -678,8 +678,8 @@ class DebugConsole extends Trait {
 					ui.text(iron.RenderPath.drawCalls + "", Align.Right);
 
 					ui.row(lrow);
-				    ui.text("Draw 2D calls");
-				    ui.text(@:privateAccess iron.App.traitRenders2D.length + "", Align.Right);
+					ui.text("Draw 2D calls");
+					ui.text(@:privateAccess iron.App.traitRenders2D.length + "", Align.Right);
 
 					ui.row(lrow);
 					ui.text("Tris mesh");
@@ -714,21 +714,21 @@ class DebugConsole extends Trait {
 				}
 
 				if (ui.panel(Id.handle({selected: false}), "Draw2D")) {
-				    ui.indent();
-				    ui.row(lrow);
-				    ui.text("Draw 2D calls");
-				    ui.text(@:privateAccess iron.App.traitRenders2D.length + "", Align.Right);
-				    for (o in iron.Scene.active.root.children) {
-				        if (o.traits != null) {
-				            for (t in o.traits) {
-				                var renders: Array<Dynamic> = Reflect.field(t, "_render2D");
-				                if (t != null && renders != null) {
-				                    ui.text(o.name + " : " + Type.getClassName(Type.getClass(t)) + " (" + renders.length + ")");
-				                }
-				            }
-				        }
-				    }
-				    ui.unindent();
+					ui.indent();
+					ui.row(lrow);
+					ui.text("Draw 2D calls");
+					ui.text(@:privateAccess iron.App.traitRenders2D.length + "", Align.Right);
+					for (o in iron.Scene.active.root.children) {
+						if (o.traits != null) {
+							for (t in o.traits) {
+								var renders: Array<Dynamic> = Reflect.field(t, "_render2D");
+								if (t != null && renders != null) {
+									ui.text(o.name + " : " + Type.getClassName(Type.getClass(t)) + " (" + renders.length + ")");
+								}
+							}
+						}
+					}
+					ui.unindent();
 				}
 
 				#if arm_shadowmap_atlas

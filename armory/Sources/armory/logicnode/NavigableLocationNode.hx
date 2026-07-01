@@ -24,9 +24,9 @@ class NavigableLocationNode extends LogicNode {
 			var dim: Vec4 = object.transform.dim;
 
 			var v = new Vec4(
-			    centerLoc.x + dim.x * 0.5 * (Math.random() * 2.0 - 1.0),
-			    centerLoc.y + dim.y * 0.5 * (Math.random() * 2.0 - 1.0),
-			    centerLoc.z + dim.z * 0.5 * (Math.random() * 2.0 - 1.0)
+				centerLoc.x + dim.x * 0.5 * (Math.random() * 2.0 - 1.0),
+				centerLoc.y + dim.y * 0.5 * (Math.random() * 2.0 - 1.0),
+				centerLoc.z + dim.z * 0.5 * (Math.random() * 2.0 - 1.0)
 			);
 		
 			assert(Error, Navigation.active.navMeshes.length > 0, "No Navigation Mesh Present");

@@ -18,7 +18,7 @@ class GetCursorStateNode extends LogicNode {
 				mouse.hidden;
 			case 2:
 				mouse.locked;
-    			default: 
+				default: 
 				null;
 		}
 	}

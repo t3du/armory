@@ -59,14 +59,14 @@ class GetObjectGeomNode extends LogicNode {
 			var n = new Vec4(normals[i*2]/32767, normals[i*2+1]/32767, positions[i*4+3]/32767, 1);
 			
 			if (property0 == "Global") {
-		        p.applymat(worldMat);
+				p.applymat(worldMat);
 				var m = worldMat.clone();
 				m.getInverse(m);
 				m.transpose3x3();
 				m._30 = 0; m._31 = 0; m._32 = 0;
 				n.applymat(m);
 				n.normalize();
-		    }
+			}
 
 			pos.push(p);
 			nor.push(n);

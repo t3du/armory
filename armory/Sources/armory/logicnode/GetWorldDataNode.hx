@@ -25,10 +25,10 @@ class GetWorldDataNode extends LogicNode {
 	}
 
 	function intToColor(val: Int): Array<Float> {
-	    var a: Float = ((val >>> 24) & 0xff) / 255.0;
-	    var r: Float = ((val >> 16) & 0xff) / 255.0;
-	    var g: Float = ((val >> 8) & 0xff) / 255.0;
-	    var b: Float = (val & 0xff) / 255.0;
-	    return [r, g, b, a];
+		var a: Float = ((val >>> 24) & 0xff) / 255.0;
+		var r: Float = ((val >> 16) & 0xff) / 255.0;
+		var g: Float = ((val >> 8) & 0xff) / 255.0;
+		var b: Float = (val & 0xff) / 255.0;
+		return [r, g, b, a];
 	}
 }

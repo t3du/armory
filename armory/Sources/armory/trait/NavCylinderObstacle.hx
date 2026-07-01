@@ -19,7 +19,7 @@ class NavCylinderObstacle extends Trait {
 	public var height: Float = 1.0;
 
 	@prop 
-    public var isStatic: Bool = true;
+	public var isStatic: Bool = true;
 
 	var obstacleID: Int = -1;
 

@@ -14,99 +14,99 @@ class CreateMapNode extends LogicNode {
 
 	override function run(from:Int) {
 		if(property0 == "string"){
-        switch (property1) {
-            case "string":
-            		map = new Map<String, String>();
+		switch (property1) {
+			case "string":
+					map = new Map<String, String>();
 					runOutput(0);
-            case "vector":
-            		map = new Map<String, Vec4>();
+			case "vector":
+					map = new Map<String, Vec4>();
 					runOutput(0);
-            case "float":
-            		map = new Map<String, Float>();
+			case "float":
+					map = new Map<String, Float>();
 					runOutput(0);
-            case "integer":
-            		map = new Map<String, Int>();
+			case "integer":
+					map = new Map<String, Int>();
 					runOutput(0);
-            case "boolean":
-            		map = new Map<String, Bool>();
+			case "boolean":
+					map = new Map<String, Bool>();
 					runOutput(0);
-            case "dynamic":
-            		map = new Map<String, Dynamic>();
+			case "dynamic":
+					map = new Map<String, Dynamic>();
 					runOutput(0);
-            default: throw "Failed to create Map";
-        }
+			default: throw "Failed to create Map";
+		}
 		} else if (property0 == "int"){
-        switch (property1) {
-            case "string":
-            		map = new Map<Int, String>();
+		switch (property1) {
+			case "string":
+					map = new Map<Int, String>();
 					runOutput(0);
-            case "vector":
-            		map = new Map<Int, Vec4>();
+			case "vector":
+					map = new Map<Int, Vec4>();
 					runOutput(0);
-            case "float":
-            		map = new Map<Int, Float>();
+			case "float":
+					map = new Map<Int, Float>();
 					runOutput(0);
-            case "integer":
-            		map = new Map<Int, Int>();
+			case "integer":
+					map = new Map<Int, Int>();
 					runOutput(0);
-            case "boolean":
-            		map = new Map<Int, Bool>();
+			case "boolean":
+					map = new Map<Int, Bool>();
 					runOutput(0);
-            case "dynamic":
-            		map = new Map<Int, Dynamic>();
+			case "dynamic":
+					map = new Map<Int, Dynamic>();
 					runOutput(0);
-            default: throw "Failed to create Map";
-        }
+			default: throw "Failed to create Map";
+		}
 		} else if (property0 == "enumvalue"){
-        switch (property1) {
-            case "string":
-            		map = new Map<EnumValue,String>();
+		switch (property1) {
+			case "string":
+					map = new Map<EnumValue,String>();
 					runOutput(0);
-            case "vector":
-            		map = new Map<EnumValue,Vec4>();
+			case "vector":
+					map = new Map<EnumValue,Vec4>();
 					runOutput(0);
-            case "float":
-            		map = new Map<EnumValue,Float>();
+			case "float":
+					map = new Map<EnumValue,Float>();
 					runOutput(0);
-            case "integer":
-            		map = new Map<EnumValue,Int>();
+			case "integer":
+					map = new Map<EnumValue,Int>();
 					runOutput(0);
-            case "boolean":
-            		map = new Map<EnumValue,Bool>();
+			case "boolean":
+					map = new Map<EnumValue,Bool>();
 					runOutput(0);
-            case "dynamic":
-            		map = new Map<EnumValue,Dynamic>();
+			case "dynamic":
+					map = new Map<EnumValue,Dynamic>();
 					runOutput(0);
-            default: throw "Failed to create Map";
-        }
+			default: throw "Failed to create Map";
+		}
 		} else if (property0 == "object"){
-        switch (property1) {
-            case "string":
-            		map = new Map<{},String>();
+		switch (property1) {
+			case "string":
+					map = new Map<{},String>();
 					runOutput(0);
-            case "vector":
-            		map = new Map<{},Vec4>();
+			case "vector":
+					map = new Map<{},Vec4>();
 					runOutput(0);
-            case "float":
-            		map = new Map<{},Float>();
+			case "float":
+					map = new Map<{},Float>();
 					runOutput(0);
-            case "integer":
-            		map = new Map<{},Int>();
+			case "integer":
+					map = new Map<{},Int>();
 					runOutput(0);
-            case "boolean":
-            		map = new Map<{},Bool>();
+			case "boolean":
+					map = new Map<{},Bool>();
 					runOutput(0);
-            case "dynamic":
-            		map = new Map<{},Dynamic>();
+			case "dynamic":
+					map = new Map<{},Dynamic>();
 					runOutput(0);
-            default: throw "Failed to create Map";
-        }
+			default: throw "Failed to create Map";
+		}
 		}
 	}
 
 	override function get(from: Int): Map<Dynamic,Dynamic> {
-        return map;
-    }
+		return map;
+	}
 
 }
 
