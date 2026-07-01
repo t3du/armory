@@ -15,6 +15,14 @@ vec2 envMapEquirect(const vec3 normal) {
 	return vec2(theta / PI2, phi / PI);
 }
 
+vec2 envMapMirror(const vec3 co) {
+    vec3 nco = normalize(co);
+    nco.y -= 1.0;
+    float div = 2.0 * sqrt(max(-0.5 * nco.y, 0.0));
+    nco /= max(1e-8, div);
+    return 0.5 * nco.xz + 0.5;
+}
+
 float rand(const vec2 co) { // Unreliable
 	return fract(sin(dot(co.xy, vec2(12.9898, 78.233))) * 43758.5453);
 }

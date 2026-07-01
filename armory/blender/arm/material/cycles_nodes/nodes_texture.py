@@ -487,7 +487,10 @@ def parse_tex_environment(node: bpy.types.ShaderNodeTexEnvironment, out_socket: 
             state.curshader.add_uniform('vec3 cameraPos', link='_cameraPosition')
             co = 'reflect(normalize(wposition - cameraPos), n)'
 
-        state.curshader.write(f'vec2 uv = envMapEquirect(normalize({co}));')
+        if node.projection == 'EQUIRECTANGULAR':
+            state.curshader.write(f'vec2 uv = envMapEquirect(normalize({co}));')
+        else:
+            state.curshader.write(f'vec2 uv = envMapMirror(normalize({co}));')
         state.curshader.write(f'vec4 {tex_store} = textureLod({tex_name}, uv, 0.0);')
         if image.colorspace_settings.name == 'sRGB':
             state.curshader.write(f'{tex_store}.rgb = pow({tex_store}.rgb, vec3(2.2));')
@@ -585,7 +588,10 @@ def parse_tex_environment(node: bpy.types.ShaderNodeTexEnvironment, out_socket: 
     if rpdat.arm_irradiance and rpdat.arm_radiance and not mobile_mat:
         wrd.world_defs += '_Rad'
 
-    return 'texture(envmap, envMapEquirect(pos)).rgb * envmapStrength'
+    if node.projection == 'EQUIRECTANGULAR':
+        return 'texture(envmap, envMapEquirect(pos)).rgb * envmapStrength'
+    else:
+        return 'texture(envmap, envMapMirror(pos)).rgb * envmapStrength'
 
 
 def parse_tex_voronoi(node: bpy.types.ShaderNodeTexVoronoi, out_socket: bpy.types.NodeSocket, state: ParserState) -> Union[floatstr, vec3str]:
