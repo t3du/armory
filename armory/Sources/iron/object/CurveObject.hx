@@ -56,12 +56,12 @@ class CurveObject extends Object {
 					if (materialsLoaded == data.material_refs.length) {
 						this.meshData = meshData;
 						var meshObject = new MeshObject(meshData, materials);
-					   	meshObject.name = this.data.object + "_mesh";
-					    meshObject.raw = cast {
-						    name: this.data.object + "_mesh",
-						    type: "mesh_object",
+						meshObject.name = this.data.object + "_mesh";
+						meshObject.raw = cast {
+							name: this.data.object + "_mesh",
+							type: "mesh_object",
 							};
-				    	meshObject.setParent(this);
+						meshObject.setParent(this);
 					}
 				});
 			}
@@ -69,54 +69,54 @@ class CurveObject extends Object {
 	}
 
 	public static function copyCurveData(data: TCurveData): TCurveData {
-	    var newData: TCurveData = {
-	    	name: data.name,
-	        object: data.object,
-	        splines: [],
-	        strength: data.strength,
-	        color: copyFloat32Array(data.color),
-	        material_refs: data.material_refs	        
-	    };
+		var newData: TCurveData = {
+			name: data.name,
+			object: data.object,
+			splines: [],
+			strength: data.strength,
+			color: copyFloat32Array(data.color),
+			material_refs: data.material_refs	        
+		};
 
-	    for (spline in data.splines) {
-	        var newSpline = {
-	            points: [],
-	            closed: spline.closed,
-	            resolution: spline.resolution
-	        };
-	        
-	        for (p in spline.points) {
-	            newSpline.points.push({
-	                co: copyFloat32Array(p.co),
-	                handle_left: copyFloat32Array(p.handle_left),
-	                handle_right: copyFloat32Array(p.handle_right)
-	            });
-	        }
-	        newData.splines.push(newSpline);
-	    }
-	    return newData;
+		for (spline in data.splines) {
+			var newSpline = {
+				points: [],
+				closed: spline.closed,
+				resolution: spline.resolution
+			};
+			
+			for (p in spline.points) {
+				newSpline.points.push({
+					co: copyFloat32Array(p.co),
+					handle_left: copyFloat32Array(p.handle_left),
+					handle_right: copyFloat32Array(p.handle_right)
+				});
+			}
+			newData.splines.push(newSpline);
+		}
+		return newData;
 	}
 
 	public static function copyFloat32Array(arr: Float32Array): Float32Array {
-	    var newArr = new Float32Array(arr.length);
-	    for (i in 0...arr.length) newArr[i] = arr[i];
-	    return newArr;
+		var newArr = new Float32Array(arr.length);
+		for (i in 0...arr.length) newArr[i] = arr[i];
+		return newArr;
 	}
 
 	public function getPoint(t: Float, splineIndex: Int = 0): Vec4 {
-	    if (data.splines == null || splinesLength <= splineIndex) return new Vec4();
+		if (data.splines == null || splinesLength <= splineIndex) return new Vec4();
 
-	    if (equidistantSamples <= 0) {
-	        return getBezierPoint(t, splineIndex);
-	    } 
-	    else {
-	        return getPointEquidistant(t, splineIndex, equidistantSamples);
-	    }
+		if (equidistantSamples <= 0) {
+			return getBezierPoint(t, splineIndex);
+		} 
+		else {
+			return getPointEquidistant(t, splineIndex, equidistantSamples);
+		}
 	}
 
 	public function getBezierPoint(t: Float, splineIndex: Int = 0): Vec4 {
 		if (data.splines == null || splinesLength <= splineIndex) return new Vec4();
-    	var spline = data.splines[splineIndex];
+		var spline = data.splines[splineIndex];
 		var points = spline.points;
 		if (points.length < 2) return new Vec4(points[0].co[0], points[0].co[1], points[0].co[2]);
 
@@ -144,36 +144,36 @@ class CurveObject extends Object {
 	}
 
 	public function getPointEquidistant(t: Float, splineIndex: Int = 0, samples: Int = 100): Vec4 {
-	    if (data.splines == null || splinesLength <= splineIndex) return new Vec4();
-	    
-	    var table = [0.0];
-	    var totalLength = 0.0;
-	    var lastP = getBezierPoint(0, splineIndex);
+		if (data.splines == null || splinesLength <= splineIndex) return new Vec4();
+		
+		var table = [0.0];
+		var totalLength = 0.0;
+		var lastP = getBezierPoint(0, splineIndex);
 
-	    for (i in 1...samples + 1) {
-	        var p = getBezierPoint(i / samples, splineIndex);
-	        totalLength += lastP.distanceTo(p);
-	        table.push(totalLength);
-	        lastP = p;
-	    }
+		for (i in 1...samples + 1) {
+			var p = getBezierPoint(i / samples, splineIndex);
+			totalLength += lastP.distanceTo(p);
+			table.push(totalLength);
+			lastP = p;
+		}
 
-	    var targetDistance = Math.max(0.0, Math.min(1.0, t)) * totalLength;
-	    var low = 0;
-	    var high = table.length - 1;
-	    
-	    while (low < high - 1) {
-	        var mid = Std.int((low + high) / 2);
-	        if (table[mid] < targetDistance) low = mid;
-	        else high = mid;
-	    }
+		var targetDistance = Math.max(0.0, Math.min(1.0, t)) * totalLength;
+		var low = 0;
+		var high = table.length - 1;
+		
+		while (low < high - 1) {
+			var mid = Std.int((low + high) / 2);
+			if (table[mid] < targetDistance) low = mid;
+			else high = mid;
+		}
 
-	    var distStart = table[low];
-	    var distEnd = table[high];
-	    var segmentLength = distEnd - distStart;
-	    var localT = (segmentLength <= 0) ? 0 : (targetDistance - distStart) / segmentLength;
-	    var correctedT = (low + localT) / (table.length - 1);
+		var distStart = table[low];
+		var distEnd = table[high];
+		var segmentLength = distEnd - distStart;
+		var localT = (segmentLength <= 0) ? 0 : (targetDistance - distStart) / segmentLength;
+		var correctedT = (low + localT) / (table.length - 1);
 
-	    return getBezierPoint(correctedT, splineIndex);
+		return getBezierPoint(correctedT, splineIndex);
 	}
 
 	function interpBezier(t: Float, p0: Vec4, p1: Vec4, p2: Vec4, p3: Vec4): Vec4 {
@@ -261,40 +261,40 @@ class CurveObject extends Object {
 	public function follow(obj: Object, t: Float, splineIndex: Int = 0, forwardAxis: String = "X", advanced: Bool = false) {
 		if (advanced){
 			var pos = getPoint(t, splineIndex);
-		    pos.applymat4(this.transform.world);
-		    
-		    var nextTangent = getTangent(t, splineIndex);
-		    nextTangent.applyQuat(this.transform.rot);
-		    nextTangent.normalize();
+			pos.applymat4(this.transform.world);
+			
+			var nextTangent = getTangent(t, splineIndex);
+			nextTangent.applyQuat(this.transform.rot);
+			nextTangent.normalize();
 
-		    var currentDir = new Vec4();
-		    
-		    if (forwardAxis == "Y") 
-		    	currentDir.set(obj.transform.world._10, obj.transform.world._11, obj.transform.world._12);
-		    else if (forwardAxis == "Z") 
-		    	currentDir.set(obj.transform.world._20, obj.transform.world._21, obj.transform.world._22);
-		    else 
-		    	currentDir.set(obj.transform.world._00, obj.transform.world._01, obj.transform.world._02);
-		    
-		    currentDir.normalize();
+			var currentDir = new Vec4();
+			
+			if (forwardAxis == "Y") 
+				currentDir.set(obj.transform.world._10, obj.transform.world._11, obj.transform.world._12);
+			else if (forwardAxis == "Z") 
+				currentDir.set(obj.transform.world._20, obj.transform.world._21, obj.transform.world._22);
+			else 
+				currentDir.set(obj.transform.world._00, obj.transform.world._01, obj.transform.world._02);
+			
+			currentDir.normalize();
 
-		    var binormal = new Vec4();
-		    binormal.setFrom(currentDir);
-		    binormal.cross(nextTangent);
-		    
-		    var dot = currentDir.dot(nextTangent);
-		    
-		    if (Math.abs(dot) < 0.999999) {
-		        binormal.normalize();
-		        var theta = Math.acos(Math.max(-1, Math.min(1, dot)));
-		        
-		        var deltaRot = new Quat();
-		        deltaRot.fromAxisAngle(binormal, theta);
-		        
-		        obj.transform.rot.multquats(deltaRot, obj.transform.rot);
-		    }
+			var binormal = new Vec4();
+			binormal.setFrom(currentDir);
+			binormal.cross(nextTangent);
+			
+			var dot = currentDir.dot(nextTangent);
+			
+			if (Math.abs(dot) < 0.999999) {
+				binormal.normalize();
+				var theta = Math.acos(Math.max(-1, Math.min(1, dot)));
+				
+				var deltaRot = new Quat();
+				deltaRot.fromAxisAngle(binormal, theta);
+				
+				obj.transform.rot.multquats(deltaRot, obj.transform.rot);
+			}
 
-		    obj.transform.loc.setFrom(pos);
+			obj.transform.loc.setFrom(pos);
 
 		} else {
 			var pos = getPoint(t, splineIndex);
@@ -321,8 +321,8 @@ class CurveObject extends Object {
 
 
 	override public function remove() {
-	    visible = false;
-	    super.remove();
+		visible = false;
+		super.remove();
 	}
 
 }
