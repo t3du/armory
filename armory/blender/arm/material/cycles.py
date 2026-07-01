@@ -677,7 +677,7 @@ def texture_store(node, tex, tex_name, to_linear=False, tex_link=None, default_v
             nor = 'TBN[2]'
         else:
             nor = 'n'
-        curshader.write('vec4 {0} = vec4(triplanarMapping({1}, {2}, {3}), 0.0);'.format(tex_store, tex_name, nor, uv_name))            
+        curshader.write('vec4 {0} = boxProjection({1}, {2}, {3});'.format(tex_store, tex_name, nor, uv_name))
     elif spherical:
         if not curshader.has_include('std/mapping.glsl'):
             curshader.add_include('std/mapping.glsl')
