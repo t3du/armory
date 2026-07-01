@@ -22,9 +22,9 @@ vec4 boxProjection(sampler2D image, vec3 normal, vec3 coord) {
 	}
 	color2 = texture(image, uv);
 
-	uv = coord.yx;
+	uv = vec2(coord.y, 1.0 - coord.x);
 	if (n.z > 0.0) {
-		uv.x = 1.0 - uv.x;
+	    uv.x = 1.0 - uv.x;
 	}
 	color3 = texture(image, uv);
 
@@ -44,7 +44,7 @@ vec2 sphericalMapping(vec3 coord) {
 		else {
 			u = (1.0 - atan(vin.x, vin.y) / PI) * 0.5;
 		}
-		v = 1.0 - acos(clamp(vin.z / len, -1.0, 1.0)) / PI;
+		v = acos(clamp(vin.z / len, -1.0, 1.0)) / PI;
 	}
 	else {
 		v = u = 0.0;
@@ -55,7 +55,7 @@ vec2 sphericalMapping(vec3 coord) {
 vec2 tubeMapping(vec3 coord) {
 	vec3 vin = coord * 2.0 - vec3(1.0);
 	float u, v;
-	v = (vin.z + 1.0) * 0.5;
+	v = - (vin.z + 1.0) * 0.5;
 	float len = sqrt(vin.x * vin.x + vin.y * vin.y);
 	if (len > 0.0) {
 		u = (1.0 - (atan(vin.x / len, vin.y / len) / PI)) * 0.5;
