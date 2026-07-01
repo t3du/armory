@@ -4,7 +4,7 @@ class ColorgradingShadowNode extends LogicNode {
 
 	public var property0:Dynamic;
 	public var property1:Dynamic;
-	public var property2:Dynamic;   
+	public var property2:Dynamic;
 	public var property3:Dynamic;
 
 	var value:Dynamic;

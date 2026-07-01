@@ -41,7 +41,7 @@ class DrawToImageNode extends LogicNode {
 		for (j in ty...ty + th) {
 			for (i in tx...tx + tw) {
 				var l = j * img.width + i;
-				var m =  (j - ty) * tw + i - tx;
+				var m = (j - ty) * tw + i - tx;
 
 				//ARGB 0xff
 				rgb.set(m * 4 + 0, pixels.get(l * 4 + 3));
@@ -55,7 +55,7 @@ class DrawToImageNode extends LogicNode {
 		imgwriter.write(iron.format.bmp.Tools.buildFromARGB(tw, th, rgb));
 
 		#if kha_krom
-		Krom.fileSaveBytes(Krom.getFilesLocation() +  "/" + file, bo.getBytes().getData());
+		Krom.fileSaveBytes(Krom.getFilesLocation() + "/" + file, bo.getBytes().getData());
 
 		#elseif kha_html5
 		var blob = new js.html.Blob([bo.getBytes().getData()], {type: "application"});

@@ -596,7 +596,7 @@ class Inc {
 	static function beginShadowsRenderProfile() { startShadowsRenderTime = kha.Scheduler.realTime(); }
 	static function endShadowsLogicProfile() { shadowsLogicTime += kha.Scheduler.realTime() - startShadowsLogicTime - shadowsRenderTime; }
 	static function endShadowsRenderProfile() { shadowsRenderTime += kha.Scheduler.realTime() - startShadowsRenderTime; }
-	public static function endFrame() { shadowsLogicTime = 0;  shadowsRenderTime = 0; }
+	public static function endFrame() { shadowsLogicTime = 0; shadowsRenderTime = 0; }
 	#end
 }
 
@@ -898,7 +898,7 @@ class ShadowMapTile {
 		return linkTiles(tiles);
 	}
 
-	static inline function linkTiles(tiles: Array<ShadowMapTile>): ShadowMapTile  {
+	static inline function linkTiles(tiles: Array<ShadowMapTile>): ShadowMapTile {
 		if (tiles.length > 1) {
 			var linkedTile = tiles[0];
 			for (i in 1...tiles.length) {

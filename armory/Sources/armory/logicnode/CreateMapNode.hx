@@ -3,9 +3,9 @@ import iron.object.Object;
 import iron.math.Vec4;
 
 class CreateMapNode extends LogicNode {
-  public var property0: String;
-  public var property1: String;
-  public var map: Dynamic;
+	public var property0: String;
+	public var property1: String;
+	public var map: Dynamic;
 
 
 	public function new(tree:LogicTree) {

@@ -37,7 +37,7 @@ class GetObjectInstancedNode extends LogicNode {
 		for (i in 0...len) {
 			nid[i] = elements[i];
 		}
-	   
+
 		return nid;
 	}
 }

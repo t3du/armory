@@ -6,40 +6,40 @@ import iron.object.Object;
 
 class Postprocess {
 
-    public static var colorgrading_global_uniforms = [
-        [6500.0, 1.0, 0.0],         //0: Whitebalance, Shadow Max, Highlight Min
-        [1.0, 1.0, 1.0],            //1: Tint
-        [1.0, 1.0, 1.0],            //2: Saturation
-        [1.0, 1.0, 1.0],            //3: Contrast
-        [1.0, 1.0, 1.0],            //4: Gamma
-        [1.0, 1.0, 1.0],            //5: Gain
-        [1.0, 1.0, 1.0],            //6: Offset
+	public static var colorgrading_global_uniforms = [
+		[6500.0, 1.0, 0.0],         //0: Whitebalance, Shadow Max, Highlight Min
+		[1.0, 1.0, 1.0],            //1: Tint
+		[1.0, 1.0, 1.0],            //2: Saturation
+		[1.0, 1.0, 1.0],            //3: Contrast
+		[1.0, 1.0, 1.0],            //4: Gamma
+		[1.0, 1.0, 1.0],            //5: Gain
+		[1.0, 1.0, 1.0],            //6: Offset
 		[1.0, 1.0, 1.0]				//7: LUT Strength
-    ];
+	];
 
-    public static var colorgrading_shadow_uniforms = [
-        [1.0, 1.0, 1.0], 			//0: Saturation
-        [1.0, 1.0, 1.0], 			//1: Contrast
-        [1.0, 1.0, 1.0], 			//2: Gamma
-        [1.0, 1.0, 1.0], 			//3: Gain
-        [1.0, 1.0, 1.0] 			//4: Offset
-    ];
+	public static var colorgrading_shadow_uniforms = [
+		[1.0, 1.0, 1.0], 			//0: Saturation
+		[1.0, 1.0, 1.0], 			//1: Contrast
+		[1.0, 1.0, 1.0], 			//2: Gamma
+		[1.0, 1.0, 1.0], 			//3: Gain
+		[1.0, 1.0, 1.0] 			//4: Offset
+	];
 
-    public static var colorgrading_midtone_uniforms = [
-        [1.0, 1.0, 1.0], 			//0: Saturation
-        [1.0, 1.0, 1.0], 			//1: Contrast
-        [1.0, 1.0, 1.0], 			//2: Gamma
-        [1.0, 1.0, 1.0], 			//3: Gain
-        [1.0, 1.0, 1.0] 			//4: Offset
-    ];
+	public static var colorgrading_midtone_uniforms = [
+		[1.0, 1.0, 1.0], 			//0: Saturation
+		[1.0, 1.0, 1.0], 			//1: Contrast
+		[1.0, 1.0, 1.0], 			//2: Gamma
+		[1.0, 1.0, 1.0], 			//3: Gain
+		[1.0, 1.0, 1.0] 			//4: Offset
+	];
 
-    public static var colorgrading_highlight_uniforms = [
-        [1.0, 1.0, 1.0], 			//0: Saturation
-        [1.0, 1.0, 1.0], 			//1: Contrast
-        [1.0, 1.0, 1.0], 			//2: Gamma
-        [1.0, 1.0, 1.0], 			//3: Gain
-        [1.0, 1.0, 1.0] 			//4: Offset
-    ];
+	public static var colorgrading_highlight_uniforms = [
+		[1.0, 1.0, 1.0], 			//0: Saturation
+		[1.0, 1.0, 1.0], 			//1: Contrast
+		[1.0, 1.0, 1.0], 			//2: Gamma
+		[1.0, 1.0, 1.0], 			//3: Gain
+		[1.0, 1.0, 1.0] 			//4: Offset
+	];
 
 	public static var camera_uniforms = [
 		1.0,				//0: Camera: F-Number

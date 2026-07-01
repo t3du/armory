@@ -245,7 +245,7 @@ class Uuid {
 		if ( alphabet == null ) throw "Alphabet cannot be null";
 		if ( alphabet.length == 0 || alphabet.length >= 256 ) throw "Alphabet must contain between 1 and 255 symbols";
 		if ( len <= 0 ) throw "Length must be greater than zero";
-		var mask:Int = (2 <<  Math.floor(Math.log(alphabet.length - 1) / Math.log(2))) - 1;
+		var mask:Int = (2 << Math.floor(Math.log(alphabet.length - 1) / Math.log(2))) - 1;
 		var step:Int = Math.ceil(1.6 * mask * len / alphabet.length);
 		var sb = new StringBuf();
 		while (sb.length != len) {

@@ -81,7 +81,7 @@ class Logic {
 	static function build_node(node: TNode): String {
 
 		// Get node name
-		var name =  node_name(node);
+		var name = node_name(node);
 
 		// Check if node already exists
 		if (parsed_nodes.indexOf(name) != -1) {
