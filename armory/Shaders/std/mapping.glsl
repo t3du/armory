@@ -39,3 +39,21 @@ vec3 triplanarMapping (sampler2D ImageTexture, vec3 normal, vec3 position) {
 
   return (xColor * normalBlend.x + yColor * normalBlend.y + zColor * normalBlend.z);
 }
+
+vec2 sphericalMapping(vec3 coord) {
+	float len = length(coord);
+	if (len == 0.0) {
+		return vec2(0.5, 0.5);
+	}
+	vec3 n = coord / len;
+	float theta = atan(-n.x, n.y) + PI;
+	float u = theta / PI2;
+	float v = acos(clamp(n.z, -1.0, 1.0)) / PI;
+	return vec2(u, v);
+}
+
+vec2 tubeMapping(vec3 coord) {
+	float u = 1.0 - (atan(coord.x, coord.y) + PI) / PI2;
+	float v = 1.0 - (coord.z + 1.0) * 0.5;
+	return vec2(u, v);
+}

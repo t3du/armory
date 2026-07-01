@@ -658,14 +658,18 @@ def texture_store(node, tex, tex_name, to_linear=False, tex_link=None, default_v
     state.con.add_elem('tex', 'short2norm')
     curshader.add_uniform('sampler2D {0}'.format(tex_name), link=tex_link, default_value=default_value, is_arm_mat_param=is_arm_mat_param)
     triplanar = node.projection == 'BOX'
+    spherical = node.projection == 'SPHERE'
+    tube = node.projection == 'TUBE'
     if node.inputs[0].is_linked:
         uv_name = parse_vector_input(node.inputs[0])
         if triplanar:
-            uv_name = 'vec3({0}.x, 1.0 - {0}.y, {0}.z)'.format(uv_name)
+            uv_name = 'vec3({0}.x, {0}.y, 1.0 - {0}.z)'.format(uv_name)
+        elif spherical or tube:
+            uv_name = 'vec3({0}.x, {0}.y, {0}.z)'.format(uv_name)
         else:
             uv_name = 'vec2({0}.x, 1.0 - {0}.y)'.format(uv_name)
     else:
-        uv_name = 'vec3(texCoord.xy, 0.0)' if triplanar else 'texCoord'
+        uv_name = 'vec3(texCoord.xy, 0.0)' if triplanar or spherical or tube else 'texCoord'
     if triplanar:
         if not curshader.has_include('std/mapping.glsl'):
             curshader.add_include('std/mapping.glsl')
@@ -673,13 +677,20 @@ def texture_store(node, tex, tex_name, to_linear=False, tex_link=None, default_v
             nor = 'TBN[2]'
         else:
             nor = 'n'
-        curshader.write('vec4 {0} = vec4(triplanarMapping({1}, {2}, {3}), 0.0);'.format(tex_store, tex_name, nor, uv_name))
+        curshader.write('vec4 {0} = vec4(triplanarMapping({1}, {2}, {3}), 0.0);'.format(tex_store, tex_name, nor, uv_name))            
+    elif spherical:
+        if not curshader.has_include('std/mapping.glsl'):
+            curshader.add_include('std/mapping.glsl')
+        curshader.write('vec4 {0} = vec4(texture({1}, sphericalMapping({2})).rgb, 0.0);'.format(tex_store, tex_name, uv_name))
+    elif tube:
+        if not curshader.has_include('std/mapping.glsl'):
+            curshader.add_include('std/mapping.glsl')
+        curshader.write('vec4 {0} = vec4(texture({1}, tubeMapping({2})).rgb, 0.0);'.format(tex_store, tex_name, uv_name))
     else:
         if mat_state.texture_grad:
             curshader.write('vec4 {0} = textureGrad({1}, {2}.xy, g2.xy, g2.zw);'.format(tex_store, tex_name, uv_name))
         else:
             curshader.write('vec4 {0} = texture({1}, {2}.xy);'.format(tex_store, tex_name, uv_name))
-
     if to_linear:
         curshader.write('{0}.rgb = pow({0}.rgb, vec3(2.2));'.format(tex_store))
 
