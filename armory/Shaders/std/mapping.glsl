@@ -1,13 +1,6 @@
-vec3 blendNormal(vec3 normal) {
-	vec3 blending = abs(normal);
-	blending = normalize(max(blending, 0.00001));
-	blending /= vec3(blending.x + blending.y + blending.z);
-	return blending;
-}
-
-vec4 boxProjection(sampler2D image, vec3 normal, vec3 coord) {
+vec4 boxProjection(sampler2D image, vec3 normal, vec3 coord, float blend) {
 	vec3 n = normalize(normal);
-	vec3 absN = abs(n);
+	vec3 N = abs(n);
 	vec4 color1, color2, color3;
 
 	vec2 uv = coord.yz;
@@ -28,8 +21,29 @@ vec4 boxProjection(sampler2D image, vec3 normal, vec3 coord) {
 	}
 	color3 = texture(image, uv);
 
-	vec3 weight = absN;
-	weight /= max(dot(weight, vec3(1.0)), 1e-8);
+	N /= max(dot(N, vec3(1.0)), 1e-8);
+
+	float limit = 0.5 + 0.5 * clamp(blend, 0.0, 1.0);
+	vec3 weight;
+	weight = N.xyz / (N.xyx + N.yzz);
+	weight = clamp((weight - 0.5 * (1.0 - clamp(blend, 0.0, 1.0))) / max(1e-8, clamp(blend, 0.0, 1.0)), 0.0, 1.0);
+
+	if (N.z < (1.0 - limit) * (N.y + N.x)) {
+		weight.z = 0.0;
+		weight.y = 1.0 - weight.x;
+	}
+	else if (N.x < (1.0 - limit) * (N.y + N.z)) {
+		weight.x = 0.0;
+		weight.z = 1.0 - weight.y;
+	}
+	else if (N.y < (1.0 - limit) * (N.x + N.z)) {
+		weight.y = 0.0;
+		weight.x = 1.0 - weight.z;
+	}
+	else {
+		weight = ((2.0 - limit) * N + (limit - 1.0)) / max(1e-8, clamp(blend, 0.0, 1.0));
+	}
+
 	return color1 * weight.x + color2 * weight.y + color3 * weight.z;
 }
 
