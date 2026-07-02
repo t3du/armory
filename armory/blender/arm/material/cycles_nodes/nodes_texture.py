@@ -539,7 +539,7 @@ def parse_tex_environment(node: bpy.types.ShaderNodeTexEnvironment, out_socket: 
 
         if do_convert:
             if not os.path.isfile(unpack_filepath):
-                arm.utils.unpack_image(image, unpack_filepath, file_format=target_format)
+                arm.utils.convert_image(image, unpack_filepath, target_format)
 
         elif not os.path.isfile(unpack_filepath) or os.path.getsize(unpack_filepath) != image.packed_file.size:
             with open(unpack_filepath, 'wb') as f:
