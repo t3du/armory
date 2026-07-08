@@ -335,13 +335,7 @@ def get_root_nodes(node_group):
             continue
         if node.mute:
             continue
-        linked = False
-        for out in node.outputs:
-            if out.is_linked:
-                linked = True
-                break
-        if not linked: # Assume node with no connected outputs as roots
-            roots.append(node)
+        roots.append(node)
     return roots
 
 def build_default_node(inp: bpy.types.NodeSocket):
