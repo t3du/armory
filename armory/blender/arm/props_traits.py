@@ -130,7 +130,10 @@ class ARM_UL_TraitList(bpy.types.UIList):
             row.prop(item, "enabled_prop")
             # Display " " for props without a name to right-align the
             # fake_user button
-            row.label(text=item.name if item.name != "" else " ", icon=custom_icon, icon_value=custom_icon_value)
+            label_text = item.name
+            if item.type_prop == "Logic Nodes" and item.node_tree_prop is not None:
+                label_text = item.node_tree_prop.name
+            row.label(text=label_text if label_text != "" else " ", icon=custom_icon, icon_value=custom_icon_value)
 
         elif self.layout_type in {'GRID'}:
             layout.alignment = 'CENTER'
