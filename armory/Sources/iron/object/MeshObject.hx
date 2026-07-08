@@ -140,6 +140,7 @@ class MeshObject extends Object {
 		if (tilesheets != null) {
 			for (ts in tilesheets) {
 				if (ts.raw.name == tilesheet_ref) {
+					activeTilesheet.pause();
 					activeTilesheet = ts;
 					activeTilesheet.play(tilesheet_action_ref);
 					set = true;
