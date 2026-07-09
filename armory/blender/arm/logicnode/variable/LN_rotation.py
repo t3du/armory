@@ -25,6 +25,9 @@ class RotationNode(ArmLogicVariableNodeMixin, ArmLogicTreeNode):
             self.inputs[1].hide = False
         elif self.property0 == "EulerAngles":
             self.inputs[0].name = "Euler Angles"
+            if self.inputs[1].is_linked:
+                for link in self.inputs[1].links:
+                    self.id_data.links.remove(link)
             self.inputs[1].hide = True
         elif self.property0 == "AxisAngle":
             self.inputs[0].name = "Axis"
