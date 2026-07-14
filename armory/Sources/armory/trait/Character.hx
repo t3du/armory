@@ -17,10 +17,10 @@ class Character extends Trait {
 	var lastLoc: Vec4 = null;
 	var framesIdle = 0; // Number of frames character did not move
 
-	@:prop
+	@prop
 	var actionIdle: String = "idle";
 
-	@:prop
+	@prop
 	var actionMove: String = "run";
 
 	public function new() {
