@@ -16,7 +16,7 @@ class GetObjectGeomNode(ArmLogicTreeNode):
     """
 
     bl_idname = 'LNGetObjectGeomNode'
-    bl_label = 'Get Object Geometry Node'
+    bl_label = 'Get Object Geometry'
     arm_section = 'relations'
     arm_version = 1
 
