@@ -27,14 +27,12 @@ class PickLocationNode extends LogicNode {
 
 		if (rb != null && b == rb) {
 			var p = physics.hitPointWorld;
-			trace(p);
 			loc.set(p.x, p.y, p.z);
 			return loc;
 		}
 		#end
 
 		#if arm_navigation
-		trace('here');
 		assert(Error, Navigation.active.navMeshes.length > 0, "No Navigation Mesh Present");
 		loc = iron.math.RayCaster.boxIntersectObject(object, x, y, iron.Scene.active.camera);
 		return loc != null ? Navigation.active.navMeshes[0].getClosestPoint(loc) : null;
