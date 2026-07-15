@@ -30,6 +30,8 @@ class PickLocationNode extends LogicNode {
 			loc.set(p.x, p.y, p.z);
 			return loc;
 		}
+		else
+			return null;
 		#end
 
 		#if arm_navigation
