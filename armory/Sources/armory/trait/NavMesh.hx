@@ -273,20 +273,6 @@ class NavMesh extends Trait {
 		return RecastConversions.vec4FromRecastVec3(closestPoint);
 	}
 
-	public function moveAlong(position: Vec4, destination: Vec4): Vec4 {
-		if (!ready) return null;
-		var start = RecastConversions.recastVec3FromVec4(position);
-		var end = RecastConversions.recastVec3FromVec4(destination);
-
-		var finalPosition = recastNavMesh.moveAlong(start, end);
-		var armPos = RecastConversions.vec4FromRecastVec3(finalPosition);
-		#if hl
-		finalPosition.delete();
-		#end
-		
-		return armPos;
-	}
-
 	public function getRandomPointAround(position: Vec4, radius: Float):Vec4 {
 		if (!ready) return null;
 		var randomPoint = recastNavMesh.getRandomPointAround(RecastConversions.recastVec3FromVec4(position), radius);
