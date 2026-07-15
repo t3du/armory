@@ -107,20 +107,13 @@ class NavAgent extends Trait {
 			currentLoc.z + dir.z * step
 		);
 
-		var projectedPos = activeNavMesh.moveAlong(currentLoc, nextPos);
-
-		if (projectedPos == null) {
-			stop();
-			return;
-		}
-
-		normal = activeNavMesh.getNavMeshNormal(projectedPos);
+		normal = activeNavMesh.getNavMeshNormal(nextPos);
 		normal.normalize();
 
 		object.transform.loc.set(
-			projectedPos.x,
-			projectedPos.y,
-			projectedPos.z
+			nextPos.x,
+			nextPos.y,
+			nextPos.z
 		);
 
 		var targetRot = new Quat().fromTo(new Vec4(0, 0, 1, 0), normal);
