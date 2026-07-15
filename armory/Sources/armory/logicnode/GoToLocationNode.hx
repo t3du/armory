@@ -28,10 +28,7 @@ class GoToLocationNode extends LogicNode {
 		speed = inputs[3].get();
 		turnDuration = inputs[4].get();
 		heightOffset = inputs[5].get();
-		useRaycast = inputs[6].get();
-		rayCastDepth = inputs[7].get();
-		rayCastMask = inputs[8].get();
-
+		
 		assert(Warning, speed >= 0, "Speed of Nav Agent should be positive");
 		assert(Warning, turnDuration >= 0, "Turn Duration of Nav Agent should be positive");
 
@@ -40,14 +37,12 @@ class GoToLocationNode extends LogicNode {
 			var to = location;
 
 			assert(Error, Navigation.active.navMeshes.length > 0, "No Navigation Mesh Present");
-			Navigation.active.navMeshes[0].findPath(from, to, function(path: Array<iron.math.Vec4>) {
+			Navigation.active.navMeshes[0].findPath(from, to, function(path: Array<Vec4>) {
 				var agent: armory.trait.NavAgent = object.getTrait(armory.trait.NavAgent);
 				assert(Error, agent != null, "Object does not have a NavAgent trait");
 				agent.speed = speed;
 				agent.turnDuration = turnDuration;
 				agent.heightOffset = heightOffset;
-				agent.tickPos = tickPos;
-				agent.tickRot = tickRot;
 				agent.setPath(path);
 			});
 		#end
@@ -55,24 +50,4 @@ class GoToLocationNode extends LogicNode {
 		runOutput(0);
 	}
 
-	function tickPos(){
-		#if arm_physics
-			if(useRaycast) setAgentHeight();
-		#end
-		runOutput(1);
-	}
-
-	function tickRot(){
-		runOutput(2);
-	}
-
-	function setAgentHeight(){
-		#if arm_physics
-			var fromLoc = object.transform.world.getLoc();
-			var toLoc = fromLoc.clone();
-			toLoc.z += rayCastDepth;
-			var hit = PhysicsWorld.active.rayCast(fromLoc, toLoc, rayCastMask);
-			if(hit != null) object.transform.loc.z = hit.pos.z + heightOffset;
-		#end
-	}
 }

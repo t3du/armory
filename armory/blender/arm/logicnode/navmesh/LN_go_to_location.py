@@ -19,6 +19,7 @@ class GoToLocationNode(ArmLogicTreeNode):
     """
     bl_idname = 'LNGoToLocationNode'
     bl_label = 'Agent Go to Location'
+    arm_section = 'agent'
     arm_version = 2
 
     def arm_init(self, context):
@@ -28,13 +29,8 @@ class GoToLocationNode(ArmLogicTreeNode):
         self.add_input('ArmFloatSocket', 'Speed', 5.0)
         self.add_input('ArmFloatSocket', 'Turn Duration', 0.4)
         self.add_input('ArmFloatSocket', 'Height Offset', 0.0)
-        self.add_input('ArmBoolSocket','Use Raycast')
-        self.add_input('ArmFloatSocket', 'Ray Cast Depth', -5.0)
-        self.add_input('ArmIntSocket', 'Ray Cast Mask', 1)
 
         self.add_output('ArmNodeSocketAction', 'Out')
-        self.add_output('ArmNodeSocketAction', 'Tick Location')
-        self.add_output('ArmNodeSocketAction', 'Tick Rotation')
 
     def get_replacement_node(self, node_tree: bpy.types.NodeTree):
         if self.arm_version not in (0, 1):
