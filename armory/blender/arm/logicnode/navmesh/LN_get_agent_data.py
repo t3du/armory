@@ -4,6 +4,7 @@ class GetAgentDataNode(ArmLogicTreeNode):
     """Gets the speed and turn duration of the agent"""
     bl_idname = 'LNGetAgentDataNode'
     bl_label = 'Get Agent Data'
+    arm_section = 'agent'
     arm_version = 2
 
     def arm_init(self, context):

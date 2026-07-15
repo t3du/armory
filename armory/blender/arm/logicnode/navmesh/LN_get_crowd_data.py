@@ -4,6 +4,7 @@ class GetCrowdDataNode(ArmLogicTreeNode):
     """Gets the speed and position of the crowd"""
     bl_idname = 'LNGetCrowdDataNode'
     bl_label = 'Get Crowd Data'
+    arm_section = 'crowd'
     arm_version = 1
 
     def arm_init(self, context):

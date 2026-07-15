@@ -9,6 +9,7 @@ class CrowdSetLocationNode(ArmLogicTreeNode):
     """
     bl_idname = 'LNCrowdSetLocationNode'
     bl_label = 'Crowd Set Location'
+    arm_section = 'crowd'
     arm_version = 1
 
     def arm_init(self, context):

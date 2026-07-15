@@ -4,6 +4,7 @@ class StopAgentNode(ArmLogicTreeNode):
     """Stops the given NavMesh agent."""
     bl_idname = 'LNStopAgentNode'
     bl_label = 'Stop Agent'
+    arm_section = 'agent'
     arm_version = 1
 
     def arm_init(self, context):

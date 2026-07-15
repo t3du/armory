@@ -9,6 +9,7 @@ class GoToLocationNode(ArmLogicTreeNode):
     """
     bl_idname = 'LNCrowdGoToLocationNode'
     bl_label = 'Crowd Go to Location'
+    arm_section = 'crowd'
     arm_version = 1
 
     def arm_init(self, context):

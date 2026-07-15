@@ -4,6 +4,7 @@ class StopCrowdNode(ArmLogicTreeNode):
     """Stops the given NavMesh agent."""
     bl_idname = 'LNStopCrowdNode'
     bl_label = 'Stop Crowd'
+    arm_section = 'crowd'
     arm_version = 1
 
     def arm_init(self, context):
