@@ -5,6 +5,11 @@ import armory.trait.NavMesh;
 import armory.trait.navigation.Navigation;
 #end
 
+#if arm_physics
+import armory.trait.physics.PhysicsWorld;
+import armory.trait.physics.RigidBody;
+#end
+
 import iron.object.Object;
 import iron.math.Vec4;
 import iron.math.RayCaster;
@@ -29,38 +34,40 @@ class PickLocationNode extends LogicNode {
 		#end
 
 		#if arm_physics
-		var physics = armory.trait.physics.PhysicsWorld.active;
-		var b = physics.pickClosest(x, y);
+		var rb = object.getTrait(RigidBody);
+		if (rb != null){
+			var physics = PhysicsWorld.active;
+			var b = physics.pickClosest(x, y);
 
-		var hit = false;
+			var hit = false;
+			
+			if (b == rb)
+				hit = true;
 
-		var rb = object.getTrait(armory.trait.physics.RigidBody);
-		if (rb != null && b == rb)
-			hit = true;
+			if (!hit) {
+				#if arm_navigation
+				if (useChildren) {
+					for (child in object.children) {
+						if (child.raw.type != "mesh_object") continue;
 
-		if (!hit) {
-			#if arm_navigation
-			if (useChildren) {
-				for (child in object.children) {
-					if (child.raw.type != "mesh_object") continue;
-
-					var childRb = child.getTrait(armory.trait.physics.RigidBody);
-					if (childRb != null && childRb == b) {
-						hit = true;
-						break;
+						var childRb = child.getTrait(RigidBody);
+						if (childRb != null && childRb == b) {
+							hit = true;
+							break;
+						}
 					}
 				}
+				#end
 			}
-			#end
-		}
 
-		if (hit) {
-			var p = physics.hitPointWorld;
-			loc.set(p.x, p.y, p.z);
-			return loc;
+			if (hit) {
+				var p = physics.hitPointWorld;
+				loc.set(p.x, p.y, p.z);
+				return loc;
+			}
+			else
+				return null;
 		}
-		else
-			return null;
 		#end
 
 		#if arm_navigation
