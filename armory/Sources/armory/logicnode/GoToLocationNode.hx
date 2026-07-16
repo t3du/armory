@@ -1,9 +1,9 @@
 package armory.logicnode;
 
-#if arm_physics
-import armory.trait.physics.PhysicsWorld;
-#end
+#if arm_navigation
 import armory.trait.navigation.Navigation;
+#end
+import armory.trait.NavAgent;
 import iron.object.Object;
 import iron.math.Vec4;
 
@@ -14,9 +14,6 @@ class GoToLocationNode extends LogicNode {
 	var speed: Float;
 	var turnDuration: Float;
 	var heightOffset: Float;
-	var useRaycast: Bool;
-	var rayCastDepth: Float;
-	var rayCastMask: Int;
 
 	public function new(tree: LogicTree) {
 		super(tree);
@@ -38,7 +35,7 @@ class GoToLocationNode extends LogicNode {
 
 			assert(Error, Navigation.active.navMeshes.length > 0, "No Navigation Mesh Present");
 			Navigation.active.navMeshes[0].findPath(from, to, function(path: Array<Vec4>) {
-				var agent: armory.trait.NavAgent = object.getTrait(armory.trait.NavAgent);
+				var agent: NavAgent = object.getTrait(NavAgent);
 				assert(Error, agent != null, "Object does not have a NavAgent trait");
 				agent.speed = speed;
 				agent.turnDuration = turnDuration;
