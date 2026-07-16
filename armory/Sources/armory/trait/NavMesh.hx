@@ -235,6 +235,7 @@ class NavMesh extends Trait {
 
 	public function reconstructNavMesh() {
 		removeUpdate(updateNavMesh);
+		Navigation.active.navMeshes.remove(this);
 		/*if(recastCrowd != null) {
 			for(agent in crowdAgentMap.keys()) {
 				removeCrowdAgent(agent);
