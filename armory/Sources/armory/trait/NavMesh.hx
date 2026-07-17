@@ -151,6 +151,7 @@ class NavMesh extends Trait {
 
 		notifyOnInit(initNavMesh);
 		notifyOnUpdate(updateNavMesh);
+		notifyOnRemove(removeNavMesh);
 	}
 
 	function initNavMesh() {
@@ -162,7 +163,7 @@ class NavMesh extends Trait {
 		recastNavMesh = new recast.Recast.NavMesh();
 		var recastConfig = new recast.Recast.RcConfig();
 
-    	recastNavMesh.setDefaultQueryExtent(RecastConversions.recastVec3FromVec4(defaultAgentQueryExtent));
+		recastNavMesh.setDefaultQueryExtent(RecastConversions.recastVec3FromVec4(defaultAgentQueryExtent));
 
 		recastConfig.width = width;
 		recastConfig.height = height;
@@ -588,6 +589,11 @@ class NavMesh extends Trait {
 		recastDebugNavMesh.delete();
 		#end
 	}
+
+	public function removeNavMesh() {
+		Navigation.active.navMeshes.remove(this);
+	}
+
 	#end
 }
 
