@@ -243,7 +243,7 @@ class DebugDrawHelper {
 
 		if (font != null) {
 			g.font = font;
-			g.fontSize = 12;
+			g.fontSize = 18;
 			for (text in texts) {
 				g.color = text.color;
 				g.drawString(text.text, text.x, text.y);
