@@ -138,7 +138,7 @@ class NavCrowd extends Trait {
 	public function crowdAgentTeleport(position: Vec4) {
 		if(!agentReady) return;
 
-		activeNavMesh.crowdAgentTeleport(agentID, position);
+		activeNavMesh.crowdAgentTeleport(agentID, position.sub(offset));
 	}
 
 	function removeAgent() {
