@@ -7,6 +7,7 @@ class AroundNavigableLocationNode(ArmLogicTreeNode):
     arm_version = 1
 
     def arm_init(self, context):
+        self.add_input('ArmStringSocket', 'NavMeshId', default_value = 'NavMesh')
         self.add_input('ArmVectorSocket', 'Position')
         self.add_input('ArmFloatSocket', 'Radius')
 

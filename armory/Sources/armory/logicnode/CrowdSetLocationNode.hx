@@ -2,6 +2,8 @@ package armory.logicnode;
 
 #if arm_navigation
 import armory.trait.navigation.Navigation;
+import armory.trait.NavMesh;
+import armory.trait.NavCrowd;
 #end
 
 import iron.object.Object;
@@ -9,20 +11,20 @@ import iron.math.Vec4;
 
 class CrowdSetLocationNode extends LogicNode {
 
-	var object: Object;
-	var location: Vec4;
-
 	public function new(tree: LogicTree) {
 		super(tree);
 	}
 
 	override function run(from: Int) {
-		object = inputs[1].get();
-		location = inputs[2].get();
+		var navMeshId: String = inputs[1].get();
+		var object: Object = inputs[2].get();
+		var location: Vec4 = inputs[3].get();
 		
 		#if arm_navigation
-			assert(Error, Navigation.active.navMeshes.length > 0, "No Navigation Mesh Present");
-			var crowdAgent: armory.trait.NavCrowd = object.getTrait(armory.trait.NavCrowd);
+			var activeNavMesh: NavMesh = Navigation.active.navMeshes.get(navMeshId);
+			assert(Error, activeNavMesh != null, "No Navigation Mesh Present");
+
+			var crowdAgent: NavCrowd = object.getTrait(NavCrowd);
 			assert(Error, crowdAgent != null, "Object does not have a NavCrowd trait");
 			crowdAgent.crowdAgentTeleport(location);
 		#end

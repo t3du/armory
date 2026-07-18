@@ -13,6 +13,9 @@ class NavBoxObstacle extends Trait {
 	#else
 
 	@prop
+	public var navMeshId: String = 'NavMesh';
+
+	@prop
 	public var dimensions: Vec4 = new Vec4(1.0, 1.0, 1.0);
 
 	@prop
@@ -36,12 +39,8 @@ class NavBoxObstacle extends Trait {
 	}
 
 	function addObstacle() {
-
-		if(Navigation.active.navMeshes.length < 1) return;
-
-		if(! Navigation.active.navMeshes[0].ready) return;
-
-		activeNavMesh = Navigation.active.navMeshes[0];
+		activeNavMesh = Navigation.active.navMeshes.get(navMeshId);
+		if(activeNavMesh == null || !activeNavMesh.ready) return;
 
 		initialPosition = object.transform.world.getLoc();
 		obstacleID = activeNavMesh.addBoxObstacle(this, initialPosition, dimensions, angle);

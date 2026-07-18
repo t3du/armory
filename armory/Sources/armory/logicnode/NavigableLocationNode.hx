@@ -2,6 +2,7 @@ package armory.logicnode;
 
 #if arm_navigation
 import armory.trait.navigation.Navigation;
+import armory.trait.NavMesh;
 #end
 
 import iron.object.Object;
@@ -28,9 +29,11 @@ class NavigableLocationNode extends LogicNode {
 				centerLoc.y + dim.y * 0.5 * (Math.random() * 2.0 - 1.0),
 				centerLoc.z + dim.z * 0.5 * (Math.random() * 2.0 - 1.0)
 			);
+
+			var activeNavMesh: NavMesh = object.getTrait(NavMesh);
 		
-			assert(Error, Navigation.active.navMeshes.length > 0, "No Navigation Mesh Present");
-			return Navigation.active.navMeshes[0].getClosestPoint(v);
+			assert(Error, activeNavMesh != null, "No Navigation Mesh Present");
+			return activeNavMesh.getClosestPoint(v);
 		#end
 		return null;
 	}

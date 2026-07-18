@@ -14,6 +14,7 @@ class CrowdSetLocationNode(ArmLogicTreeNode):
 
     def arm_init(self, context):
         self.add_input('ArmNodeSocketAction', 'In')
+        self.add_input('ArmStringSocket', 'NavMeshId', default_value = 'NavMesh')
         self.add_input('ArmNodeSocketObject', 'Object')
         self.add_input('ArmVectorSocket', 'Location')
 

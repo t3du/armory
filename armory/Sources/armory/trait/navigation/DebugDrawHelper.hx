@@ -13,11 +13,20 @@ import armory.ui.Canvas;
 class DebugDrawHelper {
 	final navigation: Navigation;
 	final lines: Array<LineData> = [];
+	final texts: Array<TextData> = [];
+
+	var font: kha.Font = null;
 
 	var debugMode: Navigation.DebugDrawMode = NoDebug;
 
 	public function new(navigation: Navigation) {
 		this.navigation = navigation;
+
+		#if arm_ui
+		iron.data.Data.getFont(Canvas.defaultFontName, function(defaultFont: kha.Font) {
+			font = defaultFont;
+		});
+		#end
 
 		iron.App.notifyOnRender2D(onRender);
 	}
@@ -56,6 +65,19 @@ class DebugDrawHelper {
 
 		for(navMesh in Navigation.active.navMeshes) {
 			navMesh.drawDebugMesh(this);
+
+			if (font != null) {
+				final screenPos = worldToScreenFast(new Vec4().setFrom(navMesh.object.transform.loc));
+
+				if (screenPos.w == 1) {
+					texts.push({
+						x: screenPos.x,
+						y: screenPos.y,
+						color: kha.Color.White,
+						text: navMesh.navMeshId
+					});
+				}
+			}
 		}
 
 		g.opacity = 1.0;
@@ -65,6 +87,18 @@ class DebugDrawHelper {
 			g.drawLine(line.fromX, line.fromY, line.toX, line.toY, 1.0);
 		}
 		lines.resize(0);
+
+		if (font != null) {
+			g.font = font;
+			g.fontSize = 18;
+
+			for (text in texts) {
+				g.color = text.color;
+				g.drawString(text.text, text.x, text.y);
+			}
+
+			texts.resize(0);
+		}
 	}
 
 	/**
@@ -98,5 +132,13 @@ class LineData {
 	public var toX: FastFloat;
 	public var toY: FastFloat;
 	public var color: kha.Color;
+}
+
+@:structInit
+class TextData {
+	public var x: FastFloat;
+	public var y: FastFloat;
+	public var color: kha.Color;
+	public var text: String;
 }
 #end

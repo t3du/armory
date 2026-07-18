@@ -10,10 +10,20 @@ import armory.trait.navigation.Navigation;
 
 class NavAgent extends Trait {
 
-	@prop public var speed: Float = 5;
-	@prop public var turnDuration: Float = 0.4;
-	@prop public var heightOffset: Float = 0.0;
-	@prop public var pathCheckTolerance: Float = 0.5;
+	@prop
+	public var navMeshId: String = 'NavMesh';
+
+	@prop 
+	public var speed: Float = 5;
+
+	@prop
+	public var turnDuration: Float = 0.4;
+
+	@prop
+	public var heightOffset: Float = 0.0;
+
+	@prop
+	public var pathCheckTolerance: Float = 0.5;
 
 	var path: Array<Vec4> = null;
 	var index = 0;
@@ -27,8 +37,8 @@ class NavAgent extends Trait {
 	
 	function initNavAgent() {
 		#if arm_navigation
-		if(Navigation.active.navMeshes.length < 1 || !Navigation.active.navMeshes[0].ready) return;
-		activeNavMesh = Navigation.active.navMeshes[0];
+		activeNavMesh = Navigation.active.navMeshes.get(navMeshId);
+		if(activeNavMesh == null || !activeNavMesh.ready) return;
 		removeUpdate(initNavAgent);
 		#end
 	}

@@ -8,6 +8,6 @@ class ReconstructNavMeshNode(ArmLogicTreeNode):
 
     def arm_init(self, context):
         self.add_input('ArmNodeSocketAction', 'In')
-        self.add_input('ArmNodeSocketObject', 'NavMesh')
+        self.add_input('ArmStringSocket', 'NavMeshId', default_value = 'NavMesh')
         
         self.add_output('ArmNodeSocketAction', 'Out')

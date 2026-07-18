@@ -4,6 +4,7 @@ import iron.object.Object;
 
 #if arm_navigation
 import armory.trait.navigation.Navigation;
+import armory.trait.NavAgent;
 #end
 
 class GetAgentDataNode extends LogicNode {
@@ -16,13 +17,13 @@ class GetAgentDataNode extends LogicNode {
 		var object: Object = inputs[0].get();
 
 		#if arm_navigation
-			assert(Error, Navigation.active.navMeshes.length > 0, "No Navigation Mesh Present");
-			var agent: armory.trait.NavAgent = object.getTrait(armory.trait.NavAgent);
-			assert(Error, agent != null, "The object does not have NavAgent Trait");
+			var agent: NavAgent = object.getTrait(NavAgent);
+			if (agent == null) return null;
 			return switch(from){
-				case 0: agent.speed;
-				case 1: agent.turnDuration;
-				case 2: @:privateAccess agent.path;
+				case 0: agent.navMeshId;
+				case 1: agent.speed;
+				case 2: agent.turnDuration;
+				case 3: @:privateAccess agent.path;
 				default: null;
 			}
 		#else

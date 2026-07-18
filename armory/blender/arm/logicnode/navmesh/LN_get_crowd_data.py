@@ -10,6 +10,7 @@ class GetCrowdDataNode(ArmLogicTreeNode):
     def arm_init(self, context):
         self.add_input('ArmNodeSocketObject', 'Object')
 
+        self.add_output('ArmStringSocket', 'NavMeshId')
         self.add_output('ArmVectorSocket', 'Speed')
         self.add_output('ArmVectorSocket', 'Location')
         self.add_output('ArmVectorSocket', 'Target Location')

@@ -2,24 +2,22 @@ package armory.logicnode;
 
 #if arm_navigation
 import armory.trait.navigation.Navigation;
+import armory.trait.NavMesh;
 #end
 
 import iron.object.Object;
 
 class ReconstructNavMeshNode extends LogicNode {
 
-	var object: Object;
-
 	public function new(tree: LogicTree) {
 		super(tree);
 	}
 
 	override function run(from: Int) {
-		object = inputs[1].get();
-
 		#if arm_navigation
-			assert(Error, Navigation.active.navMeshes.length > 0, "No Navigation Mesh Present");
-			Navigation.active.navMeshes[0].reconstructNavMesh();
+			var activeNavMesh: NavMesh = Navigation.active.navMeshes.get(inputs[1].get());
+			assert(Error, activeNavMesh != null, "No Navigation Mesh Present");
+			activeNavMesh.reconstructNavMesh();
 		#end
 
 		runOutput(0);

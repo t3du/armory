@@ -4,6 +4,7 @@ import iron.object.Object;
 
 #if arm_navigation
 import armory.trait.navigation.Navigation;
+import armory.trait.NavCrowd;
 #end
 
 class GetCrowdDataNode extends LogicNode {
@@ -16,16 +17,15 @@ class GetCrowdDataNode extends LogicNode {
 		var object: Object = inputs[0].get();
 
 		#if arm_navigation
-			assert(Error, Navigation.active.navMeshes.length > 0, "No Navigation Mesh Present");
-			var crowdAgent: armory.trait.NavCrowd = object.getTrait(armory.trait.NavCrowd);
-			assert(Error, crowdAgent != null, "Object does not have a NavCrowd trait");
-
+			var crowdAgent: NavCrowd = object.getTrait(NavCrowd);
+			if (crowdAgent == null) return null;
 			return switch(from){
-				case 0: crowdAgent.crowdAgentVelocity();
-				case 1: crowdAgent.crowdAgentPosition();
-				case 2: crowdAgent.crowdAgentNextPath();
-				case 3: @:privateAccess crowdAgent.agentID;
-				case 4: crowdAgent.crowdAgentPath();
+				case 0: crowdAgent.navMeshId;
+				case 1: crowdAgent.crowdAgentVelocity();
+				case 2: crowdAgent.crowdAgentPosition();
+				case 3: crowdAgent.crowdAgentNextPath();
+				case 4: @:privateAccess crowdAgent.agentID;
+				case 5: crowdAgent.crowdAgentPath();
 				default: null;
 			}
 		#else

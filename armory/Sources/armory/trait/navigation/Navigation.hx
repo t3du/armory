@@ -9,8 +9,7 @@ class Navigation extends iron.Trait {
 
 	public static var active: Navigation = null;
 
-	public var navMeshes: Array<NavMesh> = [];
-	//public var recast: Recast;
+	public var navMeshes: Map<String, NavMesh> = new Map();
 
 	public var debugDrawHelper: DebugDrawHelper = null;
 

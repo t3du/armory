@@ -4,6 +4,7 @@ import iron.object.Object;
 
 #if arm_navigation
 import armory.trait.navigation.Navigation;
+import armory.trait.NavAgent;
 #end
 
 class StopAgentNode extends LogicNode {
@@ -18,8 +19,7 @@ class StopAgentNode extends LogicNode {
 		if (object == null){ runOutput(0); return; }
 
 		#if arm_navigation
-			assert(Error, Navigation.active.navMeshes.length > 0, "No Navigation Mesh Present");
-			var agent: armory.trait.NavAgent = object.getTrait(armory.trait.NavAgent);
+			var agent: NavAgent = object.getTrait(NavAgent);
 			assert(Error, agent != null, "Object does not have a NavAgent trait");
 			agent.stop();
 		#end

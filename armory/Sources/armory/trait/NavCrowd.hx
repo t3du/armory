@@ -13,6 +13,9 @@ class NavCrowd extends Trait {
 	public function new() { super(); }
 	#else
 
+	@prop
+	public var navMeshId: String = 'NavMesh';
+
 	// Position offset for the agent.
 	@prop
 	public var offset: Vec4 = new Vec4();
@@ -86,11 +89,8 @@ class NavCrowd extends Trait {
 
 	function addAgent() {
 
-		if(Navigation.active.navMeshes.length < 1) return;
-
-		if(! Navigation.active.navMeshes[0].ready) return;
-
-		activeNavMesh = Navigation.active.navMeshes[0];
+		activeNavMesh = Navigation.active.navMeshes.get(navMeshId);
+		if(activeNavMesh == null || !activeNavMesh.ready) return;
 
 		var flags: Int = 0;
 		if(anticipateTurns) flags += 1;

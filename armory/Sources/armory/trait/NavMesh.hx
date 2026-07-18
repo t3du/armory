@@ -25,6 +25,9 @@ class NavMesh extends Trait {
 	#else
 
 	@prop
+	public var navMeshId: String = 'NavMesh';
+
+	@prop
 	public var debugDraw:Bool = false;
 
 	// recast config:
@@ -156,7 +159,7 @@ class NavMesh extends Trait {
 
 	function initNavMesh() {
 		if (ready) return;
-		Navigation.active.navMeshes.push(this);
+		Navigation.active.navMeshes.set(navMeshId, this);
 
 		if(debugDraw) Navigation.active.debugDrawHelper.setDebugMode(DrawWireframe);
 
@@ -236,7 +239,7 @@ class NavMesh extends Trait {
 
 	public function reconstructNavMesh() {
 		removeUpdate(updateNavMesh);
-		Navigation.active.navMeshes.remove(this);
+		Navigation.active.navMeshes.remove(navMeshId);
 		/*if(recastCrowd != null) {
 			for(agent in crowdAgentMap.keys()) {
 				removeCrowdAgent(agent);
@@ -591,7 +594,7 @@ class NavMesh extends Trait {
 	}
 
 	public function removeNavMesh() {
-		Navigation.active.navMeshes.remove(this);
+		Navigation.active.navMeshes.remove(navMeshId);
 	}
 
 	#end

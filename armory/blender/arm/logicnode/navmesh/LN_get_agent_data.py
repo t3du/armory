@@ -10,6 +10,7 @@ class GetAgentDataNode(ArmLogicTreeNode):
     def arm_init(self, context):
         self.add_input('ArmNodeSocketObject', 'Object')
 
+        self.add_output('ArmStringSocket', 'NavMeshId')
         self.add_output('ArmFloatSocket', 'Speed')
         self.add_output('ArmFloatSocket', 'Turn Duration')
         self.add_output('ArmNodeSocketArray', 'Path')

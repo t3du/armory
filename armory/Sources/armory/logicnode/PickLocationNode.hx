@@ -1,8 +1,8 @@
 package armory.logicnode;
 
 #if arm_navigation
-import armory.trait.NavMesh;
 import armory.trait.navigation.Navigation;
+import armory.trait.NavMesh;
 #end
 
 #if arm_physics
@@ -29,8 +29,8 @@ class PickLocationNode extends LogicNode {
 		var loc = new Vec4();
 
 		#if arm_navigation
-		var navTrait: NavMesh = Navigation.active.navMeshes[0];
-		var useChildren = navTrait != null && navTrait.combineImmidiateChildren;
+		var activeNavMesh: NavMesh = object.getTrait(NavMesh);
+		var useChildren = activeNavMesh != null && activeNavMesh.combineImmidiateChildren;
 		#end
 
 		#if arm_physics
@@ -71,7 +71,8 @@ class PickLocationNode extends LogicNode {
 		#end
 
 		#if arm_navigation
-		assert(Error, Navigation.active.navMeshes.length > 0, "No Navigation Mesh Present");
+
+		assert(Error, activeNavMesh != null, "No Navigation Mesh Present");
 
 		loc = RayCaster.boxIntersectObject(object, x, y, Scene.active.camera);
 
@@ -85,7 +86,7 @@ class PickLocationNode extends LogicNode {
 			}
 		}
 
-		return loc != null ? Navigation.active.navMeshes[0].getClosestPoint(loc) : null;
+		return loc != null ? activeNavMesh.getClosestPoint(loc) : null;
 		#end
 
 		return null;
