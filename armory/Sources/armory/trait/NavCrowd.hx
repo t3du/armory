@@ -78,8 +78,6 @@ class NavCrowd extends Trait {
 	var activeNavMesh: NavMesh = null;
 	var agentID = -1;
 
-	static inline var EPSILON = 0.0001;
-
 	public function new() {
 		super();
 
