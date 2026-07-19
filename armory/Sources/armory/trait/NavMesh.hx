@@ -238,19 +238,38 @@ class NavMesh extends Trait {
 	}
 
 	public function reconstructNavMesh() {
-		removeUpdate(updateNavMesh);
-		Navigation.active.navMeshes.remove(navMeshId);
-		/*if(recastCrowd != null) {
-			for(agent in crowdAgentMap.keys()) {
-				removeCrowdAgent(agent);
-			}
-			recastCrowd.destroy();
-		}
-		for(obstacle in tempObstacleMap.keys()) {
-			removeTempObstacle(obstacle);
-		}*/
-		ready = false;
-		initNavMesh();
+	    var savedObstacles = new Map<Int, NavObstacle>();
+	    for (key in tempObstacleMap.keys()) {
+	        savedObstacles.set(key, tempObstacleMap.get(key));
+	    }
+
+	    removeUpdate(updateNavMesh);
+	    Navigation.active.navMeshes.remove(navMeshId);
+
+	    tempObstacleMap.clear();
+	    recastObstacleMap.clear();
+
+	    ready = false;
+	    initNavMesh();
+
+	    for (id in savedObstacles.keys()) {
+	        var navObstacle = savedObstacles.get(id);
+	        var newObstacleRef: recast.Recast.DtObstacleRef = null;
+
+	        if (Std.is(navObstacle, NavCylinderObstacle)) {
+	            var cylinder = cast(navObstacle, NavCylinderObstacle);
+	            var pos = RecastConversions.recastVec3FromVec4(cylinder.object.transform.world.getLoc());
+	            newObstacleRef = recastNavMesh.addCylinderObstacle(pos, cylinder.radius, cylinder.height);
+	        } else {
+	            var box = cast(navObstacle, NavBoxObstacle);
+	            var pos = RecastConversions.recastVec3FromVec4(box.object.transform.world.getLoc());
+	            var dim = RecastConversions.recastVec3FromVec4(box.dimensions);
+	            newObstacleRef = recastNavMesh.addBoxObstacle(pos, dim, box.angle);
+	        }
+
+	        tempObstacleMap.set(id, navObstacle);
+	        recastObstacleMap.set(id, newObstacleRef);
+	    }
 	}
 
 	public function updateNavMesh() {
