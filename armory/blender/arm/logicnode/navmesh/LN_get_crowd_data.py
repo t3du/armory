@@ -12,6 +12,9 @@ class GetCrowdDataNode(ArmLogicTreeNode):
 
         self.add_output('ArmStringSocket', 'NavMeshId')
         self.add_output('ArmVectorSocket', 'Speed')
+        self.add_output('ArmFloatSocket', 'Max Speed')
+        self.add_output('ArmFloatSocket', 'Max Acceleration')
+        self.add_output('ArmFloatSocket', 'Turn Speed')
         self.add_output('ArmVectorSocket', 'Location')
         self.add_output('ArmVectorSocket', 'Target Location')
         self.add_output('ArmIntSocket', 'Id')

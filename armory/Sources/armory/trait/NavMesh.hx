@@ -324,6 +324,30 @@ class NavMesh extends Trait {
 		recastCrowd.update(Time.delta);
 	}
 
+	public function crowdGetAgentMaxSpeed(agentID:Int):Float {
+		if (!ready || recastCrowd == null) return 0.0;
+		return recastCrowd.getAgentParameters(agentID).maxSpeed;
+	}
+
+	public function crowdGetAgentMaxAcceleration(agentID:Int):Float {
+		if (!ready || recastCrowd == null) return 0.0;
+		return recastCrowd.getAgentParameters(agentID).maxAcceleration;
+	}
+
+	public function crowdSetAgentMaxSpeed(agentID:Int, speed:Float):Void {
+		if (!ready || recastCrowd == null) return;
+		var params = recastCrowd.getAgentParameters(agentID);
+		params.maxSpeed = speed;
+		recastCrowd.setAgentParameters(agentID, params);
+	}
+
+	public function crowdSetAgentMaxAcceleration(agentID:Int, acceleration:Float):Void {
+		if (!ready || recastCrowd == null) return;
+		var params = recastCrowd.getAgentParameters(agentID);
+		params.maxAcceleration = acceleration;
+		recastCrowd.setAgentParameters(agentID, params);
+	}
+
 	public function crowdGetAgentPosition(agentID: Int):Vec4 {
 		if(!ready) return null;
 		if(recastCrowd == null) return null;

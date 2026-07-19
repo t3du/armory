@@ -105,6 +105,28 @@ class NavCrowd extends Trait {
 		agentReady = true;
 	}
 
+	public function crowdAgentMaxSpeed():Float {
+	    if (!agentReady) return 0.0;
+	    return activeNavMesh.crowdGetAgentMaxSpeed(agentID);
+	}
+
+	public function crowdAgentMaxAcceleration():Float {
+	    if (!agentReady) return 0.0;
+	    return activeNavMesh.crowdGetAgentMaxAcceleration(agentID);
+	}
+
+	public function crowdAgentSetMaxSpeed(speed:Float):Void {
+		if (!agentReady) return;
+		maxSpeed = speed;
+		activeNavMesh.crowdSetAgentMaxSpeed(agentID, speed);
+	}
+
+	public function crowdAgentSetMaxAcceleration(acceleration:Float):Void {
+		if (!agentReady) return;
+		maxAcceleration = acceleration;
+		activeNavMesh.crowdSetAgentMaxAcceleration(agentID, acceleration);
+	}
+
 	public function crowdAgentVelocity(): Vec4 {
 		if(!agentReady) return null;
 

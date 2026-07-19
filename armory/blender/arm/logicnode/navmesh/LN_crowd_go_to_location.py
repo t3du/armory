@@ -17,6 +17,9 @@ class GoToLocationNode(ArmLogicTreeNode):
         self.add_input('ArmStringSocket', 'NavMeshId', default_value = 'NavMesh')
         self.add_input('ArmNodeSocketObject', 'Object')
         self.add_input('ArmVectorSocket', 'Location')
+        self.add_input('ArmFloatSocket', 'Max Speed', 5.0)
+        self.add_input('ArmFloatSocket', 'Max Accelaration', 100)
+        self.add_input('ArmFloatSocket', 'Turn Speed', 0.1)
 
         self.add_output('ArmNodeSocketAction', 'Out')
 

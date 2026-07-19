@@ -22,10 +22,13 @@ class GetCrowdDataNode extends LogicNode {
 			return switch(from){
 				case 0: crowdAgent.navMeshId;
 				case 1: crowdAgent.crowdAgentVelocity();
-				case 2: crowdAgent.crowdAgentPosition();
-				case 3: crowdAgent.crowdAgentNextPath();
-				case 4: @:privateAccess crowdAgent.agentID;
-				case 5: crowdAgent.crowdAgentPath();
+				case 2: crowdAgent.crowdAgentMaxSpeed();
+				case 3: crowdAgent.crowdAgentMaxAcceleration();
+				case 4: crowdAgent.turnSpeed;
+				case 5: crowdAgent.crowdAgentPosition();
+				case 6: crowdAgent.crowdAgentNextPath();
+				case 7: @:privateAccess crowdAgent.agentID;
+				case 8: crowdAgent.crowdAgentPath();
 				default: null;
 			}
 		#else
