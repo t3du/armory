@@ -43,7 +43,7 @@ class NavBoxObstacle extends Trait {
 		if(activeNavMesh == null || !activeNavMesh.ready) return;
 
 		initialPosition = object.transform.world.getLoc();
-		obstacleID = activeNavMesh.addBoxObstacle(this, initialPosition, dimensions, angle);
+		obstacleID = activeNavMesh.addBoxObstacle(this, initialPosition, dimensions, -angle);
 
 		if (!isStatic)
 			notifyOnUpdate(updateObstaclePosition);

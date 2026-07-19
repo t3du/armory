@@ -16,6 +16,9 @@ class NavCylinderObstacle extends Trait {
 	public var navMeshId: String = 'NavMesh';
 
 	@prop
+	public var offset: Vec4 = new Vec4();
+
+	@prop
 	public var radius: Float = 1.0;
 
 	@prop
@@ -42,7 +45,7 @@ class NavCylinderObstacle extends Trait {
 		activeNavMesh = Navigation.active.navMeshes.get(navMeshId);
 		if(activeNavMesh == null || !activeNavMesh.ready) return;
 
-		initialPosition = object.transform.world.getLoc();
+		initialPosition = object.transform.world.getLoc().sub(offset);
 		obstacleID = activeNavMesh.addCylinderObstacle(this, initialPosition, radius, height);
 
 		if (!isStatic)	
