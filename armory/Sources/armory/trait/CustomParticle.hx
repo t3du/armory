@@ -28,13 +28,4 @@ class CustomParticle extends iron.Trait {
 		}
 	}
 
-	public function updateParticleCount(count: Int){
-
-		if(object.raw.type == 'mesh_object')
-		{
-			var meshObjGeom = cast(object, MeshObject).data.geom;
-			meshObjGeom.instanced = true;
-			meshObjGeom.instanceCount = count;
-		}
-	}
 }
