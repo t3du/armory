@@ -249,7 +249,7 @@ class Transform {
 	}
 
 	function computeRadius() {
-		radius = Math.sqrt(dim.x * dim.x + dim.y * dim.y + dim.z * dim.z);
+		radius = 0.5 * Math.sqrt(dim.x * dim.x + dim.y * dim.y + dim.z * dim.z);
 	}
 
 	function computeDim() {
