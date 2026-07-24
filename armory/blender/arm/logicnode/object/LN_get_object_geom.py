@@ -34,7 +34,7 @@ class GetObjectGeomNode(ArmLogicTreeNode):
         self.add_output('ArmNodeSocketArray', 'Vertices Indices')
         self.add_output('ArmNodeSocketArray', 'Vertices Material Indices')
         self.add_output('ArmNodeSocketArray', 'Vertices Face Indices')
-        self.add_output('ArmDynamicSocket', 'Vertex Groups Maps')
+        self.add_output('ArmDynamicSocket', 'Vertex Groups Map')
         self.add_output('ArmNodeSocketArray', 'Vertex Groups Names')
 
     def draw_buttons(self, context, layout):
