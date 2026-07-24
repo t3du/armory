@@ -3,6 +3,7 @@ from arm.logicnode.arm_nodes import *
 class AddSoftBodyNode(ArmLogicTreeNode):
     bl_idname = 'LNAddSoftBodyNode'
     bl_label = 'Add Soft Body'
+    arm_section = 'softbody'
     arm_version = 1
 
     def arm_init(self, context):
