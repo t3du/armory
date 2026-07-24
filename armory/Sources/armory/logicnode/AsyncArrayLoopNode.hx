@@ -1,6 +1,6 @@
 package armory.logicnode;
 
-class ArrayAsyncLoopNode extends LogicNode {
+class AsyncArrayLoopNode extends LogicNode {
 
 	var array:Array<Dynamic>;
 	var index:Int = 0;
@@ -28,9 +28,22 @@ class ArrayAsyncLoopNode extends LogicNode {
 
 		var processed = 0;
 		while (processed < itemsPerFrame && index < array.length) {
-			runOutput(0);
 			index++;
 			processed++;
+			runOutput(0);
+
+			if (tree.loopBreak) {
+				tree.loopBreak = false;
+				running = false;
+				tree.removeUpdate(update);
+				runOutput(2);
+				return;
+			}
+
+			if (tree.loopContinue) {
+				tree.loopContinue = false;
+				continue;
+			}
 		}
 
 		if (index >= array.length) {
@@ -41,7 +54,9 @@ class ArrayAsyncLoopNode extends LogicNode {
 	}
 
 	override function get(from: Int): Dynamic {
-		if (from == 0) return index - 1;
-		else return (index > 0 && index <= array.length) ? array[index - 1] : null;
+		if (from == 1)
+			return array[index - 1];
+		return index - 1;
+		
 	}
 }

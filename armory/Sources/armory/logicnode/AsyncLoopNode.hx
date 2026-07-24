@@ -32,9 +32,9 @@ class AsyncLoopNode extends LogicNode {
 
 		var processed = 0;
 		while (processed < itemsPerFrame && index < to) {
-			runOutput(0);
 			index++;
 			processed++;
+			runOutput(0);
 
 			if (tree.loopBreak) {
 				tree.loopBreak = false;
