@@ -588,10 +588,15 @@ def parse_tex_environment(node: bpy.types.ShaderNodeTexEnvironment, out_socket: 
     if rpdat.arm_irradiance and rpdat.arm_radiance and not mobile_mat:
         wrd.world_defs += '_Rad'
 
-    if node.projection == 'EQUIRECTANGULAR':
-        return 'texture(envmap, envMapEquirect(pos)).rgb * envmapStrength'
+    if node.inputs[0].is_linked:
+        co = c.parse_vector_input(node.inputs[0])
     else:
-        return 'texture(envmap, envMapMirror(pos)).rgb * envmapStrength'
+        co = 'pos'
+
+    if node.projection == 'EQUIRECTANGULAR':
+        return f'texture(envmap, envMapEquirect({co})).rgb * envmapStrength'
+    else:
+        return f'texture(envmap, envMapMirror({co})).rgb * envmapStrength'
 
 
 def parse_tex_voronoi(node: bpy.types.ShaderNodeTexVoronoi, out_socket: bpy.types.NodeSocket, state: ParserState) -> Union[floatstr, vec3str]:
