@@ -56,7 +56,7 @@ class RotationNode(ArmLogicVariableNodeMixin, ArmLogicTreeNode):
         'property1',
         items=[('Deg', 'Degrees', 'Degrees'),
                ('Rad', 'Radians', 'Radians')],
-        name='', default='Rad')
+        name='', default='Deg')
     property2: HaxeEnumProperty(
         'property2',
         items=[('XYZ','XYZ','XYZ'),

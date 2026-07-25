@@ -273,7 +273,7 @@ class ArmRotationSocket(ArmCustomSocket):
     default_value_unit: EnumProperty(
         items=[('Deg', 'Degrees', 'Degrees'),
                ('Rad', 'Radians', 'Radians')],
-        name='', default='Rad',
+        name='', default='Deg',
         update=on_unit_update)
     default_value_order: EnumProperty(
         items=[('XYZ','XYZ','XYZ'),
