@@ -2019,9 +2019,8 @@ Make sure the mesh only has tris/quads.""")
         o = {'name': objectRef[1]["structName"]}
         bo = objectRef[0]
 
-        if bo.type == 'GRID':
+        if bo.type in ('GRID', 'VOLUME'):
             o['type'] = 'grid'
-        elif bo.type == 'PLANAR':
             o['type'] = 'planar'
         else:
             o['type'] = 'cubemap'
