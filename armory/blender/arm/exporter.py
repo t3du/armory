@@ -2021,8 +2021,9 @@ Make sure the mesh only has tris/quads.""")
 
         if bo.type in ('GRID', 'VOLUME'):
             o['type'] = 'grid'
+        elif bo.type in ('PLANAR', 'PLANE'):
             o['type'] = 'planar'
-        else:
+        else: # (CUBEMAP, SPHERE)
             o['type'] = 'cubemap'
 
         self.output['probe_datas'].append(o)
