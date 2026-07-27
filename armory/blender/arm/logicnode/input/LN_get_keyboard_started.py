@@ -4,6 +4,7 @@ class GetKeyboardStartedNode(ArmLogicTreeNode):
     """."""
     bl_idname = 'LNGetKeyboardStartedNode'
     bl_label = 'Get Keyboard Started'
+    arm_section = 'keyboard'
     arm_version = 1
 
     def arm_init(self, context):

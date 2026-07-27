@@ -16,6 +16,7 @@ class GetImageColorNode(ArmLogicTreeNode):
     """
     bl_idname = 'LNGetImageColorNode'
     bl_label = 'Get Image Color'
+    arm_section = 'image'
     arm_version = 1
 
     def remove_extra_inputs(self, context):

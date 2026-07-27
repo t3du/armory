@@ -5,6 +5,7 @@ class GetGamepadStartedNode(ArmLogicTreeNode):
     bl_idname = 'LNGetGamepadStartedNode'
     bl_label = 'Get Gamepad Started'
     arm_version = 1
+    arm_section = 'gamepad'
 
     def arm_init(self, context):
         self.add_input('ArmNodeSocketAction', 'In')

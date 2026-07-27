@@ -3,6 +3,7 @@ from arm.logicnode.arm_nodes import *
 class SetVirtualButtonNode(ArmLogicTreeNode):
     bl_idname = 'LNSetVirtualButtonNode'
     bl_label = 'Set Virtual Button'
+    arm_section = 'virtual'
     arm_version = 1
 
     property0: bpy.props.EnumProperty(

@@ -5,6 +5,7 @@ class GetMouseStartedNode(ArmLogicTreeNode):
     """."""
     bl_idname = 'LNGetMouseStartedNode'
     bl_label = 'Get Mouse Started'
+    arm_section = 'mouse'
     arm_version = 2
 
     property0: HaxeBoolProperty(
