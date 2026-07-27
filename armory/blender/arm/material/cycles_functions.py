@@ -150,16 +150,35 @@ vec3 tex_voronoi(const vec3 coord, const float r, const int metric, const int ou
 """
 
 str_tex_noise = """
+//https://github.com/blender/blender/blob/main/source/blender/gpu/shaders/material/gpu_shader_material_tex_noise.glsl
+uint rot(uint x, int k) {
+    return (x << k) | (x >> (32 - k));
+}
+
+void mix_hash(inout uint a, inout uint b, inout uint c) {
+    a -= c; a ^= rot(c, 4); c += b;
+    b -= a; b ^= rot(a, 6); a += c;
+    c -= b; c ^= rot(b, 8); b += a;
+    a -= c; a ^= rot(c, 16); c += b;
+    b -= a; b ^= rot(a, 19); a += c;
+    c -= b; c ^= rot(b, 4); b += a;
+}
+
+void final_hash(inout uint a, inout uint b, inout uint c) {
+    c ^= b; c -= rot(b, 14);
+    a ^= c; a -= rot(c, 11);
+    b ^= a; b -= rot(a, 25);
+    c ^= b; c -= rot(b, 16);
+    a ^= c; a -= rot(c, 4);
+    b ^= a; b -= rot(a, 14);
+    c ^= b; c -= rot(b, 24);
+}
+
 uint hash_uint(uint kx) {
     uint a = 0xdeadbeefu + 17u + kx;
-    uint b = a, c = a;
-    c ^= b; c -= (b << 14) | (b >> 18);
-    a ^= c; a -= (c << 11) | (c >> 21);
-    b ^= a; b -= (a << 25) | (a >> 7);
-    c ^= b; c -= (b << 16) | (b >> 16);
-    a ^= c; a -= (c << 4) | (c >> 28);
-    b ^= a; b -= (a << 14) | (a >> 18);
-    c ^= b; c -= (b << 24) | (b >> 8);
+    uint b = 0xdeadbeefu + 17u;
+    uint c = 0xdeadbeefu + 17u;
+    final_hash(a, b, c);
     return c;
 }
 
@@ -167,13 +186,7 @@ uint hash_uint2(uint kx, uint ky) {
     uint a = 0xdeadbeefu + 21u + kx;
     uint b = 0xdeadbeefu + 21u + ky;
     uint c = 0xdeadbeefu + 21u;
-    c ^= b; c -= (b << 14) | (b >> 18);
-    a ^= c; a -= (c << 11) | (c >> 21);
-    b ^= a; b -= (a << 25) | (a >> 7);
-    c ^= b; c -= (b << 16) | (b >> 16);
-    a ^= c; a -= (c << 4) | (c >> 28);
-    b ^= a; b -= (a << 14) | (a >> 18);
-    c ^= b; c -= (b << 24) | (b >> 8);
+    final_hash(a, b, c);
     return c;
 }
 
@@ -181,13 +194,7 @@ uint hash_uint3(uint kx, uint ky, uint kz) {
     uint a = 0xdeadbeefu + 25u + kx;
     uint b = 0xdeadbeefu + 25u + ky;
     uint c = 0xdeadbeefu + 25u + kz;
-    c ^= b; c -= (b << 14) | (b >> 18);
-    a ^= c; a -= (c << 11) | (c >> 21);
-    b ^= a; b -= (a << 25) | (a >> 7);
-    c ^= b; c -= (b << 16) | (b >> 16);
-    a ^= c; a -= (c << 4) | (c >> 28);
-    b ^= a; b -= (a << 14) | (a >> 18);
-    c ^= b; c -= (b << 24) | (b >> 8);
+    final_hash(a, b, c);
     return c;
 }
 
@@ -195,17 +202,9 @@ uint hash_uint4(uint kx, uint ky, uint kz, uint kw) {
     uint a = 0xdeadbeefu + 29u + kx;
     uint b = 0xdeadbeefu + 29u + ky;
     uint c = 0xdeadbeefu + 29u + kz;
-    a -= c; a ^= (c << 4) | (c >> 28); c += b; b -= a; b ^= (a << 6) | (a >> 26); a += c;
-    c -= b; c ^= (b << 8) | (b >> 24); b += a; a -= c; a ^= (c << 16) | (c >> 16); c += b;
-    b -= a; b ^= (a << 19) | (a >> 13); a += c; c -= b; c ^= (b << 4) | (b >> 28); b += a;
+    mix_hash(a, b, c);
     a += kw;
-    c ^= b; c -= (b << 14) | (b >> 18);
-    a ^= c; a -= (c << 11) | (c >> 21);
-    b ^= a; b -= (a << 25) | (a >> 7);
-    c ^= b; c -= (b << 16) | (b >> 16);
-    a ^= c; a -= (c << 4) | (c >> 28);
-    b ^= a; b -= (a << 14) | (a >> 18);
-    c ^= b; c -= (b << 24) | (b >> 8);
+    final_hash(a, b, c);
     return c;
 }
 
@@ -263,15 +262,17 @@ float noise_grad(uint hash, float x, float y, float z, float w) {
 }
 
 float noise_perlin(float x) {
-    float fx = fract(x);
-    int X = int(floor(x));
+    float x_floor = floor(x);
+    int X = int(x_floor);
+    float fx = x - x_floor;
     float u = fade(fx);
     return mix(noise_grad(hash_uint(uint(X)), fx), noise_grad(hash_uint(uint(X + 1)), fx - 1.0), u);
 }
 
-float noise_perlin(vec2 v) {
-    vec2 f = fract(v);
-    ivec2 I = ivec2(floor(v));
+float noise_perlin(vec2 vec) {
+    vec2 vec_floor = floor(vec);
+    ivec2 I = ivec2(vec_floor);
+    vec2 f = vec - vec_floor;
     vec2 u = vec2(fade(f.x), fade(f.y));
     float v00 = noise_grad(hash_uint2(uint(I.x), uint(I.y)), f.x, f.y);
     float v10 = noise_grad(hash_uint2(uint(I.x + 1), uint(I.y)), f.x - 1.0, f.y);
@@ -280,9 +281,10 @@ float noise_perlin(vec2 v) {
     return mix(mix(v00, v10, u.x), mix(v01, v11, u.x), u.y);
 }
 
-float noise_perlin(vec3 v) {
-    vec3 f = fract(v);
-    ivec3 I = ivec3(floor(v));
+float noise_perlin(vec3 vec) {
+    vec3 vec_floor = floor(vec);
+    ivec3 I = ivec3(vec_floor);
+    vec3 f = vec - vec_floor;
     vec3 u = vec3(fade(f.x), fade(f.y), fade(f.z));
     float v000 = noise_grad(hash_uint3(uint(I.x), uint(I.y), uint(I.z)), f.x, f.y, f.z);
     float v100 = noise_grad(hash_uint3(uint(I.x + 1), uint(I.y), uint(I.z)), f.x - 1.0, f.y, f.z);
@@ -295,19 +297,43 @@ float noise_perlin(vec3 v) {
     return mix(mix(mix(v000, v100, u.x), mix(v010, v110, u.x), u.y), mix(mix(v001, v101, u.x), mix(v011, v111, u.x), u.y), u.z);
 }
 
-float noise_perlin(vec4 v) {
-    vec4 f = fract(v);
-    ivec4 I = ivec4(floor(v));
+float noise_perlin(vec4 vec) {
+    vec4 vec_floor = floor(vec);
+    ivec4 I = ivec4(vec_floor);
+    vec4 f = vec - vec_floor;
     vec4 u = vec4(fade(f.x), fade(f.y), fade(f.z), fade(f.w));
     float v0 = mix(mix(mix(noise_grad(hash_uint4(uint(I.x), uint(I.y), uint(I.z), uint(I.w)), f.x, f.y, f.z, f.w), noise_grad(hash_uint4(uint(I.x + 1), uint(I.y), uint(I.z), uint(I.w)), f.x - 1.0, f.y, f.z, f.w), u.x), mix(noise_grad(hash_uint4(uint(I.x), uint(I.y + 1), uint(I.z), uint(I.w)), f.x, f.y - 1.0, f.z, f.w), noise_grad(hash_uint4(uint(I.x + 1), uint(I.y + 1), uint(I.z), uint(I.w)), f.x - 1.0, f.y - 1.0, f.z, f.w), u.x), u.y), mix(mix(noise_grad(hash_uint4(uint(I.x), uint(I.y), uint(I.z + 1), uint(I.w)), f.x, f.y, f.z - 1.0, f.w), noise_grad(hash_uint4(uint(I.x + 1), uint(I.y), uint(I.z + 1), uint(I.w)), f.x - 1.0, f.y, f.z - 1.0, f.w), u.x), mix(noise_grad(hash_uint4(uint(I.x), uint(I.y + 1), uint(I.z + 1), uint(I.w)), f.x, f.y - 1.0, f.z - 1.0, f.w), noise_grad(hash_uint4(uint(I.x + 1), uint(I.y + 1), uint(I.z + 1), uint(I.w)), f.x - 1.0, f.y - 1.0, f.z - 1.0, f.w), u.x), u.y), u.z);
     float v1 = mix(mix(mix(noise_grad(hash_uint4(uint(I.x), uint(I.y), uint(I.z), uint(I.w + 1)), f.x, f.y, f.z, f.w - 1.0), noise_grad(hash_uint4(uint(I.x + 1), uint(I.y), uint(I.z), uint(I.w + 1)), f.x - 1.0, f.y, f.z, f.w - 1.0), u.x), mix(noise_grad(hash_uint4(uint(I.x), uint(I.y + 1), uint(I.z), uint(I.w + 1)), f.x, f.y - 1.0, f.z, f.w - 1.0), noise_grad(hash_uint4(uint(I.x + 1), uint(I.y + 1), uint(I.z), uint(I.w + 1)), f.x - 1.0, f.y - 1.0, f.z, f.w - 1.0), u.x), u.y), mix(mix(noise_grad(hash_uint4(uint(I.x), uint(I.y), uint(I.z + 1), uint(I.w + 1)), f.x, f.y, f.z - 1.0, f.w - 1.0), noise_grad(hash_uint4(uint(I.x + 1), uint(I.y), uint(I.z + 1), uint(I.w + 1)), f.x - 1.0, f.y, f.z - 1.0, f.w - 1.0), u.x), mix(noise_grad(hash_uint4(uint(I.x), uint(I.y + 1), uint(I.z + 1), uint(I.w + 1)), f.x, f.y - 1.0, f.z - 1.0, f.w - 1.0), noise_grad(hash_uint4(uint(I.x + 1), uint(I.y + 1), uint(I.z + 1), uint(I.w + 1)), f.x - 1.0, f.y - 1.0, f.z - 1.0, f.w - 1.0), u.x), u.y), u.z);
     return mix(v0, v1, u.w);
 }
 
-float snoise(float p) { return 0.25 * noise_perlin(mod(p, 100000.0)); }
-float snoise(vec2 p) { return 0.6616 * noise_perlin(mod(p, 100000.0)); }
-float snoise(vec3 p) { return 0.9820 * noise_perlin(mod(p, 100000.0)); }
-float snoise(vec4 p) { return 0.8344 * noise_perlin(mod(p, 100000.0)); }
+float compatible_mod(float a, float b) {
+    return (b != 0.0) ? (a - float(int(a / b)) * b) : 0.0;
+}
+vec2 compatible_mod(vec2 a, float b) { return vec2(compatible_mod(a.x, b), compatible_mod(a.y, b)); }
+vec3 compatible_mod(vec3 a, float b) { return vec3(compatible_mod(a.x, b), compatible_mod(a.y, b), compatible_mod(a.z, b)); }
+vec4 compatible_mod(vec4 a, float b) { return vec4(compatible_mod(a.x, b), compatible_mod(a.y, b), compatible_mod(a.z, b), compatible_mod(a.w, b)); }
+
+float snoise(float p) {
+    float precision_correction = 0.5 * float(abs(p) >= 1000000.0);
+    p = compatible_mod(p, 100000.0) + precision_correction;
+    return 0.25 * noise_perlin(p);
+}
+float snoise(vec2 p) {
+    vec2 precision_correction = 0.5 * vec2(float(abs(p.x) >= 1000000.0), float(abs(p.y) >= 1000000.0));
+    p = compatible_mod(p, 100000.0) + precision_correction;
+    return 0.6616 * noise_perlin(p);
+}
+float snoise(vec3 p) {
+    vec3 precision_correction = 0.5 * vec3(float(abs(p.x) >= 1000000.0), float(abs(p.y) >= 1000000.0), float(abs(p.z) >= 1000000.0));
+    p = compatible_mod(p, 100000.0) + precision_correction;
+    return 0.9820 * noise_perlin(p);
+}
+float snoise(vec4 p) {
+    vec4 precision_correction = 0.5 * vec4(float(abs(p.x) >= 1000000.0), float(abs(p.y) >= 1000000.0), float(abs(p.z) >= 1000000.0), float(abs(p.w) >= 1000000.0));
+    p = compatible_mod(p, 100000.0) + precision_correction;
+    return 0.8344 * noise_perlin(p);
+}
 
 #define DEFINE_NOISE_FRACTAL(T) \
 float noise_fbm(T co, float detail, float roughness, float lacunarity, float offset, float gain, bool normalize) { \
