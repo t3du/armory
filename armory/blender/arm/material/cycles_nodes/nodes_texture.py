@@ -280,34 +280,70 @@ if bpy.app.version < (4, 1, 0):
 def parse_tex_noise(node: bpy.types.ShaderNodeTexNoise, out_socket: bpy.types.NodeSocket, state: ParserState) -> Union[floatstr, vec3str]:
     c.write_procedurals()
     state.curshader.add_function(c_functions.str_tex_noise)
-    c.assets_add(os.path.join(arm.utils.get_sdk_path(), 'armory', 'Assets', 'noise256.png'))
-    c.assets_add_embedded_data('noise256.png')
-    state.curshader.add_uniform('sampler2D snoise256', link='$noise256.png')
-    if node.inputs[0].is_linked:
+
+    if 'Vector' in node.inputs and node.inputs['Vector'].is_linked:
+        co = c.parse_vector_input(node.inputs['Vector'])
+    elif node.inputs[0].is_linked:
         co = c.parse_vector_input(node.inputs[0])
     else:
         co = 'bposition'
-    scale = c.parse_value_input(node.inputs['Scale'])
-    detail = c.parse_value_input(node.inputs['Detail'])
-    roughness = c.parse_value_input(node.inputs['Roughness'])
-    distortion = c.parse_value_input(node.inputs['Distortion'])
-    if bpy.app.version >= (4, 1, 0):
-        if node.noise_type == "FBM":
-            state.curshader.add_function(c_functions.str_tex_musgrave)
-            if out_socket == node.outputs[1]:
-                res = 'vec3(tex_musgrave_f({0} * {1}, {2}, {3}), tex_musgrave_f({0} * {1} + 120.0, {2}, {3}), tex_musgrave_f({0} * {1} + 168.0, {2}, {3}))'.format(co, scale, detail, distortion)
-            else:
-                res = f'tex_musgrave_f({co} * {scale} * 1.0, {detail}, {distortion})'
+
+    w = c.parse_value_input(node.inputs['W']) if 'W' in node.inputs else '0.0'
+    scale = c.parse_value_input(node.inputs['Scale']) if 'Scale' in node.inputs else '1.0'
+    detail = c.parse_value_input(node.inputs['Detail']) if 'Detail' in node.inputs else '2.0'
+    roughness = c.parse_value_input(node.inputs['Roughness']) if 'Roughness' in node.inputs else '0.5'
+    lacunarity = c.parse_value_input(node.inputs['Lacunarity']) if 'Lacunarity' in node.inputs else '2.0'
+    offset = c.parse_value_input(node.inputs['Offset']) if 'Offset' in node.inputs else '0.0'
+    gain = c.parse_value_input(node.inputs['Gain']) if 'Gain' in node.inputs else '1.0'
+    distortion = c.parse_value_input(node.inputs['Distortion']) if 'Distortion' in node.inputs else '0.0'
+
+    dimensions = getattr(node, 'noise_dimensions', '3D')
+    noise_type = getattr(node, 'noise_type', 'FBM')
+    normalize = 'true' if getattr(node, 'normalize', True) else 'false'
+
+    type_map = {
+        'FBM': 'noise_fbm',
+        'MULTIFRACTAL': 'noise_multi_fractal',
+        'RIDGED_MULTIFRACTAL': 'noise_ridged_multi_fractal',
+        'HYBRID_MULTIFRACTAL': 'noise_hybrid_multi_fractal',
+        'HETERO_TERRAIN': 'noise_hetero_terrain'
+    }
+    func_name = type_map.get(noise_type, 'noise_fbm')
+
+    is_color = (out_socket == node.outputs[1]) or (getattr(out_socket, 'name', '') == 'Color')
+
+    if dimensions == '1D':
+        p_expr = f"({w}) * ({scale})"
+        dist_expr = f"({p_expr}) + snoise(({p_expr}) + random_float_offset(0.0)) * ({distortion})" if distortion != '0.0' else p_expr
+        if is_color:
+            res = f"vec3({func_name}({dist_expr}, clamp({detail}, 0.0, 15.0), max({roughness}, 0.0), {lacunarity}, {offset}, {gain}, {normalize}), {func_name}(({dist_expr}) + random_float_offset(1.0), clamp({detail}, 0.0, 15.0), max({roughness}, 0.0), {lacunarity}, {offset}, {gain}, {normalize}), {func_name}(({dist_expr}) + random_float_offset(2.0), clamp({detail}, 0.0, 15.0), max({roughness}, 0.0), {lacunarity}, {offset}, {gain}, {normalize}))"
         else:
-            if out_socket == node.outputs[1]:
-                res = 'vec3(tex_noise({0} * {1},{2},{3},{4}), tex_noise({0} * {1} + 120.0,{2},{3},{4}), tex_noise({0} * {1} + 168.0,{2},{3},{4}))'.format(co, scale, detail, distortion, roughness)
-            else:
-                res = 'tex_noise({0} * {1},{2},{3},{4})'.format(co, scale, detail, distortion, roughness)
+            res = f"{func_name}({dist_expr}, clamp({detail}, 0.0, 15.0), max({roughness}, 0.0), {lacunarity}, {offset}, {gain}, {normalize})"
+
+    elif dimensions == '2D':
+        p_expr = f"({co}).xy * ({scale})"
+        dist_expr = f"({p_expr}) + vec2(snoise(({p_expr}) + random_vec2_offset(0.0)) * ({distortion}), snoise(({p_expr}) + random_vec2_offset(1.0)) * ({distortion}))" if distortion != '0.0' else p_expr
+        if is_color:
+            res = f"vec3({func_name}({dist_expr}, clamp({detail}, 0.0, 15.0), max({roughness}, 0.0), {lacunarity}, {offset}, {gain}, {normalize}), {func_name}(({dist_expr}) + random_vec2_offset(2.0), clamp({detail}, 0.0, 15.0), max({roughness}, 0.0), {lacunarity}, {offset}, {gain}, {normalize}), {func_name}(({dist_expr}) + random_vec2_offset(3.0), clamp({detail}, 0.0, 15.0), max({roughness}, 0.0), {lacunarity}, {offset}, {gain}, {normalize}))"
+        else:
+            res = f"{func_name}({dist_expr}, clamp({detail}, 0.0, 15.0), max({roughness}, 0.0), {lacunarity}, {offset}, {gain}, {normalize})"
+
+    elif dimensions == '4D':
+        p_expr = f"vec4({co}, {w}) * ({scale})"
+        dist_expr = f"({p_expr}) + vec4(snoise(({p_expr}) + random_vec4_offset(0.0)) * ({distortion}), snoise(({p_expr}) + random_vec4_offset(1.0)) * ({distortion}), snoise(({p_expr}) + random_vec4_offset(2.0)) * ({distortion}), snoise(({p_expr}) + random_vec4_offset(3.0)) * ({distortion}))" if distortion != '0.0' else p_expr
+        if is_color:
+            res = f"vec3({func_name}({dist_expr}, clamp({detail}, 0.0, 15.0), max({roughness}, 0.0), {lacunarity}, {offset}, {gain}, {normalize}), {func_name}(({dist_expr}) + random_vec4_offset(4.0), clamp({detail}, 0.0, 15.0), max({roughness}, 0.0), {lacunarity}, {offset}, {gain}, {normalize}), {func_name}(({dist_expr}) + random_vec4_offset(5.0), clamp({detail}, 0.0, 15.0), max({roughness}, 0.0), {lacunarity}, {offset}, {gain}, {normalize}))"
+        else:
+            res = f"{func_name}({dist_expr}, clamp({detail}, 0.0, 15.0), max({roughness}, 0.0), {lacunarity}, {offset}, {gain}, {normalize})"
+
     else:
-        if out_socket == node.outputs[1]:
-            res = 'vec3(tex_noise({0} * {1},{2},{3},{4}), tex_noise({0} * {1} + 120.0,{2},{3},{4}), tex_noise({0} * {1} + 168.0,{2},{3},{4}))'.format(co, scale, detail, distortion, roughness)
+        p_expr = f"({co}) * ({scale})"
+        dist_expr = f"({p_expr}) + vec3(snoise(({p_expr}) + random_vec3_offset(0.0)) * ({distortion}), snoise(({p_expr}) + random_vec3_offset(1.0)) * ({distortion}), snoise(({p_expr}) + random_vec3_offset(2.0)) * ({distortion}))" if distortion != '0.0' else p_expr
+        if is_color:
+            res = f"vec3({func_name}({dist_expr}, clamp({detail}, 0.0, 15.0), max({roughness}, 0.0), {lacunarity}, {offset}, {gain}, {normalize}), {func_name}(({dist_expr}) + random_vec3_offset(3.0), clamp({detail}, 0.0, 15.0), max({roughness}, 0.0), {lacunarity}, {offset}, {gain}, {normalize}), {func_name}(({dist_expr}) + random_vec3_offset(4.0), clamp({detail}, 0.0, 15.0), max({roughness}, 0.0), {lacunarity}, {offset}, {gain}, {normalize}))"
         else:
-            res = 'tex_noise({0} * {1},{2},{3},{4})'.format(co, scale, detail, distortion, roughness)
+            res = f"{func_name}({dist_expr}, clamp({detail}, 0.0, 15.0), max({roughness}, 0.0), {lacunarity}, {offset}, {gain}, {normalize})"
+
     return res
 
 

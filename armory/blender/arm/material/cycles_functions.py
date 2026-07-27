@@ -149,27 +149,271 @@ vec3 tex_voronoi(const vec3 coord, const float r, const int metric, const int ou
 }
 """
 
-# Based on https://www.shadertoy.com/view/4sfGzS
-# Copyright © 2013 Inigo Quilez
-# The MIT License - Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions: The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-# float tex_noise_f(const vec3 x) {
-# vec3 p = floor(x);
-# vec3 f = fract(x);
-# f = f * f * (3.0 - 2.0 * f);
-# vec2 uv = (p.xy + vec2(37.0, 17.0) * p.z) + f.xy;
-# vec2 rg = texture(snoise256, (uv + 0.5) / 256.0).yx;
-# return mix(rg.x, rg.y, f.z);
-# }
-# By Morgan McGuire @morgan3d, http://graphicscodex.com Reuse permitted under the BSD license.
-# https://www.shadertoy.com/view/4dS3Wd
 str_tex_noise = """
-float tex_noise(const vec3 p, const float detail, const float roughness, const float distortion) {
-    vec3 pk = p;
-    if (distortion != 0.0) {
-        pk += vec3(noise(p) * distortion);
-    }
-    return fractal_noise(pk, detail, roughness);
+uint hash_uint(uint kx) {
+    uint a = 0xdeadbeefu + 17u + kx;
+    uint b = a, c = a;
+    c ^= b; c -= (b << 14) | (b >> 18);
+    a ^= c; a -= (c << 11) | (c >> 21);
+    b ^= a; b -= (a << 25) | (a >> 7);
+    c ^= b; c -= (b << 16) | (b >> 16);
+    a ^= c; a -= (c << 4) | (c >> 28);
+    b ^= a; b -= (a << 14) | (a >> 18);
+    c ^= b; c -= (b << 24) | (b >> 8);
+    return c;
 }
+
+uint hash_uint2(uint kx, uint ky) {
+    uint a = 0xdeadbeefu + 21u + kx;
+    uint b = 0xdeadbeefu + 21u + ky;
+    uint c = 0xdeadbeefu + 21u;
+    c ^= b; c -= (b << 14) | (b >> 18);
+    a ^= c; a -= (c << 11) | (c >> 21);
+    b ^= a; b -= (a << 25) | (a >> 7);
+    c ^= b; c -= (b << 16) | (b >> 16);
+    a ^= c; a -= (c << 4) | (c >> 28);
+    b ^= a; b -= (a << 14) | (a >> 18);
+    c ^= b; c -= (b << 24) | (b >> 8);
+    return c;
+}
+
+uint hash_uint3(uint kx, uint ky, uint kz) {
+    uint a = 0xdeadbeefu + 25u + kx;
+    uint b = 0xdeadbeefu + 25u + ky;
+    uint c = 0xdeadbeefu + 25u + kz;
+    c ^= b; c -= (b << 14) | (b >> 18);
+    a ^= c; a -= (c << 11) | (c >> 21);
+    b ^= a; b -= (a << 25) | (a >> 7);
+    c ^= b; c -= (b << 16) | (b >> 16);
+    a ^= c; a -= (c << 4) | (c >> 28);
+    b ^= a; b -= (a << 14) | (a >> 18);
+    c ^= b; c -= (b << 24) | (b >> 8);
+    return c;
+}
+
+uint hash_uint4(uint kx, uint ky, uint kz, uint kw) {
+    uint a = 0xdeadbeefu + 29u + kx;
+    uint b = 0xdeadbeefu + 29u + ky;
+    uint c = 0xdeadbeefu + 29u + kz;
+    a -= c; a ^= (c << 4) | (c >> 28); c += b; b -= a; b ^= (a << 6) | (a >> 26); a += c;
+    c -= b; c ^= (b << 8) | (b >> 24); b += a; a -= c; a ^= (c << 16) | (c >> 16); c += b;
+    b -= a; b ^= (a << 19) | (a >> 13); a += c; c -= b; c ^= (b << 4) | (b >> 28); b += a;
+    a += kw;
+    c ^= b; c -= (b << 14) | (b >> 18);
+    a ^= c; a -= (c << 11) | (c >> 21);
+    b ^= a; b -= (a << 25) | (a >> 7);
+    c ^= b; c -= (b << 16) | (b >> 16);
+    a ^= c; a -= (c << 4) | (c >> 28);
+    b ^= a; b -= (a << 14) | (a >> 18);
+    c ^= b; c -= (b << 24) | (b >> 8);
+    return c;
+}
+
+float hash_float_to_float(float k) {
+    return float(hash_uint(floatBitsToUint(k))) / 4294967295.0;
+}
+
+float hash_vec2_to_float(vec2 k) {
+    return float(hash_uint2(floatBitsToUint(k.x), floatBitsToUint(k.y))) / 4294967295.0;
+}
+
+float hash_vec3_to_float(vec3 k) {
+    return float(hash_uint3(floatBitsToUint(k.x), floatBitsToUint(k.y), floatBitsToUint(k.z))) / 4294967295.0;
+}
+
+float hash_vec4_to_float(vec4 k) {
+    return float(hash_uint4(floatBitsToUint(k.x), floatBitsToUint(k.y), floatBitsToUint(k.z), floatBitsToUint(k.w))) / 4294967295.0;
+}
+
+float fade(float t) {
+    return t * t * t * (t * (t * 6.0 - 15.0) + 10.0);
+}
+
+float negate_if(float val, uint cond) {
+    return (cond != 0u) ? -val : val;
+}
+
+float noise_grad(uint hash, float x) {
+    uint h = hash & 15u;
+    float g = 1.0 + float(h & 7u);
+    return negate_if(g, h & 8u) * x;
+}
+
+float noise_grad(uint hash, float x, float y) {
+    uint h = hash & 7u;
+    float u = h < 4u ? x : y;
+    float v = 2.0 * (h < 4u ? y : x);
+    return negate_if(u, h & 1u) + negate_if(v, h & 2u);
+}
+
+float noise_grad(uint hash, float x, float y, float z) {
+    uint h = hash & 15u;
+    float u = h < 8u ? x : y;
+    float vt = ((h == 12u) || (h == 14u)) ? x : z;
+    float v = h < 4u ? y : vt;
+    return negate_if(u, h & 1u) + negate_if(v, h & 2u);
+}
+
+float noise_grad(uint hash, float x, float y, float z, float w) {
+    uint h = hash & 31u;
+    float u = h < 24u ? x : y;
+    float v = h < 16u ? y : z;
+    float s = h < 8u ? z : w;
+    return negate_if(u, h & 1u) + negate_if(v, h & 2u) + negate_if(s, h & 4u);
+}
+
+float noise_perlin(float x) {
+    float fx = fract(x);
+    int X = int(floor(x));
+    float u = fade(fx);
+    return mix(noise_grad(hash_uint(uint(X)), fx), noise_grad(hash_uint(uint(X + 1)), fx - 1.0), u);
+}
+
+float noise_perlin(vec2 v) {
+    vec2 f = fract(v);
+    ivec2 I = ivec2(floor(v));
+    vec2 u = vec2(fade(f.x), fade(f.y));
+    float v00 = noise_grad(hash_uint2(uint(I.x), uint(I.y)), f.x, f.y);
+    float v10 = noise_grad(hash_uint2(uint(I.x + 1), uint(I.y)), f.x - 1.0, f.y);
+    float v01 = noise_grad(hash_uint2(uint(I.x), uint(I.y + 1)), f.x, f.y - 1.0);
+    float v11 = noise_grad(hash_uint2(uint(I.x + 1), uint(I.y + 1)), f.x - 1.0, f.y - 1.0);
+    return mix(mix(v00, v10, u.x), mix(v01, v11, u.x), u.y);
+}
+
+float noise_perlin(vec3 v) {
+    vec3 f = fract(v);
+    ivec3 I = ivec3(floor(v));
+    vec3 u = vec3(fade(f.x), fade(f.y), fade(f.z));
+    float v000 = noise_grad(hash_uint3(uint(I.x), uint(I.y), uint(I.z)), f.x, f.y, f.z);
+    float v100 = noise_grad(hash_uint3(uint(I.x + 1), uint(I.y), uint(I.z)), f.x - 1.0, f.y, f.z);
+    float v010 = noise_grad(hash_uint3(uint(I.x), uint(I.y + 1), uint(I.z)), f.x, f.y - 1.0, f.z);
+    float v110 = noise_grad(hash_uint3(uint(I.x + 1), uint(I.y + 1), uint(I.z)), f.x - 1.0, f.y - 1.0, f.z);
+    float v001 = noise_grad(hash_uint3(uint(I.x), uint(I.y), uint(I.z + 1)), f.x, f.y, f.z - 1.0);
+    float v101 = noise_grad(hash_uint3(uint(I.x + 1), uint(I.y), uint(I.z + 1)), f.x - 1.0, f.y, f.z - 1.0);
+    float v011 = noise_grad(hash_uint3(uint(I.x), uint(I.y + 1), uint(I.z + 1)), f.x, f.y - 1.0, f.z - 1.0);
+    float v111 = noise_grad(hash_uint3(uint(I.x + 1), uint(I.y + 1), uint(I.z + 1)), f.x - 1.0, f.y - 1.0, f.z - 1.0);
+    return mix(mix(mix(v000, v100, u.x), mix(v010, v110, u.x), u.y), mix(mix(v001, v101, u.x), mix(v011, v111, u.x), u.y), u.z);
+}
+
+float noise_perlin(vec4 v) {
+    vec4 f = fract(v);
+    ivec4 I = ivec4(floor(v));
+    vec4 u = vec4(fade(f.x), fade(f.y), fade(f.z), fade(f.w));
+    float v0 = mix(mix(mix(noise_grad(hash_uint4(uint(I.x), uint(I.y), uint(I.z), uint(I.w)), f.x, f.y, f.z, f.w), noise_grad(hash_uint4(uint(I.x + 1), uint(I.y), uint(I.z), uint(I.w)), f.x - 1.0, f.y, f.z, f.w), u.x), mix(noise_grad(hash_uint4(uint(I.x), uint(I.y + 1), uint(I.z), uint(I.w)), f.x, f.y - 1.0, f.z, f.w), noise_grad(hash_uint4(uint(I.x + 1), uint(I.y + 1), uint(I.z), uint(I.w)), f.x - 1.0, f.y - 1.0, f.z, f.w), u.x), u.y), mix(mix(noise_grad(hash_uint4(uint(I.x), uint(I.y), uint(I.z + 1), uint(I.w)), f.x, f.y, f.z - 1.0, f.w), noise_grad(hash_uint4(uint(I.x + 1), uint(I.y), uint(I.z + 1), uint(I.w)), f.x - 1.0, f.y, f.z - 1.0, f.w), u.x), mix(noise_grad(hash_uint4(uint(I.x), uint(I.y + 1), uint(I.z + 1), uint(I.w)), f.x, f.y - 1.0, f.z - 1.0, f.w), noise_grad(hash_uint4(uint(I.x + 1), uint(I.y + 1), uint(I.z + 1), uint(I.w)), f.x - 1.0, f.y - 1.0, f.z - 1.0, f.w), u.x), u.y), u.z);
+    float v1 = mix(mix(mix(noise_grad(hash_uint4(uint(I.x), uint(I.y), uint(I.z), uint(I.w + 1)), f.x, f.y, f.z, f.w - 1.0), noise_grad(hash_uint4(uint(I.x + 1), uint(I.y), uint(I.z), uint(I.w + 1)), f.x - 1.0, f.y, f.z, f.w - 1.0), u.x), mix(noise_grad(hash_uint4(uint(I.x), uint(I.y + 1), uint(I.z), uint(I.w + 1)), f.x, f.y - 1.0, f.z, f.w - 1.0), noise_grad(hash_uint4(uint(I.x + 1), uint(I.y + 1), uint(I.z), uint(I.w + 1)), f.x - 1.0, f.y - 1.0, f.z, f.w - 1.0), u.x), u.y), mix(mix(noise_grad(hash_uint4(uint(I.x), uint(I.y), uint(I.z + 1), uint(I.w + 1)), f.x, f.y, f.z - 1.0, f.w - 1.0), noise_grad(hash_uint4(uint(I.x + 1), uint(I.y), uint(I.z + 1), uint(I.w + 1)), f.x - 1.0, f.y, f.z - 1.0, f.w - 1.0), u.x), mix(noise_grad(hash_uint4(uint(I.x), uint(I.y + 1), uint(I.z + 1), uint(I.w + 1)), f.x, f.y - 1.0, f.z - 1.0, f.w - 1.0), noise_grad(hash_uint4(uint(I.x + 1), uint(I.y + 1), uint(I.z + 1), uint(I.w + 1)), f.x - 1.0, f.y - 1.0, f.z - 1.0, f.w - 1.0), u.x), u.y), u.z);
+    return mix(v0, v1, u.w);
+}
+
+float snoise(float p) { return 0.25 * noise_perlin(mod(p, 100000.0)); }
+float snoise(vec2 p) { return 0.6616 * noise_perlin(mod(p, 100000.0)); }
+float snoise(vec3 p) { return 0.9820 * noise_perlin(mod(p, 100000.0)); }
+float snoise(vec4 p) { return 0.8344 * noise_perlin(mod(p, 100000.0)); }
+
+#define DEFINE_NOISE_FRACTAL(T) \
+float noise_fbm(T co, float detail, float roughness, float lacunarity, float offset, float gain, bool normalize) { \
+    T p = co; \
+    float fscale = 1.0; \
+    float amp = 1.0; \
+    float maxamp = 0.0; \
+    float sum = 0.0; \
+    for (int i = 0; i <= int(detail); i++) { \
+        float t = snoise(fscale * p); \
+        sum += t * amp; \
+        maxamp += amp; \
+        amp *= roughness; \
+        fscale *= lacunarity; \
+    } \
+    float rmd = detail - floor(detail); \
+    if (rmd != 0.0) { \
+        float t = snoise(fscale * p); \
+        float sum2 = sum + t * amp; \
+        return normalize ? mix(0.5 * sum / maxamp + 0.5, 0.5 * sum2 / (maxamp + amp) + 0.5, rmd) : mix(sum, sum2, rmd); \
+    } else { \
+        return normalize ? 0.5 * sum / maxamp + 0.5 : sum; \
+    } \
+} \
+float noise_multi_fractal(T co, float detail, float roughness, float lacunarity, float offset, float gain, bool normalize) { \
+    T p = co; \
+    float value = 1.0; \
+    float pwr = 1.0; \
+    for (int i = 0; i <= int(detail); i++) { \
+        value *= (pwr * snoise(p) + 1.0); \
+        pwr *= roughness; \
+        p *= lacunarity; \
+    } \
+    float rmd = detail - floor(detail); \
+    if (rmd != 0.0) { \
+        value *= (rmd * pwr * snoise(p) + 1.0); \
+    } \
+    return value; \
+} \
+float noise_hetero_terrain(T co, float detail, float roughness, float lacunarity, float offset, float gain, bool normalize) { \
+    T p = co; \
+    float pwr = roughness; \
+    float value = offset + snoise(p); \
+    p *= lacunarity; \
+    for (int i = 1; i <= int(detail); i++) { \
+        float increment = (snoise(p) + offset) * pwr * value; \
+        value += increment; \
+        pwr *= roughness; \
+        p *= lacunarity; \
+    } \
+    float rmd = detail - floor(detail); \
+    if (rmd != 0.0) { \
+        float increment = (snoise(p) + offset) * pwr * value; \
+        value += rmd * increment; \
+    } \
+    return value; \
+} \
+float noise_hybrid_multi_fractal(T co, float detail, float roughness, float lacunarity, float offset, float gain, bool normalize) { \
+    T p = co; \
+    float pwr = 1.0; \
+    float value = 0.0; \
+    float weight = 1.0; \
+    for (int i = 0; (weight > 0.001) && (i <= int(detail)); i++) { \
+        if (weight > 1.0) weight = 1.0; \
+        float signal = (snoise(p) + offset) * pwr; \
+        pwr *= roughness; \
+        value += weight * signal; \
+        weight *= gain * signal; \
+        p *= lacunarity; \
+    } \
+    float rmd = detail - floor(detail); \
+    if ((rmd != 0.0) && (weight > 0.001)) { \
+        if (weight > 1.0) weight = 1.0; \
+        float signal = (snoise(p) + offset) * pwr; \
+        value += rmd * weight * signal; \
+    } \
+    return value; \
+} \
+float noise_ridged_multi_fractal(T co, float detail, float roughness, float lacunarity, float offset, float gain, bool normalize) { \
+    T p = co; \
+    float pwr = roughness; \
+    float signal = offset - abs(snoise(p)); \
+    signal *= signal; \
+    float value = signal; \
+    float weight = 1.0; \
+    for (int i = 1; i <= int(detail); i++) { \
+        p *= lacunarity; \
+        weight = clamp(signal * gain, 0.0, 1.0); \
+        signal = offset - abs(snoise(p)); \
+        signal *= signal; \
+        signal *= weight; \
+        value += signal * pwr; \
+        pwr *= roughness; \
+    } \
+    return value; \
+}
+
+DEFINE_NOISE_FRACTAL(float)
+DEFINE_NOISE_FRACTAL(vec2)
+DEFINE_NOISE_FRACTAL(vec3)
+DEFINE_NOISE_FRACTAL(vec4)
+
+float random_float_offset(float seed) { return 100.0 + hash_float_to_float(seed) * 100.0; }
+vec2 random_vec2_offset(float seed) { return vec2(100.0 + hash_vec2_to_float(vec2(seed, 0.0)) * 100.0, 100.0 + hash_vec2_to_float(vec2(seed, 1.0)) * 100.0); }
+vec3 random_vec3_offset(float seed) { return vec3(100.0 + hash_vec2_to_float(vec2(seed, 0.0)) * 100.0, 100.0 + hash_vec2_to_float(vec2(seed, 1.0)) * 100.0, 100.0 + hash_vec2_to_float(vec2(seed, 2.0)) * 100.0); }
+vec4 random_vec4_offset(float seed) { return vec4(100.0 + hash_vec2_to_float(vec2(seed, 0.0)) * 100.0, 100.0 + hash_vec2_to_float(vec2(seed, 1.0)) * 100.0, 100.0 + hash_vec2_to_float(vec2(seed, 2.0)) * 100.0, 100.0 + hash_vec2_to_float(vec2(seed, 3.0)) * 100.0); }
 """
 
 str_tex_musgrave = """
