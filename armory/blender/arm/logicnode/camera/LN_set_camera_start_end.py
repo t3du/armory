@@ -13,9 +13,9 @@ class SetCameraStartEndNode(ArmLogicTreeNode):
             self.inputs.remove(self.inputs[-1])
         if self.property0 == 'Start':
             self.add_input('ArmFloatSocket', 'Start')
-        if self.property0 == 'End':
+        elif self.property0 == 'End':
             self.add_input('ArmFloatSocket', 'End')
-        if self.property0 == 'Start&End':
+        elif self.property0 == 'Start&End':
             self.add_input('ArmFloatSocket', 'Start')
             self.add_input('ArmFloatSocket', 'End')
        

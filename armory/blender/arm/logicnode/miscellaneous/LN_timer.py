@@ -24,6 +24,7 @@ class TimerNode(ArmLogicTreeNode):
     """
     bl_idname = 'LNTimerNode'
     bl_label = 'Timer'
+    arm_section = 'time'
     arm_version = 1
 
     def arm_init(self, context):

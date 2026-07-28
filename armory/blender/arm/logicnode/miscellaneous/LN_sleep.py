@@ -5,6 +5,7 @@ class SleepNode(ArmLogicTreeNode):
     through the incoming signal."""
     bl_idname = 'LNSleepNode'
     bl_label = 'Sleep'
+    arm_section = 'time'
     arm_version = 1
 
     def arm_init(self, context):

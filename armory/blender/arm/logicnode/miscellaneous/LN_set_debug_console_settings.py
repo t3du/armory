@@ -1,9 +1,10 @@
 from arm.logicnode.arm_nodes import *
 
-class SetDebugConsoleSettings(ArmLogicTreeNode):
+class SetDebugConsoleSettingsNode(ArmLogicTreeNode):
     """Sets the debug console settings."""
     bl_idname = 'LNSetDebugConsoleSettings'
     bl_label = 'Set Debug Console Settings'
+    arm_section = 'debug'
     arm_version = 1
 
     property0: HaxeEnumProperty(

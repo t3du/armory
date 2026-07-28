@@ -1,7 +1,7 @@
 from arm.logicnode.arm_nodes import *
 
 
-class GetDebugConsoleSettings(ArmLogicTreeNode):
+class GetDebugConsoleSettingsNode(ArmLogicTreeNode):
     """Return properties of the debug console.
 
     @output Enabled: Whether the debug console is enabled.
@@ -17,6 +17,7 @@ class GetDebugConsoleSettings(ArmLogicTreeNode):
     """
     bl_idname = 'LNGetDebugConsoleSettings'
     bl_label = 'Get Debug Console Settings'
+    arm_section = 'debug'
     arm_version = 2
 
     def arm_init(self, context):

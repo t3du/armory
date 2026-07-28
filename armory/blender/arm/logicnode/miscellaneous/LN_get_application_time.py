@@ -4,6 +4,7 @@ class TimeNode(ArmLogicTreeNode):
     """Returns the application execution time and the delta time."""
     bl_idname = 'LNTimeNode'
     bl_label = 'Get Application Time'
+    arm_section = 'time'
     arm_version = 2
 
     def arm_init(self, context):

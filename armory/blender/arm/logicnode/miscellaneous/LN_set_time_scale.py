@@ -4,6 +4,7 @@ class SetTimeScaleNode(ArmLogicTreeNode):
     """Sets the global time scale."""
     bl_idname = 'LNSetTimeScaleNode'
     bl_label = 'Set Time Scale'
+    arm_section = 'time'
     arm_version = 1
 
     def arm_init(self, context):
