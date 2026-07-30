@@ -195,12 +195,14 @@ class MeshObject extends Object {
 			// Scale radius for skinned mesh and particle system
 			// TODO: define skin & particle bounds
 			var radiusScale = data.isSkinned ? 2.0 : 1.0;
-			/*#if arm_gpu_particles
+			#if arm_gpu_particles
 			// particleSystems for update, particleOwner for render
-			if (particleSystems != null || particleOwner != null) radiusScale *= 1000;
+			if (particleSystems != null && particleSystems != null && particleSystems.length > 0) return setCulled(isShadow, false);
 			#end
+			/*
 			if (context == "voxel") radiusScale *= 100;
 			if (data.geom.instanced) radiusScale *= 100;*/
+			if (data.geom.instanced) return setCulled(isShadow, false);
 			var frustumPlanes = isShadow ? light.frustumPlanes : camera.frustumPlanes;
 
 			if (isShadow && light.data.raw.type != "sun") { // Non-sun light bounds intersect camera frustum
