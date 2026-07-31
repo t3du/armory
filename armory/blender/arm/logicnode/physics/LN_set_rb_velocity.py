@@ -8,7 +8,9 @@ class SetVelocityNode(ArmLogicTreeNode):
 
     def update_sockets(self, context):
         self.inputs[2].hide = self.property0 == 'Angular'
-        self.inputs[3].hide = self.property0 == 'Linear'
+        self.inputs[3].hide = self.property0 == 'Angular'
+        self.inputs[4].hide = self.property0 == 'Linear'
+        self.inputs[5].hide = self.property0 == 'Linear'
 
     property0: EnumProperty(
         items=[('Both', 'Both', 'Set both velocities'),
@@ -23,7 +25,9 @@ class SetVelocityNode(ArmLogicTreeNode):
         self.add_input('ArmNodeSocketAction', 'In')
         self.add_input('ArmNodeSocketObject', 'RB')
         self.add_input('ArmVectorSocket', 'Linear')
+        self.add_input('ArmBoolSocket', 'Linear On Local Axis')
         self.add_input('ArmVectorSocket', 'Angular')
+        self.add_input('ArmBoolSocket', 'Angular On Local Axis')
         self.add_output('ArmNodeSocketAction', 'Out')
 
     def draw_buttons(self, context, layout):
