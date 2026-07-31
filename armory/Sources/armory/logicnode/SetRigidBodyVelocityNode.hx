@@ -28,7 +28,6 @@ class SetRigidBodyVelocityNode extends LogicNode {
 			
 			switch (property0) {
 				case "Both":
-				trace('fadd');
 					var linear: Vec4 = inputs[2].get();
 					var localLinear: Bool = inputs[3].get();
 					var angular: Vec4 = inputs[4].get();
