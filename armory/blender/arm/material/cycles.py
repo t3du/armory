@@ -682,11 +682,11 @@ def texture_store(node, tex, tex_name, to_linear=False, tex_link=None, default_v
     elif spherical:
         if not curshader.has_include('std/mapping.glsl'):
             curshader.add_include('std/mapping.glsl')
-        curshader.write('vec4 {0} = vec4(texture({1}, sphericalMapping({2})).rgb, 0.0);'.format(tex_store, tex_name, uv_name))
+        curshader.write('vec4 {0} = texture({1}, sphericalMapping({2}));'.format(tex_store, tex_name, uv_name))
     elif tube:
         if not curshader.has_include('std/mapping.glsl'):
             curshader.add_include('std/mapping.glsl')
-        curshader.write('vec4 {0} = vec4(texture({1}, tubeMapping({2})).rgb, 0.0);'.format(tex_store, tex_name, uv_name))
+        curshader.write('vec4 {0} = texture({1}, tubeMapping({2}));'.format(tex_store, tex_name, uv_name))
     else:
         if mat_state.texture_grad:
             curshader.write('vec4 {0} = textureGrad({1}, {2}.xy, g2.xy, g2.zw);'.format(tex_store, tex_name, uv_name))
