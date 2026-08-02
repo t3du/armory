@@ -77,7 +77,8 @@ class AddRigidBodyNode(ArmLogicTreeNode):
                  ('Cone', 'Cone', 'Cone'),
                  ('Cylinder', 'Cylinder', 'Cylinder'),
                  ('Convex Hull', 'Convex Hull', 'Convex Hull'),
-                 ('Mesh', 'Mesh', 'Mesh')],
+                 ('Mesh', 'Mesh', 'Mesh'),
+                 ('Compound Parent', 'Compound Parent', 'Compound Parent')],
         name='Shape', default='Box')
 
     def arm_init(self, context):

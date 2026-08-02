@@ -69,12 +69,55 @@ class AddRigidBodyNode extends LogicNode {
 				case "Cylinder": shape = Cylinder;
 				case "Convex Hull": shape = ConvexHull;
 				case "Mesh": shape = Mesh;
+				case "Compound Parent": shape = Compound;
 			}
 
 			rb = new RigidBody(shape, mass, friction, bounciness, group, mask);
 			rb.animated = animated;
 			rb.staticObj = !active;
 			rb.isTriggerObject(trigger);
+
+			if (property0 == "Compound Parent") {
+				var compoundChildren = [];
+				for (child in object.children) {
+					var childRb: RigidBody = child.getTrait(RigidBody);
+					if (childRb != null) {
+						var childShape = 0;
+						switch (@:privateAccess childRb.shape) {
+							case Box: childShape = 0;
+							case Sphere: childShape = 1;
+							case ConvexHull: childShape = 2;
+							case Mesh: childShape = 3;
+							case Cone: childShape = 4;
+							case Cylinder: childShape = 5;
+							case Capsule: childShape = 6;
+							default: childShape = 0;
+						}
+						childRb.remove();
+						var m = object.transform.world.clone();
+						m.getInverse(object.transform.world);
+						m.multmat(child.transform.world);
+						var loc = new iron.math.Vec4();
+						var rot = new iron.math.Quat();
+						var scl = new iron.math.Vec4();
+						m.decompose(loc, rot, scl);
+						compoundChildren.push({
+							shape: childShape,
+							posX: loc.x,
+							posY: loc.y,
+							posZ: loc.z,
+							rotX: rot.x,
+							rotY: rot.y,
+							rotZ: rot.z,
+							rotW: rot.w,
+							dimX: child.transform.dim.x,
+							dimY: child.transform.dim.y,
+							dimZ: child.transform.dim.z
+						});
+					}
+				}
+				@:privateAccess rb.compoundChildren = compoundChildren;
+			}
 
 			if (property1) {
 				rb.linearDamping = linDamp;
