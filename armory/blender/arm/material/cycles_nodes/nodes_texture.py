@@ -642,6 +642,7 @@ def parse_tex_voronoi(node: bpy.types.ShaderNodeTexVoronoi, out_socket: bpy.type
         outp = 1
     elif out_socket.type == 'VECTOR':
         outp = 2
+    
     m = 0
     if node.distance == 'MANHATTAN':
         m = 1
@@ -651,6 +652,19 @@ def parse_tex_voronoi(node: bpy.types.ShaderNodeTexVoronoi, out_socket: bpy.type
         m = 3
         exp = c.parse_value_input(node.inputs['Exponent'])
 
+    f = 0
+    if node.feature == 'F2':
+        f = 1
+    elif node.feature == 'SMOOTH_F1':
+        f = 2
+    elif node.feature == 'DISTANCE_TO_EDGE':
+        f = 3
+    elif node.feature == 'N_SPHERE_RADIUS':
+        f = 4
+
+    dim = node.voronoi_dimensions
+    normalize = 1 if node.normalize else 0
+
     c.write_procedurals()
     state.curshader.add_function(c_functions.str_tex_voronoi)
 
@@ -659,15 +673,18 @@ def parse_tex_voronoi(node: bpy.types.ShaderNodeTexVoronoi, out_socket: bpy.type
     else:
         co = 'bposition'
 
+    w = c.parse_value_input(node.inputs['W']) if 'W' in node.inputs else '0.0'
     scale = c.parse_value_input(node.inputs['Scale'])
+    detail = c.parse_value_input(node.inputs['Detail']) if 'Detail' in node.inputs else '0.0'
+    roughness = c.parse_value_input(node.inputs['Roughness']) if 'Roughness' in node.inputs else '0.5'
+    lacunarity = c.parse_value_input(node.inputs['Lacunarity']) if 'Lacunarity' in node.inputs else '2.0'
+    smoothness = c.parse_value_input(node.inputs['Smoothness']) if 'Smoothness' in node.inputs else '1.0'
     randomness = c.parse_value_input(node.inputs['Randomness'])
 
-    # Color or Position
     if out_socket == node.outputs[1] or out_socket == node.outputs[2]:
-        res = 'tex_voronoi({0}, {1}, {2}, {3}, {4}, {5})'.format(co, randomness, m, outp, scale, exp)
-    # Distance
+        res = 'tex_voronoi_{0}({1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}, {11}, {12}, {13})'.format(dim.lower(), co, randomness, m, outp, scale, exp, w, detail, roughness, lacunarity, smoothness, f, normalize)
     else:
-        res = 'tex_voronoi({0}, {1}, {2}, {3}, {4}, {5}).x'.format(co, randomness, m, outp, scale, exp)
+        res = 'tex_voronoi_{0}({1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}, {11}, {12}, {13}).x'.format(dim.lower(), co, randomness, m, outp, scale, exp, w, detail, roughness, lacunarity, smoothness, f, normalize)
 
     return res
 
