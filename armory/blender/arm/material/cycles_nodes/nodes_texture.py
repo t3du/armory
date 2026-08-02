@@ -736,8 +736,40 @@ def parse_tex_gabor(node: bpy.types.ShaderNodeTexGabor, out_socket: bpy.types.No
     args = '{0}, {1}, {2}, {3}, {4}, {5}'.format(
         co, scale, freq, anisotropy, orientation, bandwidth
     )
-
-    if out_socket == node.outputs[0]:
-        return 'vec3(tex_gabor_f({0}))'.format(args)
     
     return 'tex_gabor_f({0})'.format(args)
+
+
+def parse_tex_white_noise(node: bpy.types.ShaderNodeTexWhiteNoise, out_socket: bpy.types.NodeSocket, state: ParserState) -> Union[floatstr, vec3str]:
+    c.write_procedurals()
+    state.curshader.add_function(c_functions.str_tex_noise)
+
+    if node.inputs[0].is_linked:
+        co = c.parse_vector_input(node.inputs[0])
+    else:
+        co = 'bposition'
+
+    w = c.parse_value_input(node.inputs['W']) if 'W' in node.inputs else '0.0'
+
+    dimensions = getattr(node, 'noise_dimensions', '3D')
+    is_color = (out_socket == node.outputs[1]) or (getattr(out_socket, 'name', '') == 'Color')
+
+    if dimensions == '1D':
+        if is_color:
+            return f'hash_float_to_vec3({w})'
+        return f'hash_float_to_float({w})'
+
+    elif dimensions == '2D':
+        if is_color:
+            return f'hash_vec2_to_vec3(({co}).xy)'
+        return f'hash_vec2_to_float(({co}).xy)'
+
+    elif dimensions == '4D':
+        if is_color:
+            return f'hash_vec4_to_vec3(vec4({co}, {w}))'
+        return f'hash_vec4_to_float(vec4({co}, {w}))'
+
+    else:
+        if is_color:
+            return f'hash_vec3_to_vec3({co})'
+        return f'hash_vec3_to_float({co})'

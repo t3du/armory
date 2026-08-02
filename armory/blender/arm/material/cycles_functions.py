@@ -440,6 +440,22 @@ float random_float_offset(float seed) { return 100.0 + hash_float_to_float(seed)
 vec2 random_vec2_offset(float seed) { return vec2(100.0 + hash_vec2_to_float(vec2(seed, 0.0)) * 100.0, 100.0 + hash_vec2_to_float(vec2(seed, 1.0)) * 100.0); }
 vec3 random_vec3_offset(float seed) { return vec3(100.0 + hash_vec2_to_float(vec2(seed, 0.0)) * 100.0, 100.0 + hash_vec2_to_float(vec2(seed, 1.0)) * 100.0, 100.0 + hash_vec2_to_float(vec2(seed, 2.0)) * 100.0); }
 vec4 random_vec4_offset(float seed) { return vec4(100.0 + hash_vec2_to_float(vec2(seed, 0.0)) * 100.0, 100.0 + hash_vec2_to_float(vec2(seed, 1.0)) * 100.0, 100.0 + hash_vec2_to_float(vec2(seed, 2.0)) * 100.0, 100.0 + hash_vec2_to_float(vec2(seed, 3.0)) * 100.0); }
+
+vec3 hash_float_to_vec3(float k) {
+    return vec3(hash_float_to_float(k), hash_vec2_to_float(vec2(k, 1.0)), hash_vec2_to_float(vec2(k, 2.0)));
+}
+
+vec3 hash_vec2_to_vec3(vec2 k) {
+    return vec3(hash_vec2_to_float(k), hash_vec3_to_float(vec3(k, 1.0)), hash_vec3_to_float(vec3(k, 2.0)));
+}
+
+vec3 hash_vec3_to_vec3(vec3 k) {
+    return vec3(hash_vec3_to_float(k), hash_vec4_to_float(vec4(k, 1.0)), hash_vec4_to_float(vec4(k, 2.0)));
+}
+
+vec3 hash_vec4_to_vec3(vec4 k) {
+    return vec3(hash_vec4_to_float(k.xyzw), hash_vec4_to_float(k.zxwy), hash_vec4_to_float(k.wzyx));
+}
 """
 
 str_tex_musgrave = """
