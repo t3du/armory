@@ -1192,32 +1192,193 @@ float tex_wave_f(const vec3 p, const int type, const int d, const int profile, c
 """
 
 str_tex_gabor = """
-float tex_gabor_f(vec3 p, float scale, float freq, float anisotropy, float orientation, float bandwidth) {
-    p *= scale;
-    vec3 gp = floor(p);
-    vec3 fp = fract(p);
-    float va = 0.0;
-    float wt = 0.0;
+uint hash_uint3(uint kx, uint ky, uint kz) {
+    uint a, b, c;
+    a = b = c = 0xdeadbeefu + (3u << 2u) + 13u;
+    c += kz;
+    b += ky;
+    a += kx;
+    c ^= b; c -= (b << 14u) | (b >> 18u);
+    a ^= c; a -= (c << 11u) | (c >> 21u);
+    b ^= a; b -= (a << 25u) | (a >> 7u);
+    c ^= b; c -= (b << 16u) | (b >> 16u);
+    a ^= c; a -= (c << 4u) | (c >> 28u);
+    b ^= a; b -= (a << 14u) | (a >> 18u);
+    c ^= b; c -= (b << 24u) | (b >> 8u);
+    return c;
+}
 
-    vec3 dir = vec3(sin(orientation), cos(orientation), 0.0);
+uint hash_uint4(uint kx, uint ky, uint kz, uint kw) {
+    uint a, b, c;
+    a = b = c = 0xdeadbeefu + (4u << 2u) + 13u;
+    a += kx; b += ky; c += kz;
+    a -= c; a ^= (c << 4u) | (c >> 28u); c += b;
+    b -= a; b ^= (a << 6u) | (a >> 26u); a += c;
+    c -= b; c ^= (b << 8u) | (b >> 24u); b += a;
+    a -= c; a ^= (c << 16u) | (c >> 16u); c += b;
+    b -= a; b ^= (a << 19u) | (a >> 13u); a += c;
+    c -= b; c ^= (b << 4u) | (b >> 28u); b += a;
+    a += kw;
+    c ^= b; c -= (b << 14u) | (b >> 18u);
+    a ^= c; a -= (c << 11u) | (c >> 21u);
+    b ^= a; b -= (a << 25u) | (a >> 7u);
+    c ^= b; c -= (b << 16u) | (b >> 16u);
+    a ^= c; a -= (c << 4u) | (c >> 28u);
+    b ^= a; b -= (a << 14u) | (a >> 18u);
+    c ^= b; c -= (b << 24u) | (b >> 8u);
+    return c;
+}
 
-    for (int z = -1; z <= 1; z++) {
-        for (int y = -1; y <= 1; y++) {
-            for (int x = -1; x <= 1; x++) {
-                vec3 o = vec3(float(x), float(y), float(z));
-                vec3 r = fp - o;
-                float h = hash_f(gp + o);
-                float dist_sq = dot(r, r);
-                float g = exp(-bandwidth * dist_sq);
-                float omega = freq * 6.28318530718;
-                float oscillation = cos(omega * dot(r, dir) + h * 6.28318530718);
-                float a = mix(1.0, g, anisotropy);
-                va += a * g * oscillation;
-                wt += g;
+float hash_vec3_to_float(vec3 k) {
+    return float(hash_uint3(floatBitsToUint(k.x), floatBitsToUint(k.y), floatBitsToUint(k.z))) / float(0xFFFFFFFFu);
+}
+
+float hash_vec4_to_float(vec4 k) {
+    return float(hash_uint4(floatBitsToUint(k.x), floatBitsToUint(k.y), floatBitsToUint(k.z), floatBitsToUint(k.w))) / float(0xFFFFFFFFu);
+}
+
+vec2 hash_vec3_to_vec2(vec3 k) {
+    return vec2(hash_vec3_to_float(k.xyz), hash_vec3_to_float(k.zxy));
+}
+
+vec2 hash_vec4_to_vec2(vec4 k) {
+    return vec2(hash_vec4_to_float(k.xyzw), hash_vec4_to_float(k.zxwy));
+}
+
+vec3 hash_vec4_to_vec3(vec4 k) {
+    return vec3(hash_vec4_to_float(k.xyzw), hash_vec4_to_float(k.zxwy), hash_vec4_to_float(k.wzyx));
+}
+
+vec2 compute_2d_gabor_kernel(vec2 position, float frequency, float orientation) {
+    float distance_squared = dot(position, position);
+    float hann_window = 0.5 + 0.5 * cos(3.14159265359 * distance_squared);
+    float gaussian_envelop = exp(-3.14159265359 * distance_squared);
+    vec2 frequency_vector = frequency * vec2(cos(orientation), sin(orientation));
+    float angle = 6.28318530718 * dot(position, frequency_vector);
+    return gaussian_envelop * hann_window * vec2(cos(angle), sin(angle));
+}
+
+float compute_2d_gabor_standard_deviation() {
+    return sqrt(8.0 * 0.5 * 0.25);
+}
+
+vec2 compute_2d_gabor_noise_cell(vec2 cell, vec2 position, float frequency, float isotropy, float base_orientation) {
+    vec2 noise = vec2(0.0);
+    for (int i = 0; i < 8; ++i) {
+        vec3 seed_for_orientation = vec3(cell, float(i * 3));
+        vec3 seed_for_kernel_center = vec3(cell, float(i * 3 + 1));
+        vec3 seed_for_weight = vec3(cell, float(i * 3 + 2));
+        float random_orientation = (hash_vec3_to_float(seed_for_orientation) - 0.5) * 3.14159265359;
+        float orientation = base_orientation + random_orientation * isotropy;
+        vec2 kernel_center = hash_vec3_to_vec2(seed_for_kernel_center);
+        vec2 position_in_kernel_space = position - kernel_center;
+        if (dot(position_in_kernel_space, position_in_kernel_space) >= 1.0) continue;
+        float weight = hash_vec3_to_float(seed_for_weight) < 0.5 ? -1.0 : 1.0;
+        noise += weight * compute_2d_gabor_kernel(position_in_kernel_space, frequency, orientation);
+    }
+    return noise;
+}
+
+vec2 compute_2d_gabor_noise(vec2 coordinates, float frequency, float isotropy, float base_orientation) {
+    vec2 cell_position = floor(coordinates);
+    vec2 local_position = coordinates - cell_position;
+    vec2 sum = vec2(0.0);
+    for (int j = -1; j <= 1; j++) {
+        for (int i = -1; i <= 1; i++) {
+            vec2 cell_offset = vec2(float(i), float(j));
+            sum += compute_2d_gabor_noise_cell(cell_position + cell_offset, local_position - cell_offset, frequency, isotropy, base_orientation);
+        }
+    }
+    return sum;
+}
+
+vec2 compute_3d_gabor_kernel(vec3 position, float frequency, vec3 orientation) {
+    float distance_squared = dot(position, position);
+    float hann_window = 0.5 + 0.5 * cos(3.14159265359 * distance_squared);
+    float gaussian_envelop = exp(-3.14159265359 * distance_squared);
+    vec3 frequency_vector = frequency * orientation;
+    float angle = 6.28318530718 * dot(position, frequency_vector);
+    return gaussian_envelop * hann_window * vec2(cos(angle), sin(angle));
+}
+
+float compute_3d_gabor_standard_deviation() {
+    return sqrt(8.0 * 0.5 * (1.0 / (4.0 * 1.41421356237)));
+}
+
+vec3 compute_3d_orientation(vec3 orientation, float isotropy, vec4 seed) {
+    if (isotropy == 0.0) return orientation;
+    float inclination = acos(clamp(orientation.z, -1.0, 1.0));
+    float azimuth = (orientation.x == 0.0 && orientation.y == 0.0) ? 0.0 : atan(orientation.y, orientation.x);
+    vec2 random_angles = hash_vec4_to_vec2(seed) * 3.14159265359;
+    inclination += random_angles.x * isotropy;
+    azimuth += random_angles.y * isotropy;
+    return vec3(sin(inclination) * cos(azimuth), sin(inclination) * sin(azimuth), cos(inclination));
+}
+
+vec2 compute_3d_gabor_noise_cell(vec3 cell, vec3 position, float frequency, float isotropy, vec3 base_orientation) {
+    vec2 noise = vec2(0.0);
+    for (int i = 0; i < 8; ++i) {
+        vec4 seed_for_orientation = vec4(cell, float(i * 3));
+        vec4 seed_for_kernel_center = vec4(cell, float(i * 3 + 1));
+        vec4 seed_for_weight = vec4(cell, float(i * 3 + 2));
+        vec3 orientation = compute_3d_orientation(base_orientation, isotropy, seed_for_orientation);
+        vec3 kernel_center = hash_vec4_to_vec3(seed_for_kernel_center);
+        vec3 position_in_kernel_space = position - kernel_center;
+        if (dot(position_in_kernel_space, position_in_kernel_space) >= 1.0) continue;
+        float weight = hash_vec4_to_float(seed_for_weight) < 0.5 ? -1.0 : 1.0;
+        noise += weight * compute_3d_gabor_kernel(position_in_kernel_space, frequency, orientation);
+    }
+    return noise;
+}
+
+vec2 compute_3d_gabor_noise(vec3 coordinates, float frequency, float isotropy, vec3 base_orientation) {
+    vec3 cell_position = floor(coordinates);
+    vec3 local_position = coordinates - cell_position;
+    vec2 sum = vec2(0.0);
+    for (int k = -1; k <= 1; k++) {
+        for (int j = -1; j <= 1; j++) {
+            for (int i = -1; i <= 1; i++) {
+                vec3 cell_offset = vec3(float(i), float(j), float(k));
+                sum += compute_3d_gabor_noise_cell(cell_position + cell_offset, local_position - cell_offset, frequency, isotropy, base_orientation);
             }
         }
     }
-    return 0.5 + (va / (wt + 0.0001)) * 0.5;
+    return sum;
+}
+
+vec3 tex_gabor_core(vec3 coordinates, float scale, float frequency, float anisotropy, float orientation_2d, vec3 orientation_3d, float type) {
+    vec3 scaled_coordinates = coordinates * scale;
+    float isotropy = 1.0 - clamp(anisotropy, 0.0, 1.0);
+    frequency = max(0.001, frequency);
+    vec2 phasor = vec2(0.0);
+    float standard_deviation = 1.0;
+    if (type == 0.0) {
+        phasor = compute_2d_gabor_noise(scaled_coordinates.xy, frequency, isotropy, orientation_2d);
+        standard_deviation = compute_2d_gabor_standard_deviation();
+    }
+    else if (type == 1.0) {
+        float len = length(orientation_3d);
+        vec3 orientation = len > 0.0 ? orientation_3d / len : vec3(0.0, 0.0, 1.0);
+        phasor = compute_3d_gabor_noise(scaled_coordinates, frequency, isotropy, orientation);
+        standard_deviation = compute_3d_gabor_standard_deviation();
+    }
+    float normalization_factor = 6.0 * standard_deviation;
+    float output_value = (phasor.y / normalization_factor) * 0.5 + 0.5;
+    float output_phase = (atan(phasor.y, phasor.x) + 3.14159265359) / 6.28318530718;
+    float output_intensity = length(phasor) / normalization_factor;
+    return vec3(output_value, output_phase, output_intensity);
+}
+
+float tex_gabor_value(vec3 coordinates, float scale, float frequency, float anisotropy, float orientation_2d, vec3 orientation_3d, float type) {
+    return tex_gabor_core(coordinates, scale, frequency, anisotropy, orientation_2d, orientation_3d, type).x;
+}
+
+float tex_gabor_phase(vec3 coordinates, float scale, float frequency, float anisotropy, float orientation_2d, vec3 orientation_3d, float type) {
+    return tex_gabor_core(coordinates, scale, frequency, anisotropy, orientation_2d, orientation_3d, type).y;
+}
+
+float tex_gabor_intensity(vec3 coordinates, float scale, float frequency, float anisotropy, float orientation_2d, vec3 orientation_3d, float type) {
+    return tex_gabor_core(coordinates, scale, frequency, anisotropy, orientation_2d, orientation_3d, type).z;
 }
 """
 

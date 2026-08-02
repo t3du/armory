@@ -747,14 +747,26 @@ def parse_tex_gabor(node: bpy.types.ShaderNodeTexGabor, out_socket: bpy.types.No
     scale = c.parse_value_input(node.inputs[1])
     freq = c.parse_value_input(node.inputs[2])
     anisotropy = c.parse_value_input(node.inputs[3])
-    orientation = c.parse_value_input(node.inputs[4])
-    bandwidth = "0.5"
 
-    args = '{0}, {1}, {2}, {3}, {4}, {5}'.format(
-        co, scale, freq, anisotropy, orientation, bandwidth
+    gabor_type = '0.0' if node.gabor_type == '2D' else '1.0'
+    
+    if node.gabor_type == '2D':
+        orientation_2d = c.parse_value_input(node.inputs[4])
+        orientation_3d = 'vec3(0.0)'
+    else:
+        orientation_2d = '0.0'
+        orientation_3d = c.parse_vector_input(node.inputs[4])
+
+    args = '{0}, {1}, {2}, {3}, {4}, {5}, {6}'.format(
+        co, scale, freq, anisotropy, orientation_2d, orientation_3d, gabor_type
     )
     
-    return 'tex_gabor_f({0})'.format(args)
+    if out_socket == node.outputs[1]:
+        return 'tex_gabor_phase({0})'.format(args)
+    elif out_socket == node.outputs[2]:
+        return 'tex_gabor_intensity({0})'.format(args)
+        
+    return 'tex_gabor_value({0})'.format(args)
 
 
 def parse_tex_white_noise(node: bpy.types.ShaderNodeTexWhiteNoise, out_socket: bpy.types.NodeSocket, state: ParserState) -> Union[floatstr, vec3str]:
