@@ -1308,7 +1308,7 @@ float compute_3d_gabor_standard_deviation() {
 vec3 compute_3d_orientation(vec3 orientation, float isotropy, vec4 seed) {
     if (isotropy == 0.0) return orientation;
     float inclination = acos(clamp(orientation.z, -1.0, 1.0));
-    float azimuth = (orientation.x == 0.0 && orientation.y == 0.0) ? 0.0 : atan(orientation.y, orientation.x);
+    float azimuth = sign(orientation.y) * acos(orientation.x / length(orientation.xy));
     vec2 random_angles = hash_vec4_to_vec2(seed) * 3.14159265359;
     inclination += random_angles.x * isotropy;
     azimuth += random_angles.y * isotropy;

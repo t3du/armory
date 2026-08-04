@@ -755,7 +755,7 @@ def parse_tex_gabor(node: bpy.types.ShaderNodeTexGabor, out_socket: bpy.types.No
         orientation_3d = 'vec3(0.0)'
     else:
         orientation_2d = '0.0'
-        orientation_3d = c.parse_vector_input(node.inputs[4])
+        orientation_3d = c.parse_vector_input(node.inputs[5])
 
     args = '{0}, {1}, {2}, {3}, {4}, {5}, {6}'.format(
         co, scale, freq, anisotropy, orientation_2d, orientation_3d, gabor_type
