@@ -619,7 +619,6 @@ def write_result(link: bpy.types.NodeLink) -> Optional[str]:
 
 def write_procedurals():
     if state.curshader not in state.procedurals_written:
-        state.curshader.add_function(c_functions.str_tex_proc)
         state.procedurals_written.add(state.curshader)
 
 

@@ -642,6 +642,8 @@ def parse_tex_voronoi(node: bpy.types.ShaderNodeTexVoronoi, out_socket: bpy.type
         outp = 1
     elif out_socket.type == 'VECTOR':
         outp = 2
+    elif out_socket.name == 'W':
+        outp = 3
     
     m = 0
     if node.distance == 'MANHATTAN':
