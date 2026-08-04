@@ -147,7 +147,7 @@ VoronoiOutput voronoi_f1(VoronoiParams params, vec3 coord)
   vec3 localPosition = coord - cellPosition_f;
   ivec3 cellPosition = ivec3(cellPosition_f);
 
-  float minDistance = 3.402823466e+38;
+  float minDistance = 8.0;
   ivec3 targetOffset = ivec3(0);
   vec3 targetPosition = vec3(0.0);
   for (int k = -1; k <= 1; k++) {
@@ -179,7 +179,7 @@ VoronoiOutput voronoi_f1(VoronoiParams params, vec4 coord)
   vec4 localPosition = coord - cellPosition_f;
   ivec4 cellPosition = ivec4(cellPosition_f);
 
-  float minDistance = 3.402823466e+38;
+  float minDistance = 8.0;
   ivec4 targetOffset = ivec4(0);
   vec4 targetPosition = vec4(0.0);
   for (int u = -1; u <= 1; u++) {
@@ -293,8 +293,8 @@ VoronoiOutput voronoi_f2(VoronoiParams params, vec3 coord)
   vec3 localPosition = coord - cellPosition_f;
   ivec3 cellPosition = ivec3(cellPosition_f);
 
-  float distanceF1 = 3.402823466e+38;
-  float distanceF2 = 3.402823466e+38;
+  float distanceF1 = 8.0;
+  float distanceF2 = 8.0;
   ivec3 offsetF1 = ivec3(0);
   vec3 positionF1 = vec3(0.0);
   ivec3 offsetF2 = ivec3(0);
@@ -336,8 +336,8 @@ VoronoiOutput voronoi_f2(VoronoiParams params, vec4 coord)
   vec4 localPosition = coord - cellPosition_f;
   ivec4 cellPosition = ivec4(cellPosition_f);
 
-  float distanceF1 = 3.402823466e+38;
-  float distanceF2 = 3.402823466e+38;
+  float distanceF1 = 8.0;
+  float distanceF2 = 8.0;
   ivec4 offsetF1 = ivec4(0);
   vec4 positionF1 = vec4(0.0);
   ivec4 offsetF2 = ivec4(0);
@@ -382,7 +382,7 @@ float voronoi_distance_to_edge(VoronoiParams params, vec3 coord)
   ivec3 cellPosition = ivec3(cellPosition_f);
 
   vec3 vectorToClosest = vec3(0.0);
-  float minDistance = 3.402823466e+38;
+  float minDistance = 8.0;
   for (int k = -1; k <= 1; k++) {
     for (int j = -1; j <= 1; j++) {
       for (int i = -1; i <= 1; i++) {
@@ -399,7 +399,7 @@ float voronoi_distance_to_edge(VoronoiParams params, vec3 coord)
     }
   }
 
-  minDistance = 3.402823466e+38;
+  minDistance = 8.0;
   for (int k = -1; k <= 1; k++) {
     for (int j = -1; j <= 1; j++) {
       for (int i = -1; i <= 1; i++) {
@@ -427,7 +427,7 @@ float voronoi_distance_to_edge(VoronoiParams params, vec4 coord)
   ivec4 cellPosition = ivec4(cellPosition_f);
 
   vec4 vectorToClosest = vec4(0.0);
-  float minDistance = 3.402823466e+38;
+  float minDistance = 8.0;
   for (int u = -1; u <= 1; u++) {
     for (int k = -1; k <= 1; k++) {
       for (int j = -1; j <= 1; j++) {
@@ -446,7 +446,7 @@ float voronoi_distance_to_edge(VoronoiParams params, vec4 coord)
     }
   }
 
-  minDistance = 3.402823466e+38;
+  minDistance = 8.0;
   for (int u = -1; u <= 1; u++) {
     for (int k = -1; k <= 1; k++) {
       for (int j = -1; j <= 1; j++) {
@@ -477,7 +477,7 @@ float voronoi_n_sphere_radius(VoronoiParams params, vec3 coord)
 
   vec3 closestPoint = vec3(0.0);
   ivec3 closestPointOffset = ivec3(0);
-  float minDistance = 3.402823466e+38;
+  float minDistance = 8.0;
   for (int k = -1; k <= 1; k++) {
     for (int j = -1; j <= 1; j++) {
       for (int i = -1; i <= 1; i++) {
@@ -494,7 +494,7 @@ float voronoi_n_sphere_radius(VoronoiParams params, vec3 coord)
     }
   }
 
-  minDistance = 3.402823466e+38;
+  minDistance = 8.0;
   vec3 closestPointToClosestPoint = vec3(0.0);
   for (int k = -1; k <= 1; k++) {
     for (int j = -1; j <= 1; j++) {
@@ -525,7 +525,7 @@ float voronoi_n_sphere_radius(VoronoiParams params, vec4 coord)
 
   vec4 closestPoint = vec4(0.0);
   ivec4 closestPointOffset = ivec4(0);
-  float minDistance = 3.402823466e+38;
+  float minDistance = 8.0;
   for (int u = -1; u <= 1; u++) {
     for (int k = -1; k <= 1; k++) {
       for (int j = -1; j <= 1; j++) {
@@ -544,7 +544,7 @@ float voronoi_n_sphere_radius(VoronoiParams params, vec4 coord)
     }
   }
 
-  minDistance = 3.402823466e+38;
+  minDistance = 8.0;
   vec4 closestPointToClosestPoint = vec4(0.0);
   for (int u = -1; u <= 1; u++) {
     for (int k = -1; k <= 1; k++) {
@@ -574,7 +574,7 @@ float fractal_voronoi_distance_to_edge(VoronoiParams params, vec3 coord)
   float amplitude = 1.0;
   float max_amplitude = params.max_distance;
   float scale = 1.0;
-  float dist = 3.402823466e+38;
+  float dist = 8.0;
 
   bool zero_input = params.detail == 0.0 || params.roughness == 0.0;
 
@@ -614,7 +614,7 @@ float fractal_voronoi_distance_to_edge(VoronoiParams params, vec4 coord)
   float amplitude = 1.0;
   float max_amplitude = params.max_distance;
   float scale = 1.0;
-  float dist = 3.402823466e+38;
+  float dist = 8.0;
 
   bool zero_input = params.detail == 0.0 || params.roughness == 0.0;
 
@@ -781,13 +781,13 @@ vec3 tex_voronoi_3d(vec3 coord, float randomness, int metric, int outp, float sc
   params.smoothness = clamp(smoothness / 2.0, 0.0, 0.5);
   params.exponent = exp;
   params.randomness = clamp(randomness, 0.0, 1.0);
- 
+  
   if (feature == SHD_VORONOI_F2) {
       params.max_distance = (0.5 + 0.5 * params.randomness) * 2.0;
   } else {
       params.max_distance = 0.5 + 0.5 * params.randomness;
   }
- 
+  
   params.normalize = normalize == 1;
 
   vec3 scaledCoord = coord * scale;
@@ -822,13 +822,13 @@ vec3 tex_voronoi_4d(vec3 coord, float randomness, int metric, int outp, float sc
   params.smoothness = clamp(smoothness / 2.0, 0.0, 0.5);
   params.exponent = exp;
   params.randomness = clamp(randomness, 0.0, 1.0);
- 
+  
   if (feature == SHD_VORONOI_F2) {
       params.max_distance = (0.5 + 0.5 * params.randomness) * 2.0;
   } else {
       params.max_distance = 0.5 + 0.5 * params.randomness;
   }
- 
+  
   params.normalize = normalize == 1;
 
   vec4 scaledCoord = vec4(coord * scale, w * scale);
