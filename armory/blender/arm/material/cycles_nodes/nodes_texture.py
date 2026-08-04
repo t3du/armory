@@ -691,13 +691,14 @@ def parse_tex_voronoi(node: bpy.types.ShaderNodeTexVoronoi, out_socket: bpy.type
 
 def parse_tex_wave(node: bpy.types.ShaderNodeTexWave, out_socket: bpy.types.NodeSocket, state: ParserState) -> Union[floatstr, vec3str]:
     c.write_procedurals()
+    state.curshader.add_function(c_functions.str_tex_noise)
     state.curshader.add_function(c_functions.str_tex_wave)
-    
+
     if node.inputs[0].is_linked:
         co = c.parse_vector_input(node.inputs[0])
     else:
         co = 'bposition'
-    
+
     scale = c.parse_value_input(node.inputs[1])
     distortion = c.parse_value_input(node.inputs[2])
     detail = c.parse_value_input(node.inputs[3])
@@ -706,16 +707,16 @@ def parse_tex_wave(node: bpy.types.ShaderNodeTexWave, out_socket: bpy.types.Node
     phase_offset = c.parse_value_input(node.inputs['Phase Offset'])
 
     wave_type = 0 if node.wave_type == 'BANDS' else 1
-    
+
     dir_map = {'X': 0, 'Y': 1, 'Z': 2, 'DIAGONAL': 3}
-    
+
     if hasattr(node, 'wave_direction'):
         wave_dir = dir_map.get(node.wave_direction, 0)
     elif wave_type == 0:
         wave_dir = dir_map.get(node.bands_direction, 0)
     else:
         wave_dir = dir_map.get(node.rings_direction, 0)
-    
+
     if node.wave_profile == 'SIN':
         wave_profile = 0
     elif node.wave_profile == 'SAW':

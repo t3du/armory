@@ -1157,35 +1157,38 @@ float tex_brick_blender_f(vec3 co,
 
 str_tex_wave = """
 float tex_wave_f(const vec3 p, const int type, const int d, const int profile, const float dist, const float detail, const float detail_scale, const float phase_offset, const float detail_roughness) {
+    vec3 cp = (p + 0.000001) * 0.999999;
     float n;
-    
+
     if (type == 0) {
-        float co;
-        if (d == 0) co = p.x;
-        else if (d == 1) co = p.y;
-        else if (d == 2) co = p.z;
-        else co = (p.x + p.y + p.z) * 0.577;
-        n = co * 20.0;
+        if (d == 0) n = cp.x * 20.0;
+        else if (d == 1) n = cp.y * 20.0;
+        else if (d == 2) n = cp.z * 20.0;
+        else n = (cp.x + cp.y + cp.z) * 10.0;
     }
     else {
-        n = length(p) * 20.0;
-    }
-
-    if (dist != 0.0) {
-        n += dist * fractal_noise(p * detail_scale, detail, detail_roughness) * 2.0 - 1.0;
+        vec3 rp = cp;
+        if (d == 0) rp *= vec3(0.0, 1.0, 1.0);
+        else if (d == 1) rp *= vec3(1.0, 0.0, 1.0);
+        else if (d == 2) rp *= vec3(1.0, 1.0, 0.0);
+        n = length(rp) * 20.0;
     }
 
     n += phase_offset;
 
+    if (dist != 0.0) {
+        n += dist * (noise_fbm(cp * detail_scale, detail, detail_roughness, 2.0, 0.0, 0.0, true) * 2.0 - 1.0);
+    }
+
     if (profile == 0) {
-        return 0.5 + 0.5 * sin(n - PI);
+        return 0.5 + 0.5 * sin(n - 1.57079632679);
     }
     else if (profile == 1) {
-        n /= 2.0 * PI;
+        n /= 6.28318530718;
         return n - floor(n);
     }
     else {
-        n /= 2.0 * PI;
+        n /= 6.28318530718;
         return abs(2.0 * (n - floor(n + 0.5)));
     }
 }
