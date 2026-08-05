@@ -668,7 +668,7 @@ def parse_tex_voronoi(node: bpy.types.ShaderNodeTexVoronoi, out_socket: bpy.type
     normalize = 1 if node.normalize else 0
 
     c.write_procedurals()
-    state.curshader.add_function(c_functions.str_tex_voronoi)
+    state.curshader.add_function(getattr(c_functions, f'str_tex_voronoi_{bpy.app.version[0]}'))
 
     if node.inputs[0].is_linked:
         co = c.parse_vector_input(node.inputs[0])
