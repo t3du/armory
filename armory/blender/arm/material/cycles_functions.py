@@ -781,13 +781,13 @@ vec3 tex_voronoi_3d(vec3 coord, float randomness, int metric, int outp, float sc
   params.smoothness = clamp(smoothness / 2.0, 0.0, 0.5);
   params.exponent = exp;
   params.randomness = clamp(randomness, 0.0, 1.0);
- 
+
   if (feature == SHD_VORONOI_F2) {
       params.max_distance = (0.5 + 0.5 * params.randomness) * 2.0;
   } else {
       params.max_distance = 0.5 + 0.5 * params.randomness;
   }
- 
+
   params.normalize = normalize == 1;
 
   vec3 scaledCoord = coord * scale;
@@ -822,13 +822,13 @@ vec3 tex_voronoi_4d(vec3 coord, float randomness, int metric, int outp, float sc
   params.smoothness = clamp(smoothness / 2.0, 0.0, 0.5);
   params.exponent = exp;
   params.randomness = clamp(randomness, 0.0, 1.0);
- 
+
   if (feature == SHD_VORONOI_F2) {
       params.max_distance = (0.5 + 0.5 * params.randomness) * 2.0;
   } else {
       params.max_distance = 0.5 + 0.5 * params.randomness;
   }
- 
+
   params.normalize = normalize == 1;
 
   vec4 scaledCoord = vec4(coord * scale, w * scale);
