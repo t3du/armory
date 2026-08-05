@@ -676,12 +676,12 @@ def parse_tex_voronoi(node: bpy.types.ShaderNodeTexVoronoi, out_socket: bpy.type
         co = 'bposition'
 
     w = c.parse_value_input(node.inputs['W']) if 'W' in node.inputs else '0.0'
-    scale = c.parse_value_input(node.inputs['Scale'])
+    scale = c.parse_value_input(node.inputs['Scale']) if 'Scale' in node.inputs else '5.0'
     detail = c.parse_value_input(node.inputs['Detail']) if 'Detail' in node.inputs else '0.0'
     roughness = c.parse_value_input(node.inputs['Roughness']) if 'Roughness' in node.inputs else '0.5'
     lacunarity = c.parse_value_input(node.inputs['Lacunarity']) if 'Lacunarity' in node.inputs else '2.0'
     smoothness = c.parse_value_input(node.inputs['Smoothness']) if 'Smoothness' in node.inputs else '1.0'
-    randomness = c.parse_value_input(node.inputs['Randomness'])
+    randomness = c.parse_value_input(node.inputs['Randomness']) if 'Randomness' in node.inputs else '1.0'
 
     if out_socket == node.outputs[1] or out_socket == node.outputs[2]:
         res = 'tex_voronoi_{0}({1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}, {11}, {12}, {13})'.format(dim.lower(), co, randomness, m, outp, scale, exp, w, detail, roughness, lacunarity, smoothness, f, normalize)
