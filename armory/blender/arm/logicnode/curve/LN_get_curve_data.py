@@ -14,6 +14,7 @@ class GetCurveDataNode(ArmLogicTreeNode):
         self.add_output('ArmBoolSocket', 'Draw')
         self.add_output('ArmFloatSocket', 'Strength')
         self.add_output('ArmColorSocket', 'Color')
+        self.add_output('ArmNodeSocketObject', 'Curve Mesh')
         
         
 

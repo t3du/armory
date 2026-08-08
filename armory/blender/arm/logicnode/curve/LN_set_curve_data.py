@@ -19,12 +19,19 @@ class SetCurveDataNode(ArmLogicTreeNode):
             self.add_input('ArmFloatSocket', 'Strength')
         elif self.property0 == 'Color':
             self.add_input('ArmColorSocket', 'Color')
+        elif self.property0 == 'Curve Mesh':
+            self.add_input('ArmFloatSocket', 'Depth', default_value = 0.1)
+            self.add_input('ArmIntSocket', 'Resolution')
+            self.add_input('ArmFloatSocket', 'Start')
+            self.add_input('ArmFloatSocket', 'End', default_value = 1.0)
+            self.add_input('ArmBoolSocket', 'Fill Caps')
 
     property0: HaxeEnumProperty(
         'property0',
         items = [('Equidistant Samples', 'Equidistant Samples', 'Equidistant Samples'),
                  ('Strength', 'Strength', 'Strength'),
-                 ('Color', 'Color', 'Color')],
+                 ('Color', 'Color', 'Color'),
+                 ('Curve Mesh', 'Curve Mesh', 'Curve Mesh')],
         name='', default='Equidistant Samples', update=update_sockets)
 
     def arm_init(self, context):

@@ -11,6 +11,7 @@ import iron.data.MaterialData;
 import haxe.ds.Vector;
 import kha.arrays.Float32Array;
 import kha.arrays.Uint32Array;
+import kha.arrays.Int16Array;
 import kha.Color;
 import armory.trait.internal.RenderDraw;
 
@@ -19,7 +20,7 @@ class CurveObject extends Object {
 	public var data: TCurveData;
 	public var splinesLength: Int;
 	public var equidistantSamples: Int = 0;
-	public var meshData: MeshData = null;
+	public var curveMesh: MeshObject = null;
 
 	static var _p0 = new Vec4();
 	static var _p1 = new Vec4();
@@ -34,14 +35,26 @@ class CurveObject extends Object {
 		this.data = copyCurveData(data);
 		splinesLength = this.data.splines.length;
 
-		if (this.data.shape_keys != null && this.data.shape_keys.length > 0)
+		if (this.data.shape_keys != null && this.data.shape_keys.length > 0) {
 			applyShapeKeys();
-
-		if (this.data.material_refs != null)
+			var mData = generateMesh(0.05, 8);
+			if (mData != null && this.data.material_refs != null && this.data.material_refs.length > 0)
+				Data.getMaterial(Scene.active.raw.name, this.data.material_refs[0], function(mat: MaterialData) {
+					var materials = new haxe.ds.Vector<MaterialData>(1);
+					materials[0] = mat;
+					curveMesh = new MeshObject(mData, materials);
+					curveMesh.name = data.name + "_mesh";
+					curveMesh.raw = cast {
+						name: curveMesh.name,
+						type: "mesh_object"
+					};
+					curveMesh.setParent(this);
+				});
+		}
+		else if (this.data.material_refs != null && this.data.material_refs.length > 0)
 			addMeshObject();
 		else
 			draw(this.data.strength, Color.fromFloats(this.data.color[0], this.data.color[1], this.data.color[2], this.data.color[3]));
-
 	}
 
 	public function addMeshObject(){
@@ -57,14 +70,13 @@ class CurveObject extends Object {
 					materialsLoaded++;
 
 					if (materialsLoaded == data.material_refs.length) {
-						this.meshData = meshData;
-						var meshObject = new MeshObject(meshData, materials);
-						meshObject.name = this.data.object + "_mesh";
-						meshObject.raw = cast {
+						curveMesh = new MeshObject(meshData, materials);
+						curveMesh.name = this.data.object + "_mesh";
+						curveMesh.raw = cast {
 							name: this.data.object + "_mesh",
 							type: "mesh_object",
 							};
-						meshObject.setParent(this);
+						curveMesh.setParent(this);
 					}
 				});
 			}
@@ -380,6 +392,235 @@ class CurveObject extends Object {
 					pt.handle_right[2] += (keyPt.handle_right[2] - basisPt.handle_right[2]) * val;
 				}
 			}
+		}
+	}
+
+	public function generateMesh(bevelDepth: Float = 0.05, bevelResolution: Int = 8, factorStart: Float = 0.0, factorEnd: Float = 1.0, fillCaps: Bool = false): MeshData {
+		if (data.splines == null || splinesLength == 0)
+			return null;
+
+		var numSides = bevelResolution <= 0 ? 4 : (bevelResolution * 2 + 4);
+
+		var rawPositions: Array<Vec4> = [];
+		var rawNormals: Array<Vec4> = [];
+		var rawUVs: Array<Vec4> = [];
+		var indices: Array<Int> = [];
+
+		for (splineIndex in 0...splinesLength) {
+			var spline = data.splines[splineIndex];
+
+			var segments = spline.closed ? spline.points.length : spline.points.length - 1;
+			var totalSteps = Std.int(spline.resolution * segments);
+			if (totalSteps < 1) totalSteps = 1;
+
+			var startStep = Std.int(totalSteps * Math.max(0.0, Math.min(1.0, factorStart)));
+			var endStep = Std.int(totalSteps * Math.max(0.0, Math.min(1.0, factorEnd)));
+			var numRings = endStep - startStep + 1;
+			if (numRings < 2) continue;
+
+			var baseIndex = rawPositions.length;
+
+			var tangent = getTangent(factorStart, splineIndex);
+			var normal = new Vec4(0, 1, 0);
+			if (Math.abs(tangent.dot(normal)) > 0.9) normal.set(1, 0, 0);
+			var binormal = new Vec4();
+			binormal.crossvecs(tangent, normal);
+			binormal.normalize();
+			normal.crossvecs(binormal, tangent);
+			normal.normalize();
+
+			var lastTangent = tangent.clone();
+
+			for (s in 0...numRings) {
+				var stepIdx = startStep + s;
+				var t = stepIdx / totalSteps;
+				var p = getPoint(t, splineIndex);
+				var currTangent = getTangent(t, splineIndex);
+
+				var axis = new Vec4();
+				axis.crossvecs(lastTangent, currTangent);
+				var dot = Math.max(-1.0, Math.min(1.0, lastTangent.dot(currTangent)));
+				if (axis.length() > 0.00001) {
+					axis.normalize();
+					var angle = Math.acos(dot);
+					var q = new Quat();
+					q.fromAxisAngle(axis, angle);
+					normal.applyQuat(q);
+					binormal.applyQuat(q);
+				}
+				lastTangent = currTangent;
+
+				for (r in 0...numSides) {
+					var angle = (r / numSides) * Math.PI * 2.0;
+					var cosA = Math.cos(angle);
+					var sinA = Math.sin(angle);
+
+					var dir = new Vec4(
+						normal.x * cosA + binormal.x * sinA,
+						normal.y * cosA + binormal.y * sinA,
+						normal.z * cosA + binormal.z * sinA
+					);
+					dir.normalize();
+
+					var vPos = new Vec4(
+						p.x + dir.x * bevelDepth,
+						p.y + dir.y * bevelDepth,
+						p.z + dir.z * bevelDepth
+					);
+
+					rawPositions.push(vPos);
+					rawNormals.push(dir);
+					rawUVs.push(new Vec4(t, r / numSides, 0));
+				}
+			}
+
+			for (s in 0...(numRings - 1)) {
+				for (r in 0...numSides) {
+					var nextR = (r + 1) % numSides;
+					var v0 = baseIndex + s * numSides + r;
+					var v1 = baseIndex + s * numSides + nextR;
+					var v2 = baseIndex + (s + 1) * numSides + r;
+					var v3 = baseIndex + (s + 1) * numSides + nextR;
+
+					indices.push(v0);
+					indices.push(v2);
+					indices.push(v1);
+
+					indices.push(v1);
+					indices.push(v2);
+					indices.push(v3);
+				}
+			}
+
+			var isPartial = factorStart > 0.0 || factorEnd < 1.0;
+			if (fillCaps && (isPartial || !spline.closed)) {
+				var tStart = factorStart;
+				var startTangent = getTangent(tStart, splineIndex);
+				var capStartNormal = new Vec4(-startTangent.x, -startTangent.y, -startTangent.z);
+				var pStart = getPoint(tStart, splineIndex);
+
+				var capStartCenterIdx = rawPositions.length;
+				rawPositions.push(pStart);
+				rawNormals.push(capStartNormal);
+				rawUVs.push(new Vec4(0.5, 0.5, 0));
+
+				var capStartRingBase = rawPositions.length;
+				for (r in 0...numSides) {
+					var origIdx = baseIndex + r;
+					rawPositions.push(rawPositions[origIdx].clone());
+					rawNormals.push(capStartNormal);
+					rawUVs.push(new Vec4(0.5, 0.5, 0));
+				}
+
+				for (r in 0...numSides) {
+					var nextR = (r + 1) % numSides;
+					var v0 = capStartRingBase + r;
+					var v1 = capStartRingBase + nextR;
+					indices.push(capStartCenterIdx);
+					indices.push(v1);
+					indices.push(v0);
+				}
+
+				var tEnd = factorEnd;
+				var endTangent = getTangent(tEnd, splineIndex);
+				var capEndNormal = endTangent.clone();
+				var pEnd = getPoint(tEnd, splineIndex);
+
+				var capEndCenterIdx = rawPositions.length;
+				rawPositions.push(pEnd);
+				rawNormals.push(capEndNormal);
+				rawUVs.push(new Vec4(0.5, 0.5, 0));
+
+				var lastRingBase = baseIndex + (numRings - 1) * numSides;
+				var capEndRingBase = rawPositions.length;
+				for (r in 0...numSides) {
+					var origIdx = lastRingBase + r;
+					rawPositions.push(rawPositions[origIdx].clone());
+					rawNormals.push(capEndNormal);
+					rawUVs.push(new Vec4(0.5, 0.5, 0));
+				}
+
+				for (r in 0...numSides) {
+					var nextR = (r + 1) % numSides;
+					var v0 = capEndRingBase + r;
+					var v1 = capEndRingBase + nextR;
+					indices.push(capEndCenterIdx);
+					indices.push(v0);
+					indices.push(v1);
+				}
+			}
+		}
+
+		if (rawPositions.length == 0) return null;
+
+		var maxdim = 0.0;
+		for (p in rawPositions) {
+			var ax = Math.abs(p.x);
+			var ay = Math.abs(p.y);
+			var az = Math.abs(p.z);
+			if (ax > maxdim) maxdim = ax;
+			if (ay > maxdim) maxdim = ay;
+			if (az > maxdim) maxdim = az;
+		}
+		if (maxdim == 0) maxdim = 1.0;
+		maxdim *= 2;
+		var invdim = 1 / maxdim;
+
+		var numVerts = rawPositions.length;
+		var paa = new Int16Array(numVerts * 4);
+		var naa = new Int16Array(numVerts * 2);
+		var texa = new Int16Array(numVerts * 2);
+
+		for (i in 0...numVerts) {
+			var p = rawPositions[i];
+			var n = rawNormals[i];
+			var uv = rawUVs[i];
+
+			paa.set(i * 4, Std.int(p.x * 32767 * invdim));
+			paa.set(i * 4 + 1, Std.int(p.y * 32767 * invdim));
+			paa.set(i * 4 + 2, Std.int(p.z * 32767 * invdim));
+			naa.set(i * 2, Std.int(n.x * 32767));
+			naa.set(i * 2 + 1, Std.int(n.y * 32767));
+			paa.set(i * 4 + 3, Std.int(n.z * 32767));
+
+			texa.set(i * 2, Std.int(uv.x * 32767));
+			texa.set(i * 2 + 1, Std.int(uv.y * 32767));
+		}
+
+		var inda = new Uint32Array(indices.length);
+		for (i in 0...indices.length) inda.set(i, indices[i]);
+
+		var pos: TVertexArray = { attrib: "pos", values: paa, data: "short4norm" };
+		var nor: TVertexArray = { attrib: "nor", values: naa, data: "short2norm" };
+		var tex: TVertexArray = { attrib: "tex", values: texa, data: "short2norm" };
+		var ind: TIndexArray = { material: 0, values: inda };
+
+		var rawmesh: TMeshData = {
+			name: data.name + "_generated_mesh",
+			sorting_index: 0,
+			vertex_arrays: [pos, nor, tex],
+			index_arrays: [ind],
+			scale_pos: maxdim
+		};
+
+		var md = new MeshData(rawmesh, function(d: MeshData) {});
+		md.geom.calculateAABB();
+		return md;
+	}
+
+	public function updateMesh(bevelDepth: Float = 0.05, bevelResolution: Int = 8, factorStart: Float = 0.0, factorEnd: Float = 1.0, fillCaps: Bool = false) {
+		var mData = generateMesh(bevelDepth, bevelResolution, factorStart, factorEnd, fillCaps);
+		if (mData != null) {
+			var materials = (curveMesh != null) ? curveMesh.materials : null;
+			if (curveMesh != null) curveMesh.remove();
+
+			curveMesh = new MeshObject(mData, materials);
+			curveMesh.name = data.name + "_mesh";
+			curveMesh.raw = cast {
+				name: curveMesh.name,
+				type: "mesh_object"
+			};
+			curveMesh.setParent(this);
 		}
 	}
 

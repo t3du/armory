@@ -25,7 +25,7 @@ class GetCurveDataNode extends LogicNode {
 				case 4: 
 					new Vec4(curve.data.color[0], curve.data.color[1], curve.data.color[2], curve.data.color[3]);
 				case 5:
-					curve.meshData;
+					curve.curveMesh;
 				default:
 					null;
 			}

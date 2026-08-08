@@ -611,7 +611,6 @@ class ArmoryExporter:
             elif bobject.arm_tilesheet != '':
                 if not bobject.arm_use_custom_tilesheet_node:
                     variant_suffix = '_armtile'
-            elif arm.utils.export_morph_targets(bobject):
                 variant_suffix = '_armskey'
 
             if variant_suffix == '':
@@ -1265,7 +1264,6 @@ class ArmoryExporter:
                     self.add_constraints(bone, oskin, bone=True)
 
     def export_shape_keys(self, bobject: bpy.types.Object, export_mesh: bpy.types.Mesh, out_mesh):
-
         # Max shape keys supported
         max_shape_keys = 32
         # Path to store shape key textures
@@ -1956,11 +1954,6 @@ Make sure the mesh only has tris/quads.""")
                 }]
 
                 self.export_mesh(temp_ref)
-
-                out_curve['material_refs'] = []
-                for i in range(len(bobject.material_slots)):
-                    mat = self.slot_to_material(bobject, bobject.material_slots[i])
-                    self.export_material_ref(bobject, mat, i, out_curve)
     
             bobject.to_mesh_clear()
         else:
@@ -1978,6 +1971,13 @@ Make sure the mesh only has tris/quads.""")
                         'handle_right': p.handle_right[:]
                     })
                 out_curve['shape_keys'].append(key_data)
+
+        mat_count = len(bobject.material_slots);
+        if mat_count > 0:
+            out_curve['material_refs'] = []
+            for i in range(mat_count):
+                mat = self.slot_to_material(bobject, bobject.material_slots[i])
+                self.export_material_ref(bobject, mat, i, out_curve)
         
         self.output['curve_datas'].append(out_curve)
 
