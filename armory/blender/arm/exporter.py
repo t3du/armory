@@ -1946,22 +1946,38 @@ Make sure the mesh only has tris/quads.""")
                 
                 out_curve['splines'].append(current_spline)
 
-        temp_obj = bobject.to_mesh()
+        if not bobject.data.shape_keys or len(bobject.data.shape_keys.key_blocks) == 0:
+            temp_obj = bobject.to_mesh()
 
-        if len(temp_obj.polygons) > 0:
-            temp_ref = [object_ref[0], {
-                "objectTable": table, 
-                "structName": arm.utils.safestr(curve_id)
-            }]
+            if len(temp_obj.polygons) > 0:
+                temp_ref = [object_ref[0], {
+                    "objectTable": table, 
+                    "structName": arm.utils.safestr(curve_id)
+                }]
 
-            self.export_mesh(temp_ref)
+                self.export_mesh(temp_ref)
 
-            out_curve['material_refs'] = []
-            for i in range(len(bobject.material_slots)):
-                mat = self.slot_to_material(bobject, bobject.material_slots[i])
-                self.export_material_ref(bobject, mat, i, out_curve)
+                out_curve['material_refs'] = []
+                for i in range(len(bobject.material_slots)):
+                    mat = self.slot_to_material(bobject, bobject.material_slots[i])
+                    self.export_material_ref(bobject, mat, i, out_curve)
     
-        bobject.to_mesh_clear()
+            bobject.to_mesh_clear()
+        else:
+            out_curve['shape_keys'] = []
+            for kb in bobject.data.shape_keys.key_blocks:
+                key_data = {
+                    'name': kb.name,
+                    'value': kb.value,
+                    'points': []
+                }
+                for p in kb.data:
+                    key_data['points'].append({
+                        'co': p.co[:],
+                        'handle_left': p.handle_left[:],
+                        'handle_right': p.handle_right[:]
+                    })
+                out_curve['shape_keys'].append(key_data)
         
         self.output['curve_datas'].append(out_curve)
 

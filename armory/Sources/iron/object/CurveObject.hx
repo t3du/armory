@@ -34,6 +34,9 @@ class CurveObject extends Object {
 		this.data = copyCurveData(data);
 		splinesLength = this.data.splines.length;
 
+		if (this.data.shape_keys != null && this.data.shape_keys.length > 0)
+			applyShapeKeys();
+
 		if (this.data.material_refs != null)
 			addMeshObject();
 		else
@@ -75,7 +78,8 @@ class CurveObject extends Object {
 			splines: [],
 			strength: data.strength,
 			color: copyFloat32Array(data.color),
-			material_refs: data.material_refs
+			material_refs: data.material_refs,
+			shape_keys: data.shape_keys
 		};
 
 		for (spline in data.splines) {
@@ -322,6 +326,61 @@ class CurveObject extends Object {
 	override public function remove() {
 		visible = false;
 		super.remove();
+	}
+
+	public function setShapeKey(name: String, value: Float) {
+		if (data.shape_keys == null) return;
+		for (key in data.shape_keys) {
+			if (key.name == name) {
+				key.value = value;
+				break;
+			}
+		}
+		applyShapeKeys();
+	}
+
+	public function applyShapeKeys() {
+		var basis = data.shape_keys[0];
+
+		for (s in 0...data.splines.length) {
+			var spline = data.splines[s];
+			for (i in 0...spline.points.length) {
+				var pt = spline.points[i];
+				var basisPt = basis.points[i];
+
+				pt.co[0] = basisPt.co[0];
+				pt.co[1] = basisPt.co[1];
+				pt.co[2] = basisPt.co[2];
+
+				pt.handle_left[0] = basisPt.handle_left[0];
+				pt.handle_left[1] = basisPt.handle_left[1];
+				pt.handle_left[2] = basisPt.handle_left[2];
+
+				pt.handle_right[0] = basisPt.handle_right[0];
+				pt.handle_right[1] = basisPt.handle_right[1];
+				pt.handle_right[2] = basisPt.handle_right[2];
+
+				for (k in 1...data.shape_keys.length) {
+					var key = data.shape_keys[k];
+					var val = key.value;
+					if (val == 0) continue;
+
+					var keyPt = key.points[i];
+
+					pt.co[0] += (keyPt.co[0] - basisPt.co[0]) * val;
+					pt.co[1] += (keyPt.co[1] - basisPt.co[1]) * val;
+					pt.co[2] += (keyPt.co[2] - basisPt.co[2]) * val;
+
+					pt.handle_left[0] += (keyPt.handle_left[0] - basisPt.handle_left[0]) * val;
+					pt.handle_left[1] += (keyPt.handle_left[1] - basisPt.handle_left[1]) * val;
+					pt.handle_left[2] += (keyPt.handle_left[2] - basisPt.handle_left[2]) * val;
+
+					pt.handle_right[0] += (keyPt.handle_right[0] - basisPt.handle_right[0]) * val;
+					pt.handle_right[1] += (keyPt.handle_right[1] - basisPt.handle_right[1]) * val;
+					pt.handle_right[2] += (keyPt.handle_right[2] - basisPt.handle_right[2]) * val;
+				}
+			}
+		}
 	}
 
 }

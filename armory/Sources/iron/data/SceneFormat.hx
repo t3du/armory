@@ -636,6 +636,16 @@ typedef TSpline = {
 }
 
 #if js
+typedef TShapeKey = {
+#else
+@:structInit class TShapeKey {
+#end
+	public var name: String;
+	public var value: Float;
+	public var points: Array<TBezierPoint>;
+}
+
+#if js
 typedef TCurveData = {
 #else
 @:structInit class TCurveData {
@@ -646,5 +656,6 @@ typedef TCurveData = {
 	public var strength: Float;
 	public var color: Float32Array;
 	@:optional public var material_refs: Array<String>;
+	@:optional public var shape_keys: Array<TShapeKey>;
 
 }
