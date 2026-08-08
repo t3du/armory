@@ -18,15 +18,15 @@ class FollowCurveNode extends LogicNode {
 		var curve: CurveObject = inputs[2].get();
 		var splineIdx: Int = inputs[3].get();
 
-		if (progress == -1) progress = inputs[9].get();
+		if (progress == -1) progress = inputs[8].get();
 
 		var len = curve.getLength(splineIdx);
-		var speed = inputs[6].get();
+		var speed = inputs[5].get();
 
 		var currentDist = progress * len;
-		currentDist += (speed * Time.delta * (inputs[7].get() ? 1.0 : -1.0));
+		currentDist += (speed * Time.delta * (inputs[6].get() ? 1.0 : -1.0));
 
-		if (inputs[8].get()){
+		if (inputs[7].get()){
 			if (currentDist > len){ currentDist -= len; cycle = true; }
 			else if (currentDist < 0){ currentDist += len; cycle = true; }
 		}
@@ -36,7 +36,7 @@ class FollowCurveNode extends LogicNode {
 		if (cycle) 
 			runOutput(1);
 		else{
-			curve.follow(object, progress, splineIdx, inputs[4].get(), inputs[5].get());
+			curve.follow(object, progress, splineIdx, inputs[4].get());
 			runOutput(0);
 		}
 	}

@@ -19,9 +19,6 @@ class FollowCurve extends iron.Trait {
 	var forwardAxis: String = 'X';
 
 	@prop
-	var advanced: Bool = false;
-
-	@prop
 	var speed: Float = 1;
 
 	@prop
@@ -62,6 +59,6 @@ class FollowCurve extends iron.Trait {
 
 			progress = (len > 0) ? currentDist / len : 0.0;
 
-			curve.follow(object, progress, splineIndex, forwardAxis, advanced);
+			curve.follow(object, progress, splineIndex, forwardAxis);
 	};
 }

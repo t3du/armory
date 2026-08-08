@@ -13,7 +13,6 @@ class FollowCurveNode(ArmLogicTreeNode):
         self.add_input('ArmNodeSocketObject', 'Curve')
         self.add_input('ArmIntSocket', 'Spline Index')
         self.add_input('ArmStringSocket', 'Forward Axis', default_value = 'X')
-        self.add_input('ArmBoolSocket', 'Advanced')
         self.add_input('ArmFloatSocket', 'Speed')
         self.add_input('ArmBoolSocket', 'Forward', default_value = True)
         self.add_input('ArmBoolSocket', 'Cyclic')

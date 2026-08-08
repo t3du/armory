@@ -4,7 +4,7 @@ import iron.Scene;
 import iron.data.SceneFormat;
 import iron.math.Vec4;
 import iron.math.Quat;
-
+import iron.math.Mat4;
 import iron.data.Data;
 import iron.data.MeshData;
 import iron.data.MaterialData;
@@ -255,70 +255,69 @@ class CurveObject extends Object {
 		});
 	}
 
-	var _lastTangent = new Vec4(0, 1, 0); 
-	var _initialized = false;
+	var _q = new Quat();
+	var _m = Mat4.identity();
+	var _f = new Vec4();
+	var _r = new Vec4();
+	var _u = new Vec4();
+	var _z = new Vec4();
+	var _vx = new Vec4();
+	var _vy = new Vec4();
+	var _vz = new Vec4();
 
-	public function follow(obj: Object, t: Float, splineIndex: Int = 0, forwardAxis: String = "X", advanced: Bool = false) {
-		if (advanced){
-			var pos = getPoint(t, splineIndex);
-			pos.applymat4(this.transform.world);
-			
-			var nextTangent = getTangent(t, splineIndex);
-			nextTangent.applyQuat(this.transform.rot);
-			nextTangent.normalize();
+	public function follow(obj: Object, t: Float, splineIndex: Int = 0, forwardAxis: String = "X") {
+		var pos = getPoint(t, splineIndex);
+		pos.applymat4(this.transform.world);
+		obj.transform.loc.setFrom(pos);
 
-			var currentDir = new Vec4();
-			
-			if (forwardAxis == "Y") 
-				currentDir.set(obj.transform.world._10, obj.transform.world._11, obj.transform.world._12);
-			else if (forwardAxis == "Z") 
-				currentDir.set(obj.transform.world._20, obj.transform.world._21, obj.transform.world._22);
-			else 
-				currentDir.set(obj.transform.world._00, obj.transform.world._01, obj.transform.world._02);
-			
-			currentDir.normalize();
+		_f.setFrom(getTangent(t, splineIndex));
+		_f.applyQuat(this.transform.rot);
+		_f.normalize();
 
-			var binormal = new Vec4();
-			binormal.setFrom(currentDir);
-			binormal.cross(nextTangent);
-			
-			var dot = currentDir.dot(nextTangent);
-			
-			if (Math.abs(dot) < 0.999999) {
-				binormal.normalize();
-				var theta = Math.acos(Math.max(-1, Math.min(1, dot)));
-				
-				var deltaRot = new Quat();
-				deltaRot.fromAxisAngle(binormal, theta);
-				
-				obj.transform.rot.multquats(deltaRot, obj.transform.rot);
-			}
-
-			obj.transform.loc.setFrom(pos);
-
-		} else {
-			var pos = getPoint(t, splineIndex);
-			pos.applymat4(this.transform.world);
-			obj.transform.loc.setFrom(pos);
-
-			switch (forwardAxis) {
-				case "X": _v1.set(1, 0, 0);
-				case "-X": _v1.set(-1, 0, 0);
-				case "Y": _v1.set(0, 1, 0);
-				case "-Y": _v1.set(0, -1, 0);
-				case "Z": _v1.set(0, 0, 1);
-				case "-Z": _v1.set(0, 0, -1);
-			}
-
-			_v2.setFrom(getTangent(t, splineIndex));
-			_v2.applyQuat(this.transform.rot); 
-
-			obj.transform.rot.fromTo(_v1, _v2);
+		_z.set(0, 0, 1);
+		if (Math.abs(_f.dot(_z)) > 0.9999) {
+			_z.set(0, 1, 0);
 		}
+
+		_r.crossvecs(_f, _z).normalize();
+		_u.crossvecs(_r, _f).normalize();
+
+		switch (forwardAxis) {
+			case "X":
+				_vx.setFrom(_f);
+				_vy.set(-_r.x, -_r.y, -_r.z);
+				_vz.setFrom(_u);
+			case "-X":
+				_vx.set(-_f.x, -_f.y, -_f.z);
+				_vy.setFrom(_r);
+				_vz.setFrom(_u);
+			case "Y":
+				_vx.setFrom(_r);
+				_vy.setFrom(_f);
+				_vz.setFrom(_u);
+			case "-Y":
+				_vx.set(-_r.x, -_r.y, -_r.z);
+				_vy.set(-_f.x, -_f.y, -_f.z);
+				_vz.setFrom(_u);
+			case "Z":
+				_vx.setFrom(_r);
+				_vy.set(-_u.x, -_u.y, -_u.z);
+				_vz.setFrom(_f);
+			case "-Z":
+				_vx.setFrom(_r);
+				_vy.setFrom(_u);
+				_vz.set(-_f.x, -_f.y, -_f.z);
+		}
+
+		_m._00 = _vx.x; _m._01 = _vx.y; _m._02 = _vx.z;
+		_m._10 = _vy.x; _m._11 = _vy.y; _m._12 = _vy.z;
+		_m._20 = _vz.x; _m._21 = _vz.y; _m._22 = _vz.z;
+
+		_q.fromRotationMat(_m);
+		obj.transform.rot.setFrom(_q);
 
 		obj.transform.buildMatrix();
 	}
-
 
 	override public function remove() {
 		visible = false;
