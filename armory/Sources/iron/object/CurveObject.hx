@@ -49,6 +49,7 @@ class CurveObject extends Object {
 						type: "mesh_object"
 					};
 					curveMesh.setParent(this);
+					curveMesh.addTrait(new armory.trait.internal.UniformsManager());
 				});
 		}
 		else if (this.data.material_refs != null && this.data.material_refs.length > 0)
@@ -77,6 +78,7 @@ class CurveObject extends Object {
 							type: "mesh_object",
 							};
 						curveMesh.setParent(this);
+						curveMesh.addTrait(new armory.trait.internal.UniformsManager());
 					}
 				});
 			}
@@ -621,6 +623,7 @@ class CurveObject extends Object {
 				type: "mesh_object"
 			};
 			curveMesh.setParent(this);
+			curveMesh.addTrait(new armory.trait.internal.UniformsManager());
 		}
 	}
 
