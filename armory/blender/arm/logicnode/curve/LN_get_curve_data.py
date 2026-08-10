@@ -10,6 +10,7 @@ class GetCurveDataNode(ArmLogicTreeNode):
     def arm_init(self, context):
         self.add_input('ArmNodeSocketObject', 'Curve')
 
+        self.add_output('ArmIntSocket', 'Splines Length')
         self.add_output('ArmIntSocket', 'Equidistant Samples')
         self.add_output('ArmBoolSocket', 'Draw')
         self.add_output('ArmFloatSocket', 'Strength')
