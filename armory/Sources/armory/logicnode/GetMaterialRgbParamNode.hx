@@ -17,15 +17,15 @@ class GetMaterialRgbParamNode extends LogicNode {
 		var mat: MaterialData = inputs[2].get();
 		var link: String = inputs[3].get();
 
-		if (mat == null || link == null) return 0.0;
+		if (mat == null || link == null) return null;
 
 		if (!perObject) {
 			object = Scene.active.root;
 		}
 
-		if (object == null) return 0.0;
+		if (object == null) return null;
 
 		var val = @:privateAccess UniformsManager.getObjectVec3Link(object, mat, link);
-		return val != null ? val : 0.0;
+		return val != null ? val : null;
 	}
 }
