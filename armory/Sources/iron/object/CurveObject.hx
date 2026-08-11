@@ -160,7 +160,7 @@ class CurveObject extends Object {
 
 		return interpBezier(localT, _p0, _p1, _p2, _p3);
 	}
-
+	
 	public function getPointEquidistant(t: Float, splineIndex: Int = 0, samples: Int = 100): Vec4 {
 		if (data.splines == null || splinesLength <= splineIndex) return new Vec4();
 		
