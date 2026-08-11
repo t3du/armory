@@ -417,7 +417,7 @@ class DebugConsole extends Trait {
 						var localPos = selectedObject.transform.loc;
 						var worldPos = selectedObject.transform.getWorldPosition();
 						var scale = selectedObject.transform.scale;
-						var rot = selectedObject.transform.rot.getEuler();
+						var rot = selectedObject.transform.rot.toEulerOrdered("XYZ");
 						var dim = selectedObject.transform.dim;
 						rot.mult(180 / 3.141592);
 						var f = 0.0;
@@ -479,7 +479,7 @@ class DebugConsole extends Trait {
 
 						if (changed && selectedObject.name != "Scene") {
 							rot.mult(3.141592 / 180);
-							selectedObject.transform.rot.fromEuler(rot.x, rot.y, rot.z);
+							selectedObject.transform.rot.fromEulerOrdered(rot, "XYZ");
 							selectedObject.transform.buildMatrix();
 							#if arm_physics
 							var rb = selectedObject.getTrait(armory.trait.physics.RigidBody);
