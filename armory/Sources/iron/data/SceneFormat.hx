@@ -633,6 +633,7 @@ typedef TSpline = {
 	public var closed: Bool;
 	public var resolution: Int;
 	public var points: Array<TBezierPoint>;
+	public var material_index: Int;
 }
 
 #if js

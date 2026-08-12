@@ -30,18 +30,24 @@ class SetCurveDataNode extends LogicNode {
 			if (mData != null) {
 				if (curve.curveMesh != null) curve.curveMesh.remove();
 				if (curve.data.material_refs != null && curve.data.material_refs.length > 0) {
-					Data.getMaterial(Scene.active.raw.name, curve.data.material_refs[0], function(mat: MaterialData) {
-						var materials = new haxe.ds.Vector<MaterialData>(1);
-						materials[0] = mat;
-						curve.curveMesh = new MeshObject(mData, materials);
-						curve.curveMesh.name = curve.data.name + "_mesh";
-						curve.curveMesh.raw = cast {
-							name: curve.curveMesh.name,
-							type: "mesh_object"
-						};
-						curve.curveMesh.setParent(curve);
-						curve.curveMesh.addTrait(new armory.trait.internal.UniformsManager());
-					});
+					var materials = new haxe.ds.Vector<MaterialData>(curve.data.material_refs.length);
+					var loaded = 0;
+					for (i in 0...curve.data.material_refs.length) {
+						Data.getMaterial(Scene.active.raw.name, curve.data.material_refs[i], function(mat: MaterialData) {
+							materials[i] = mat;
+							loaded++;
+							if (loaded == curve.data.material_refs.length) {
+								curve.curveMesh = new MeshObject(mData, materials);
+								curve.curveMesh.name = curve.data.name + "_mesh";
+								curve.curveMesh.raw = cast {
+									name: curve.curveMesh.name,
+									type: "mesh_object"
+								};
+								curve.curveMesh.setParent(curve);
+								curve.curveMesh.addTrait(new armory.trait.internal.UniformsManager());
+							}
+						});
+					}
 				}
 			}
 		}

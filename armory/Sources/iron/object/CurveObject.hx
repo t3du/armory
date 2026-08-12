@@ -85,7 +85,8 @@ class CurveObject extends Object {
 			var newSpline = {
 				points: [],
 				closed: spline.closed,
-				resolution: spline.resolution
+				resolution: spline.resolution,
+				material_index: spline.material_index
 			};
 			
 			for (p in spline.points) {
@@ -418,10 +419,13 @@ class CurveObject extends Object {
 		var rawPositions: Array<Vec4> = [];
 		var rawNormals: Array<Vec4> = [];
 		var rawUVs: Array<Vec4> = [];
-		var indices: Array<Int> = [];
+		var indicesByMaterial = new Map<Int, Array<Int>>();
 
 		for (splineIndex in 0...splinesLength) {
 			var spline = data.splines[splineIndex];
+			var matIdx = spline.material_index != null ? spline.material_index : 0;
+			if (!indicesByMaterial.exists(matIdx)) indicesByMaterial.set(matIdx, []);
+			var indices = indicesByMaterial.get(matIdx);
 
 			var segments = spline.closed ? spline.points.length : spline.points.length - 1;
 			var totalSteps = Std.int(spline.resolution * segments);
@@ -602,19 +606,23 @@ class CurveObject extends Object {
 			texa.set(i * 2 + 1, Std.int(uv.y * 32767));
 		}
 
-		var inda = new Uint32Array(indices.length);
-		for (i in 0...indices.length) inda.set(i, indices[i]);
+		var indexArrays: Array<TIndexArray> = [];
+		for (matIdx in indicesByMaterial.keys()) {
+			var matIndices = indicesByMaterial.get(matIdx);
+			var inda = new Uint32Array(matIndices.length);
+			for (i in 0...matIndices.length) inda.set(i, matIndices[i]);
+			indexArrays.push({ material: matIdx, values: inda });
+		}
 
 		var pos: TVertexArray = { attrib: "pos", values: paa, data: "short4norm" };
 		var nor: TVertexArray = { attrib: "nor", values: naa, data: "short2norm" };
 		var tex: TVertexArray = { attrib: "tex", values: texa, data: "short2norm" };
-		var ind: TIndexArray = { material: 0, values: inda };
 
 		var rawmesh: TMeshData = {
 			name: data.name + "_mesh",
 			sorting_index: 0,
 			vertex_arrays: [pos, nor, tex],
-			index_arrays: [ind],
+			index_arrays: indexArrays,
 			scale_pos: maxdim
 		};
 
@@ -630,13 +638,16 @@ class CurveObject extends Object {
 		var rawPositions: Array<Vec4> = [];
 		var rawNormals: Array<Vec4> = [];
 		var rawUVs: Array<Vec4> = [];
-		var indices: Array<Int> = [];
+		var indicesByMaterial = new Map<Int, Array<Int>>();
 
 		var halfW = width * 0.5;
 		var halfH = thickness * 0.5;
 
 		for (splineIndex in 0...splinesLength) {
 			var spline = data.splines[splineIndex];
+			var matIdx = spline.material_index != null ? spline.material_index : 0;
+			if (!indicesByMaterial.exists(matIdx)) indicesByMaterial.set(matIdx, []);
+			var indices = indicesByMaterial.get(matIdx);
 
 			var segments = spline.closed ? spline.points.length : spline.points.length - 1;
 			var totalSteps = Std.int(spline.resolution * segments);
@@ -820,19 +831,23 @@ class CurveObject extends Object {
 			texa.set(i * 2 + 1, Std.int(uv.y * 32767));
 		}
 
-		var inda = new Uint32Array(indices.length);
-		for (i in 0...indices.length) inda.set(i, indices[i]);
+		var indexArrays: Array<TIndexArray> = [];
+		for (matIdx in indicesByMaterial.keys()) {
+			var matIndices = indicesByMaterial.get(matIdx);
+			var inda = new Uint32Array(matIndices.length);
+			for (i in 0...matIndices.length) inda.set(i, matIndices[i]);
+			indexArrays.push({ material: matIdx, values: inda });
+		}
 
 		var pos: TVertexArray = { attrib: "pos", values: paa, data: "short4norm" };
 		var nor: TVertexArray = { attrib: "nor", values: naa, data: "short2norm" };
 		var tex: TVertexArray = { attrib: "tex", values: texa, data: "short2norm" };
-		var ind: TIndexArray = { material: 0, values: inda };
 
 		var rawmesh: TMeshData = {
 			name: data.name + "_mesh",
 			sorting_index: 0,
 			vertex_arrays: [pos, nor, tex],
-			index_arrays: [ind],
+			index_arrays: indexArrays,
 			scale_pos: maxdim
 		};
 

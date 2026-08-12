@@ -1931,7 +1931,8 @@ Make sure the mesh only has tris/quads.""")
                 current_spline = {
                     'closed': spline.use_cyclic_u,
                     'resolution': spline.resolution_u,
-                    'points': []
+                    'points': [],
+                    'material_index': spline.material_index,
                 }
                 
                 for bezier_point in spline.bezier_points:
