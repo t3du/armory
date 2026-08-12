@@ -4,7 +4,6 @@ class FollowCurveNode(ArmLogicTreeNode):
     """Sets an object to follow a curve."""
     bl_idname = 'LNFollowCurveNode'
     bl_label = 'Follow Curve'
-    arm_section = 'Curve'
     arm_version = 1
 
     def arm_init(self, context):

@@ -4,7 +4,6 @@ class AlongCurveNode(ArmLogicTreeNode):
     """Sets an object along a curve."""
     bl_idname = 'LNAlongCurveNode'
     bl_label = 'Along Curve'
-    arm_section = 'Curve'
     arm_version = 1
 
     def arm_init(self, context):
