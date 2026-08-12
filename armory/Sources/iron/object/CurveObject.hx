@@ -35,24 +35,8 @@ class CurveObject extends Object {
 		this.data = copyCurveData(data);
 		splinesLength = this.data.splines.length;
 
-		if (this.data.shape_keys != null && this.data.shape_keys.length > 0) {
+		if (this.data.shape_keys != null && this.data.shape_keys.length > 0)
 			applyShapeKeys();
-			var mData = generateBevelMesh(0.05, 8, 0.0, 1.0, true);
-			//var mData = generateExtrudeMesh(0.1, 0.3, 0.0, 1.0, true);
-			if (mData != null && this.data.material_refs != null && this.data.material_refs.length > 0)
-				Data.getMaterial(Scene.active.raw.name, this.data.material_refs[0], function(mat: MaterialData) {
-					var materials = new haxe.ds.Vector<MaterialData>(1);
-					materials[0] = mat;
-					curveMesh = new MeshObject(mData, materials);
-					curveMesh.name = data.name + "_mesh";
-					curveMesh.raw = cast {
-						name: curveMesh.name,
-						type: "mesh_object"
-					};
-					curveMesh.setParent(this);
-					curveMesh.addTrait(new armory.trait.internal.UniformsManager());
-				});
-		}
 		else if (this.data.material_refs != null && this.data.material_refs.length > 0)
 			addMeshObject();
 		else
