@@ -433,7 +433,8 @@ class CurveObject extends Object {
 
 			var startStep = Std.int(totalSteps * Math.max(0.0, Math.min(1.0, factorStart)));
 			var endStep = Std.int(totalSteps * Math.max(0.0, Math.min(1.0, factorEnd)));
-			var numRings = endStep - startStep + 1;
+			var isClosedLoop = spline.closed && factorStart == 0.0 && factorEnd == 1.0;
+			var numRings = endStep - startStep + (isClosedLoop ? 0 : 1);
 			if (numRings < 2) continue;
 
 			var baseIndex = rawPositions.length;
@@ -494,12 +495,15 @@ class CurveObject extends Object {
 			}
 
 			var stride = numSides + 1;
-			for (s in 0...(numRings - 1)) {
+			for (s in 0...numRings) {
+				var nextS = (s + 1) % numRings;
+				if (!isClosedLoop && s == numRings - 1) continue;
+
 				for (r in 0...numSides) {
 					var v0 = baseIndex + s * stride + r;
 					var v1 = baseIndex + s * stride + r + 1;
-					var v2 = baseIndex + (s + 1) * stride + r;
-					var v3 = baseIndex + (s + 1) * stride + r + 1;
+					var v2 = baseIndex + nextS * stride + r;
+					var v3 = baseIndex + nextS * stride + r + 1;
 
 					indices.push(v0);
 					indices.push(v2);
@@ -512,7 +516,7 @@ class CurveObject extends Object {
 			}
 
 			var isPartial = factorStart > 0.0 || factorEnd < 1.0;
-			if (fillCaps && (isPartial || !spline.closed)) {
+			if (fillCaps && (!spline.closed || isPartial)) {
 				var tStart = factorStart;
 				var startTangent = getTangent(tStart, splineIndex);
 				var capStartNormal = new Vec4(-startTangent.x, -startTangent.y, -startTangent.z);
