@@ -1,9 +1,9 @@
 from arm.logicnode.arm_nodes import *
 
-class GetCurvePointsNode(ArmLogicTreeNode):
-    """Gets curve spline control points."""
-    bl_idname = 'LNGetCurvePointsNode'
-    bl_label = 'Get Curve Points'
+class GetCurveSplineNode(ArmLogicTreeNode):
+    """Gets curve spline."""
+    bl_idname = 'LNGetCurveSplineNode'
+    bl_label = 'Get Curve Spline'
     arm_version = 1
 
     def arm_init(self, context):
@@ -12,4 +12,5 @@ class GetCurvePointsNode(ArmLogicTreeNode):
 
         self.add_output('ArmNodeSocketArray', 'Points')
         self.add_output('ArmBoolSocket', 'Closed')
+        self.add_output('ArmIntSocket', 'Resolution')
 
