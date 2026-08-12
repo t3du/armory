@@ -158,18 +158,45 @@ class CurveObject extends Object {
 		_p2.set(pK1.handle_left[0], pK1.handle_left[1], pK1.handle_left[2]);
 		_p3.set(pK1.co[0], pK1.co[1], pK1.co[2]);
 
-		return interpBezier(localT, _p0, _p1, _p2, _p3);
+		if (spline.resolution == 12) {
+			return interpBezier(localT, _p0, _p1, _p2, _p3);
+		} else {
+			var stepProgress = localT * spline.resolution;
+			var stepIndex = Std.int(stepProgress);
+			var stepT = stepProgress - stepIndex;
+
+			var tA = stepIndex / spline.resolution;
+			var tB = (stepIndex + 1) / spline.resolution;
+
+			var pA = interpBezier(tA, _p0, _p1, _p2, _p3);
+			var pB = interpBezier(tB, _p0, _p1, _p2, _p3);
+
+			return new Vec4(
+				pA.x + (pB.x - pA.x) * stepT,
+				pA.y + (pB.y - pA.y) * stepT,
+				pA.z + (pB.z - pA.z) * stepT
+			);
+		}
 	}
 	
 	public function getPointEquidistant(t: Float, splineIndex: Int = 0, samples: Int = 100): Vec4 {
 		if (data.splines == null || splinesLength <= splineIndex) return new Vec4();
 		
+		var spline = data.splines[splineIndex];
+		
+		var totalSteps = samples;
+		if (spline.resolution != 12) {
+			var numSegments = spline.closed ? spline.points.length : spline.points.length - 1;
+			totalSteps = spline.resolution * numSegments;
+			if (totalSteps < 1) totalSteps = 1;
+		}
+
 		var table = [0.0];
 		var totalLength = 0.0;
 		var lastP = getBezierPoint(0, splineIndex);
 
-		for (i in 1...samples + 1) {
-			var p = getBezierPoint(i / samples, splineIndex);
+		for (i in 1...totalSteps + 1) {
+			var p = getBezierPoint(i / totalSteps, splineIndex);
 			totalLength += lastP.distanceTo(p);
 			table.push(totalLength);
 			lastP = p;
@@ -615,6 +642,8 @@ class CurveObject extends Object {
 		if (mData != null) {
 			var materials = (curveMesh != null) ? curveMesh.materials : null;
 			if (curveMesh != null) curveMesh.remove();
+
+			if (materials == null) return;
 
 			curveMesh = new MeshObject(mData, materials);
 			curveMesh.name = data.name + "_mesh";
