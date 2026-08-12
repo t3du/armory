@@ -37,7 +37,8 @@ class CurveObject extends Object {
 
 		if (this.data.shape_keys != null && this.data.shape_keys.length > 0)
 			applyShapeKeys();
-		else if (this.data.material_refs != null && this.data.material_refs.length > 0)
+		
+		if (this.data.material_refs != null && this.data.material_refs.length > 0)
 			addMeshObject();
 		else
 			draw(this.data.strength, Color.fromFloats(this.data.color[0], this.data.color[1], this.data.color[2], this.data.color[3]));
