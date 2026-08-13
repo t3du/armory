@@ -201,15 +201,36 @@ def parse_displacement(node: bpy.types.ShaderNodeDisplacement, out_socket: bpy.t
     if node.inputs[3].is_linked:
         nor = c.parse_vector_input(node.inputs[3])
     else:
-        if node.space == 'OBJECT':
-            nor = 'vec3(nor.xy, pos.w)'
-        else:
-            nor = 'wnormal'
+        nor = 'wnormal'
 
     if node.space == 'OBJECT':
-        return f'(vec4(W * vec4(((vec3({height}) - vec3({midlevel})) * {scale} * {nor}), 0.0)).xyz)'
+        nor = f'(inverse(mat3(W)) * {nor})'
+
+    disp = f'normalize({nor}) * (vec3({height}) - vec3({midlevel})) * {scale}'
+
+    if node.space == 'OBJECT':
+        return f'(vec4(W * vec4({disp}, 0.0)).xyz)'
     else:
-        return f'((vec3({height}) - vec3({midlevel})) * {scale} * {nor})'
+        return f'({disp})'
+
+
+def parse_vector_displacement(node: bpy.types.ShaderNodeVectorDisplacement, out_socket: bpy.types.NodeSocket, state: ParserState) -> vec3str:
+    vector = c.parse_vector_input(node.inputs[0])
+    midlevel = c.parse_value_input(node.inputs[1])
+    scale = c.parse_value_input(node.inputs[2])
+
+    offset = f'(({vector} - vec3({midlevel})) * {scale})'
+
+    if node.space == 'TANGENT':
+        n_obj = 'normalize(inverse(mat3(W)) * wnormal)'
+        t_obj = 'normalize(inverse(mat3(W)) * wtangent)'
+        b_obj = f'normalize(cross({n_obj}, {t_obj}))'
+        disp = f'({t_obj} * {offset}.x + {b_obj} * {offset}.y + {n_obj} * {offset}.z)'
+        return f'(vec4(W * vec4({disp}, 0.0)).xyz)'
+    elif node.space == 'OBJECT':
+        return f'(vec4(W * vec4({offset}, 0.0)).xyz)'
+    else:
+        return offset
 
 
 def parse_vectorrotate(node: bpy.types.ShaderNodeVectorRotate, out_socket: bpy.types.NodeSocket, state: ParserState) -> vec3str:

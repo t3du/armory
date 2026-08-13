@@ -188,6 +188,7 @@ ALL_NODES: dict[str, MaterialNodeMeta] = {
     'BUMP': MaterialNodeMeta(parse_func=nodes_vector.parse_bump),
     'CURVE_VEC': MaterialNodeMeta(parse_func=nodes_vector.parse_curvevec),
     'DISPLACEMENT': MaterialNodeMeta(parse_func=nodes_vector.parse_displacement),
+    'VECTOR_DISPLACEMENT': MaterialNodeMeta(parse_func=nodes_vector.parse_vector_displacement),
     'MAPPING': MaterialNodeMeta(parse_func=nodes_vector.parse_mapping),
     'NORMAL': MaterialNodeMeta(parse_func=nodes_vector.parse_normal),
     'NORMAL_MAP': MaterialNodeMeta(parse_func=nodes_vector.parse_normalmap),

@@ -374,6 +374,7 @@ def parse_vector(node: bpy.types.Node, socket: bpy.types.NodeSocket) -> str:
         'COMBXYZ',
         'VECT_MATH',
         'DISPLACEMENT',
+        'VECTOR_DISPLACEMENT',
         'VECTOR_ROTATE',
     )
 
