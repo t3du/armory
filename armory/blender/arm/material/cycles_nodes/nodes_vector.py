@@ -222,10 +222,10 @@ def parse_vector_displacement(node: bpy.types.ShaderNodeVectorDisplacement, out_
     offset = f'(({vector} - vec3({midlevel})) * {scale})'
 
     if node.space == 'TANGENT':
-        n_obj = 'normalize(inverse(mat3(W)) * wnormal)'
         t_obj = 'normalize(inverse(mat3(W)) * wtangent)'
+        n_obj = 'normalize(inverse(mat3(W)) * wnormal)'
         b_obj = f'normalize(cross({n_obj}, {t_obj}))'
-        disp = f'({t_obj} * {offset}.x + {b_obj} * {offset}.y + {n_obj} * {offset}.z)'
+        disp = f'({t_obj} * {offset}.x + {n_obj} * {offset}.y + {b_obj} * {offset}.z)'
         return f'(vec4(W * vec4({disp}, 0.0)).xyz)'
     elif node.space == 'OBJECT':
         return f'(vec4(W * vec4({offset}, 0.0)).xyz)'
