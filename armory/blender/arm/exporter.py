@@ -1945,7 +1945,9 @@ Make sure the mesh only has tris/quads.""")
                 
                 out_curve['splines'].append(current_spline)
 
-        if not bobject.data.shape_keys or len(bobject.data.shape_keys.key_blocks) == 0:
+        active_keys = [kb for kb in bobject.data.shape_keys.key_blocks if not kb.mute] if bobject.data.shape_keys else []
+        
+        if len(active_keys) == 0:
             temp_obj = bobject.to_mesh()
 
             if len(temp_obj.polygons) > 0:
