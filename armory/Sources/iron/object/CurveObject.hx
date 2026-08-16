@@ -441,6 +441,12 @@ class CurveObject extends Object {
 			var baseIndex = rawPositions.length;
 
 			var tangent = getTangent(factorStart, splineIndex);
+			if (spline.closed && (factorStart == 0.0 || factorStart == 1.0)) {
+				var tIn = getTangent(1.0, splineIndex);
+				var tOut = getTangent(0.0, splineIndex);
+				tangent.set(tIn.x + tOut.x, tIn.y + tOut.y, tIn.z + tOut.z);
+				tangent.normalize();
+			}
 			var normal = new Vec4(0, 1, 0);
 			if (Math.abs(tangent.dot(normal)) > 0.9) normal.set(1, 0, 0);
 			var binormal = new Vec4();
@@ -456,6 +462,12 @@ class CurveObject extends Object {
 				var t = stepIdx / totalSteps;
 				var p = getPoint(t, splineIndex);
 				var currTangent = getTangent(t, splineIndex);
+				if (spline.closed && (t == 0.0 || t == 1.0)) {
+					var tIn = getTangent(1.0, splineIndex);
+					var tOut = getTangent(0.0, splineIndex);
+					currTangent.set(tIn.x + tOut.x, tIn.y + tOut.y, tIn.z + tOut.z);
+					currTangent.normalize();
+				}
 
 				var axis = new Vec4();
 				axis.crossvecs(lastTangent, currTangent);
@@ -667,6 +679,12 @@ class CurveObject extends Object {
 			var baseIndex = rawPositions.length;
 
 			var tangent = getTangent(factorStart, splineIndex);
+			if (spline.closed && (factorStart == 0.0 || factorStart == 1.0)) {
+				var tIn = getTangent(1.0, splineIndex);
+				var tOut = getTangent(0.0, splineIndex);
+				tangent.set(tIn.x + tOut.x, tIn.y + tOut.y, tIn.z + tOut.z);
+				tangent.normalize();
+			}
 			var normal = new Vec4(0, 1, 0);
 			if (Math.abs(tangent.dot(normal)) > 0.9) normal.set(1, 0, 0);
 			var binormal = new Vec4();
@@ -682,6 +700,12 @@ class CurveObject extends Object {
 				var t = stepIdx / totalSteps;
 				var p = getPoint(t, splineIndex);
 				var currTangent = getTangent(t, splineIndex);
+				if (spline.closed && (t == 0.0 || t == 1.0)) {
+					var tIn = getTangent(1.0, splineIndex);
+					var tOut = getTangent(0.0, splineIndex);
+					currTangent.set(tIn.x + tOut.x, tIn.y + tOut.y, tIn.z + tOut.z);
+					currTangent.normalize();
+				}
 
 				var axisVec = new Vec4();
 				axisVec.crossvecs(lastTangent, currTangent);
