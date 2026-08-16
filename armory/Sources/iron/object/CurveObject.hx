@@ -435,7 +435,7 @@ class CurveObject extends Object {
 			var startStep = Std.int(totalSteps * Math.max(0.0, Math.min(1.0, factorStart)));
 			var endStep = Std.int(totalSteps * Math.max(0.0, Math.min(1.0, factorEnd)));
 			var isClosedLoop = spline.closed && factorStart == 0.0 && factorEnd == 1.0;
-			var numRings = endStep - startStep + (isClosedLoop ? 0 : 1);
+			var numRings = endStep - startStep + 1;
 			if (numRings < 2) continue;
 
 			var baseIndex = rawPositions.length;
@@ -501,6 +501,11 @@ class CurveObject extends Object {
 						p.z + dir.z * bevelDepth
 					);
 
+					if (isClosedLoop && s == numRings - 1) {
+						vPos = rawPositions[baseIndex + r].clone();
+						dir = rawNormals[baseIndex + r].clone();
+					}
+
 					rawPositions.push(vPos);
 					rawNormals.push(dir);
 					rawUVs.push(new Vec4(t, r / numSides, 0));
@@ -509,8 +514,8 @@ class CurveObject extends Object {
 
 			var stride = numSides + 1;
 			for (s in 0...numRings) {
-				var nextS = (s + 1) % numRings;
-				if (!isClosedLoop && s == numRings - 1) continue;
+				var nextS = s + 1;
+				if (s == numRings - 1) continue;
 
 				for (r in 0...numSides) {
 					var v0 = baseIndex + s * stride + r;
@@ -673,7 +678,7 @@ class CurveObject extends Object {
 			var startStep = Std.int(totalSteps * Math.max(0.0, Math.min(1.0, factorStart)));
 			var endStep = Std.int(totalSteps * Math.max(0.0, Math.min(1.0, factorEnd)));
 			var isClosedLoop = spline.closed && factorStart == 0.0 && factorEnd == 1.0;
-			var numRings = endStep - startStep + (isClosedLoop ? 0 : 1);
+			var numRings = endStep - startStep + 1;
 			if (numRings < 2) continue;
 
 			var baseIndex = rawPositions.length;
@@ -746,8 +751,8 @@ class CurveObject extends Object {
 			}
 
 			for (s in 0...numRings) {
-				var nextS = (s + 1) % numRings;
-				if (!isClosedLoop && s == numRings - 1) continue;
+				var nextS = s + 1;
+				if (s == numRings - 1) continue;
 
 				for (i in 0...4) {
 					var v0 = baseIndex + s * 5 + i;
