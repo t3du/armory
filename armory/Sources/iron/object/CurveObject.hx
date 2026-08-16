@@ -538,7 +538,13 @@ class CurveObject extends Object {
 				var tStart = factorStart;
 				var startTangent = getTangent(tStart, splineIndex);
 				var capStartNormal = new Vec4(-startTangent.x, -startTangent.y, -startTangent.z);
-				var pStart = getPoint(tStart, splineIndex);
+
+				var pStart = new Vec4(0, 0, 0);
+				for (r in 0...numSides) {
+					var pos = rawPositions[baseIndex + r];
+					pStart.add(pos);
+				}
+				pStart.mult(1.0 / numSides);
 
 				var capStartCenterIdx = rawPositions.length;
 				rawPositions.push(pStart);
@@ -548,9 +554,13 @@ class CurveObject extends Object {
 				var capStartRingBase = rawPositions.length;
 				for (r in 0...numSides) {
 					var origIdx = baseIndex + r;
+					var angle = (r / numSides) * Math.PI * 2.0;
+					var u = 0.5 + 0.5 * Math.cos(angle);
+					var v = 0.5 + 0.5 * Math.sin(angle);
+
 					rawPositions.push(rawPositions[origIdx].clone());
 					rawNormals.push(capStartNormal);
-					rawUVs.push(new Vec4(0.5, 0.5, 0));
+					rawUVs.push(new Vec4(u, v, 0));
 				}
 
 				for (r in 0...numSides) {
@@ -565,20 +575,30 @@ class CurveObject extends Object {
 				var tEnd = factorEnd;
 				var endTangent = getTangent(tEnd, splineIndex);
 				var capEndNormal = endTangent.clone();
-				var pEnd = getPoint(tEnd, splineIndex);
+
+				var lastRingBase = baseIndex + (numRings - 1) * stride;
+				var pEnd = new Vec4(0, 0, 0);
+				for (r in 0...numSides) {
+					var pos = rawPositions[lastRingBase + r];
+					pEnd.add(pos);
+				}
+				pEnd.mult(1.0 / numSides);
 
 				var capEndCenterIdx = rawPositions.length;
 				rawPositions.push(pEnd);
 				rawNormals.push(capEndNormal);
 				rawUVs.push(new Vec4(0.5, 0.5, 0));
 
-				var lastRingBase = baseIndex + (numRings - 1) * stride;
 				var capEndRingBase = rawPositions.length;
 				for (r in 0...numSides) {
 					var origIdx = lastRingBase + r;
+					var angle = (r / numSides) * Math.PI * 2.0;
+					var u = 0.5 + 0.5 * Math.cos(angle);
+					var v = 0.5 + 0.5 * Math.sin(angle);
+
 					rawPositions.push(rawPositions[origIdx].clone());
 					rawNormals.push(capEndNormal);
-					rawUVs.push(new Vec4(0.5, 0.5, 0));
+					rawUVs.push(new Vec4(u, v, 0));
 				}
 
 				for (r in 0...numSides) {
@@ -775,7 +795,13 @@ class CurveObject extends Object {
 				var tStart = factorStart;
 				var startTangent = getTangent(tStart, splineIndex);
 				var capStartNormal = new Vec4(-startTangent.x, -startTangent.y, -startTangent.z);
-				var pStart = getPoint(tStart, splineIndex);
+
+				var pStart = new Vec4(0, 0, 0);
+				for (r in 0...4) {
+					var pos = rawPositions[baseIndex + r];
+					pStart.add(pos);
+				}
+				pStart.mult(0.25);
 
 				var capStartCenterIdx = rawPositions.length;
 				rawPositions.push(pStart);
@@ -785,9 +811,13 @@ class CurveObject extends Object {
 				var capStartRingBase = rawPositions.length;
 				for (r in 0...4) {
 					var origIdx = baseIndex + r;
+					var angle = (r / 4.0) * Math.PI * 2.0;
+					var u = 0.5 + 0.5 * Math.cos(angle);
+					var v = 0.5 + 0.5 * Math.sin(angle);
+
 					rawPositions.push(rawPositions[origIdx].clone());
 					rawNormals.push(capStartNormal);
-					rawUVs.push(new Vec4(0.5, 0.5, 0));
+					rawUVs.push(new Vec4(u, v, 0));
 				}
 
 				for (r in 0...4) {
@@ -802,20 +832,30 @@ class CurveObject extends Object {
 				var tEnd = factorEnd;
 				var endTangent = getTangent(tEnd, splineIndex);
 				var capEndNormal = endTangent.clone();
-				var pEnd = getPoint(tEnd, splineIndex);
+
+				var lastRingBase = baseIndex + (numRings - 1) * 5;
+				var pEnd = new Vec4(0, 0, 0);
+				for (r in 0...4) {
+					var pos = rawPositions[lastRingBase + r];
+					pEnd.add(pos);
+				}
+				pEnd.mult(0.25);
 
 				var capEndCenterIdx = rawPositions.length;
 				rawPositions.push(pEnd);
 				rawNormals.push(capEndNormal);
 				rawUVs.push(new Vec4(0.5, 0.5, 0));
 
-				var lastRingBase = baseIndex + (numRings - 1) * 5;
 				var capEndRingBase = rawPositions.length;
 				for (r in 0...4) {
 					var origIdx = lastRingBase + r;
+					var angle = (r / 4.0) * Math.PI * 2.0;
+					var u = 0.5 + 0.5 * Math.cos(angle);
+					var v = 0.5 + 0.5 * Math.sin(angle);
+
 					rawPositions.push(rawPositions[origIdx].clone());
 					rawNormals.push(capEndNormal);
-					rawUVs.push(new Vec4(0.5, 0.5, 0));
+					rawUVs.push(new Vec4(u, v, 0));
 				}
 
 				for (r in 0...4) {
