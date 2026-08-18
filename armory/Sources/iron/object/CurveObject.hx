@@ -930,4 +930,279 @@ class CurveObject extends Object {
 		return md;
 	}
 
+	public function generateDeformedMesh(baseMesh: MeshData, repetitions: Int, factorStart: Float = 0.0, factorEnd: Float = 1.0): MeshData {
+		if (data.splines == null || splinesLength == 0 || baseMesh == null || repetitions <= 0)
+			return null;
+
+		var rawPositions: Array<Vec4> = [];
+		var rawNormals: Array<Vec4> = [];
+		var rawUVs: Array<Vec4> = [];
+		var indicesByMaterial = new Map<Int, Array<Int>>();
+
+		var baseRaw = baseMesh.raw;
+		var basePos: Int16Array = null;
+		var baseNor: Int16Array = null;
+		var baseTex: Int16Array = null;
+		
+		for (va in baseRaw.vertex_arrays) {
+			if (va.attrib == "pos") basePos = va.values;
+			else if (va.attrib == "nor") baseNor = va.values;
+			else if (va.attrib == "tex") baseTex = va.values;
+		}
+
+		if (basePos == null) return null;
+
+		var baseVertCount = Std.int(basePos.length / 4);
+		var baseScale = baseRaw.scale_pos;
+
+		var minZ = 1e10;
+		var maxZ = -1e10;
+		var unpackedPos = new Array<Vec4>();
+		var unpackedNor = new Array<Vec4>();
+		var unpackedTex = new Array<Vec4>();
+
+		for (i in 0...baseVertCount) {
+			var px = (basePos.get(i * 4) / 32767) * baseScale;
+			var py = (basePos.get(i * 4 + 1) / 32767) * baseScale;
+			var pz = (basePos.get(i * 4 + 2) / 32767) * baseScale;
+			unpackedPos.push(new Vec4(px, py, pz));
+
+			if (pz < minZ) minZ = pz;
+			if (pz > maxZ) maxZ = pz;
+
+			if (baseNor != null) {
+				var nx = baseNor.get(i * 2) / 32767;
+				var ny = baseNor.get(i * 2 + 1) / 32767;
+				var nz = basePos.get(i * 4 + 3) / 32767;
+				unpackedNor.push(new Vec4(nx, ny, nz));
+			} else {
+				unpackedNor.push(new Vec4(0, 0, 1));
+			}
+
+			if (baseTex != null) {
+				var tu = baseTex.get(i * 2) / 32767;
+				var tv = baseTex.get(i * 2 + 1) / 32767;
+				unpackedTex.push(new Vec4(tu, tv, 0));
+			} else {
+				unpackedTex.push(new Vec4(0, 0, 0));
+			}
+		}
+
+		var sizeZ = maxZ - minZ;
+		if (sizeZ <= 0.00001) sizeZ = 1.0;
+
+		var splineIndex = 0;
+		var spline = data.splines[splineIndex];
+		var frameCount = 200;
+		var framesNor = new Array<Vec4>();
+		var framesBin = new Array<Vec4>();
+		var framesTan = new Array<Vec4>();
+
+		var startTangent = getTangent(0.0, splineIndex);
+		if (spline.closed) {
+			var tIn = getTangent(1.0, splineIndex);
+			var tOut = getTangent(0.0, splineIndex);
+			startTangent.set(tIn.x + tOut.x, tIn.y + tOut.y, tIn.z + tOut.z);
+			startTangent.normalize();
+		}
+
+		var normal = new Vec4(0, 1, 0);
+		if (Math.abs(startTangent.dot(normal)) > 0.9) normal.set(1, 0, 0);
+		var binormal = new Vec4();
+		binormal.crossvecs(startTangent, normal);
+		binormal.normalize();
+		normal.crossvecs(binormal, startTangent);
+		normal.normalize();
+
+		var lastTangent = startTangent.clone();
+
+		for (i in 0...frameCount + 1) {
+			var t = i / frameCount;
+			var currTangent = getTangent(t, splineIndex);
+
+			if (spline.closed && (t == 0.0 || t == 1.0)) {
+				var tIn = getTangent(1.0, splineIndex);
+				var tOut = getTangent(0.0, splineIndex);
+				currTangent.set(tIn.x + tOut.x, tIn.y + tOut.y, tIn.z + tOut.z);
+				currTangent.normalize();
+			}
+
+			var axis = new Vec4();
+			axis.crossvecs(lastTangent, currTangent);
+			var dot = Math.max(-1.0, Math.min(1.0, lastTangent.dot(currTangent)));
+			if (axis.length() > 0.00001) {
+				axis.normalize();
+				var angle = Math.acos(dot);
+				var q = new Quat();
+				q.fromAxisAngle(axis, angle);
+				normal.applyQuat(q);
+				binormal.applyQuat(q);
+			}
+			lastTangent = currTangent.clone();
+
+			framesNor.push(normal.clone());
+			framesBin.push(binormal.clone());
+			framesTan.push(currTangent.clone());
+		}
+
+		if (spline.closed) {
+			var endDot = Math.max(-1.0, Math.min(1.0, framesNor[0].dot(framesNor[frameCount])));
+			var endAngle = Math.acos(endDot);
+			
+			var crossTest = new Vec4();
+			crossTest.crossvecs(framesNor[0], framesNor[frameCount]);
+			if (framesTan[0].dot(crossTest) < 0) {
+				endAngle = -endAngle;
+			}
+			
+			for (i in 0...frameCount + 1) {
+				var t = i / frameCount;
+				var qFix = new Quat();
+				qFix.fromAxisAngle(framesTan[i], -endAngle * t);
+				framesNor[i].applyQuat(qFix);
+				framesBin[i].applyQuat(qFix);
+			}
+		}
+
+		for (rep in 0...repetitions) {
+			var baseIndex = rawPositions.length;
+			var repTStart = factorStart + (rep / repetitions) * (factorEnd - factorStart);
+			var repTEnd = factorStart + ((rep + 1) / repetitions) * (factorEnd - factorStart);
+
+			for (i in 0...baseVertCount) {
+				var p = unpackedPos[i];
+				var n = unpackedNor[i];
+				var uv = unpackedTex[i];
+
+				var localT = (p.z - minZ) / sizeZ;
+				var curveT = repTStart + localT * (repTEnd - repTStart);
+
+				if (curveT < 0) curveT = 0;
+				if (curveT > 1) curveT = 1;
+
+				var fIdx = curveT * frameCount;
+				var i0 = Std.int(fIdx);
+				var i1 = i0 + 1;
+				if (i1 > frameCount) i1 = frameCount;
+				var blend = fIdx - i0;
+
+				var n0 = framesNor[i0];
+				var n1 = framesNor[i1];
+				var b0 = framesBin[i0];
+				var b1 = framesBin[i1];
+				var t0 = framesTan[i0];
+				var t1 = framesTan[i1];
+
+				var normalVec = new Vec4(
+					n0.x + (n1.x - n0.x) * blend,
+					n0.y + (n1.y - n0.y) * blend,
+					n0.z + (n1.z - n0.z) * blend
+				);
+				normalVec.normalize();
+
+				var binormalVec = new Vec4(
+					b0.x + (b1.x - b0.x) * blend,
+					b0.y + (b1.y - b0.y) * blend,
+					b0.z + (b1.z - b0.z) * blend
+				);
+				binormalVec.normalize();
+
+				var tangentVec = new Vec4(
+					t0.x + (t1.x - t0.x) * blend,
+					t0.y + (t1.y - t0.y) * blend,
+					t0.z + (t1.z - t0.z) * blend
+				);
+				tangentVec.normalize();
+
+				var curvePos = getPoint(curveT, splineIndex);
+
+				var finalPos = new Vec4(
+					curvePos.x + normalVec.x * p.x + binormalVec.x * p.y,
+					curvePos.y + normalVec.y * p.x + binormalVec.y * p.y,
+					curvePos.z + normalVec.z * p.x + binormalVec.z * p.y
+				);
+
+				var finalNor = new Vec4(
+					normalVec.x * n.x + binormalVec.x * n.y + tangentVec.x * n.z,
+					normalVec.y * n.x + binormalVec.y * n.y + tangentVec.y * n.z,
+					normalVec.z * n.x + binormalVec.z * n.y + tangentVec.z * n.z
+				);
+				finalNor.normalize();
+
+				rawPositions.push(finalPos);
+				rawNormals.push(finalNor);
+				rawUVs.push(new Vec4(uv.x, uv.y, 0));
+			}
+
+			for (ia in baseRaw.index_arrays) {
+				var mat = ia.material;
+				if (!indicesByMaterial.exists(mat)) indicesByMaterial.set(mat, []);
+				var destIndices = indicesByMaterial.get(mat);
+				var srcIndices = ia.values;
+
+				for (i in 0...srcIndices.length) {
+					destIndices.push(baseIndex + srcIndices.get(i));
+				}
+			}
+		}
+
+		var maxdim = 0.0;
+		for (p in rawPositions) {
+			var ax = Math.abs(p.x);
+			var ay = Math.abs(p.y);
+			var az = Math.abs(p.z);
+			if (ax > maxdim) maxdim = ax;
+			if (ay > maxdim) maxdim = ay;
+			if (az > maxdim) maxdim = az;
+		}
+		if (maxdim == 0) maxdim = 1.0;
+		maxdim *= 2;
+		var invdim = 1 / maxdim;
+
+		var numVerts = rawPositions.length;
+		var paa = new Int16Array(numVerts * 4);
+		var naa = new Int16Array(numVerts * 2);
+		var texa = new Int16Array(numVerts * 2);
+
+		for (i in 0...numVerts) {
+			var p = rawPositions[i];
+			var n = rawNormals[i];
+			var uv = rawUVs[i];
+
+			paa.set(i * 4, Std.int(p.x * 32767 * invdim));
+			paa.set(i * 4 + 1, Std.int(p.y * 32767 * invdim));
+			paa.set(i * 4 + 2, Std.int(p.z * 32767 * invdim));
+			naa.set(i * 2, Std.int(n.x * 32767));
+			naa.set(i * 2 + 1, Std.int(n.y * 32767));
+			paa.set(i * 4 + 3, Std.int(n.z * 32767));
+
+			texa.set(i * 2, Std.int(uv.x * 32767));
+			texa.set(i * 2 + 1, Std.int(uv.y * 32767));
+		}
+
+		var indexArrays: Array<TIndexArray> = [];
+		for (matIdx in indicesByMaterial.keys()) {
+			var matIndices = indicesByMaterial.get(matIdx);
+			var inda = new Uint32Array(matIndices.length);
+			for (i in 0...matIndices.length) inda.set(i, matIndices[i]);
+			indexArrays.push({ material: matIdx, values: inda });
+		}
+
+		var posVA: TVertexArray = { attrib: "pos", values: paa, data: "short4norm" };
+		var norVA: TVertexArray = { attrib: "nor", values: naa, data: "short2norm" };
+		var texVA: TVertexArray = { attrib: "tex", values: texa, data: "short2norm" };
+
+		var rawmesh: TMeshData = {
+			name: data.name + "_mesh",
+			sorting_index: 0,
+			vertex_arrays: [posVA, norVA, texVA],
+			index_arrays: indexArrays,
+			scale_pos: maxdim
+		};
+
+		var md = new MeshData(rawmesh, function(d: MeshData) {});
+		md.geom.calculateAABB();
+		return md;
+	}
+
 }
