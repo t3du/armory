@@ -12,7 +12,7 @@ class SetCurveSplineNode(ArmLogicTreeNode):
         self.add_input('ArmIntSocket', 'Spline Index')
         #self.add_output('ArmNodeSocketArray', 'Points')
         self.add_input('ArmBoolSocket', 'Closed')
-        self.add_input('ArmIntSocket', 'Resolution')
+        self.add_input('ArmIntSocket', 'Resolution', default_value = 12)
 
         self.add_output('ArmNodeSocketAction', 'Out')
 

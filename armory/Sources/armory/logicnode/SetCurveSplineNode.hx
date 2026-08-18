@@ -15,7 +15,7 @@ class SetCurveSplineNode extends LogicNode {
 		if (index > curve.splinesLength){ runOutput(0); return; }
 
 		curve.data.splines[index].closed = inputs[3].get();
-		curve.data.splines[index].resolution = inputs[4].get();
+		curve.data.splines[index].resolution = Std.int(Math.max(inputs[4].get(), 1));
 
 		runOutput(0);
 	}
