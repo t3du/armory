@@ -930,7 +930,7 @@ class CurveObject extends Object {
 		return md;
 	}
 
-	public function generateDeformedMesh(baseMesh: MeshData, repetitions: Int, factorStart: Float = 0.0, factorEnd: Float = 1.0): MeshData {
+	public function generateDeformedMesh(baseMesh: MeshData, repetitions: Int, factorStart: Float = 0.0, factorEnd: Float = 1.0, forwardAxis: String = "X"): MeshData {
 		if (data.splines == null || splinesLength == 0 || baseMesh == null || repetitions <= 0)
 			return null;
 
@@ -955,8 +955,8 @@ class CurveObject extends Object {
 		var baseVertCount = Std.int(basePos.length / 4);
 		var baseScale = baseRaw.scale_pos;
 
-		var minZ = 1e10;
-		var maxZ = -1e10;
+		var minVal = 1e10;
+		var maxVal = -1e10;
 		var unpackedPos = new Array<Vec4>();
 		var unpackedNor = new Array<Vec4>();
 		var unpackedTex = new Array<Vec4>();
@@ -967,8 +967,19 @@ class CurveObject extends Object {
 			var pz = (basePos.get(i * 4 + 2) / 32767) * baseScale;
 			unpackedPos.push(new Vec4(px, py, pz));
 
-			if (pz < minZ) minZ = pz;
-			if (pz > maxZ) maxZ = pz;
+			var fval = 0.0;
+			switch (forwardAxis) {
+				case "X": fval = px;
+				case "-X": fval = -px;
+				case "Y": fval = py;
+				case "-Y": fval = -py;
+				case "Z": fval = pz;
+				case "-Z": fval = -pz;
+				default: fval = px;
+			}
+
+			if (fval < minVal) minVal = fval;
+			if (fval > maxVal) maxVal = fval;
 
 			if (baseNor != null) {
 				var nx = baseNor.get(i * 2) / 32767;
@@ -988,8 +999,8 @@ class CurveObject extends Object {
 			}
 		}
 
-		var sizeZ = maxZ - minZ;
-		if (sizeZ <= 0.00001) sizeZ = 1.0;
+		var sizeVal = maxVal - minVal;
+		if (sizeVal <= 0.00001) sizeVal = 1.0;
 
 		var splineIndex = 0;
 		var spline = data.splines[splineIndex];
@@ -1006,13 +1017,17 @@ class CurveObject extends Object {
 			startTangent.normalize();
 		}
 
-		var normal = new Vec4(0, 1, 0);
-		if (Math.abs(startTangent.dot(normal)) > 0.9) normal.set(1, 0, 0);
-		var binormal = new Vec4();
-		binormal.crossvecs(startTangent, normal);
-		binormal.normalize();
-		normal.crossvecs(binormal, startTangent);
-		normal.normalize();
+		var _z = new Vec4(0, 0, 1);
+		if (Math.abs(startTangent.dot(_z)) > 0.9999) {
+			_z.set(0, 1, 0);
+		}
+		var _r = new Vec4();
+		_r.crossvecs(startTangent, _z).normalize();
+		var _u = new Vec4();
+		_u.crossvecs(_r, startTangent).normalize();
+
+		var normal = new Vec4(-_r.x, -_r.y, -_r.z);
+		var binormal = new Vec4(_u.x, _u.y, _u.z);
 
 		var lastTangent = startTangent.clone();
 
@@ -1074,7 +1089,38 @@ class CurveObject extends Object {
 				var n = unpackedNor[i];
 				var uv = unpackedTex[i];
 
-				var localT = (p.z - minZ) / sizeZ;
+				var fval = 0.0;
+				var rval = 0.0;
+				var uval = 0.0;
+				var nfval = 0.0;
+				var nrval = 0.0;
+				var nuval = 0.0;
+
+				switch (forwardAxis) {
+					case "X":
+						fval = p.x; rval = p.y; uval = p.z;
+						nfval = n.x; nrval = n.y; nuval = n.z;
+					case "-X":
+						fval = -p.x; rval = -p.y; uval = p.z;
+						nfval = -n.x; nrval = -n.y; nuval = n.z;
+					case "Y":
+						fval = p.y; rval = -p.x; uval = p.z;
+						nfval = n.y; nrval = -n.x; nuval = n.z;
+					case "-Y":
+						fval = -p.y; rval = p.x; uval = p.z;
+						nfval = -n.y; nrval = n.x; nuval = n.z;
+					case "Z":
+						fval = p.z; rval = -p.x; uval = -p.y;
+						nfval = n.z; nrval = -n.x; nuval = -n.y;
+					case "-Z":
+						fval = -p.z; rval = -p.x; uval = p.y;
+						nfval = -n.z; nrval = -n.x; nuval = n.y;
+					default:
+						fval = p.x; rval = p.y; uval = p.z;
+						nfval = n.x; nrval = n.y; nuval = n.z;
+				}
+
+				var localT = (fval - minVal) / sizeVal;
 				var curveT = repTStart + localT * (repTEnd - repTStart);
 
 				if (curveT < 0) curveT = 0;
@@ -1117,15 +1163,15 @@ class CurveObject extends Object {
 				var curvePos = getPoint(curveT, splineIndex);
 
 				var finalPos = new Vec4(
-					curvePos.x + normalVec.x * p.x + binormalVec.x * p.y,
-					curvePos.y + normalVec.y * p.x + binormalVec.y * p.y,
-					curvePos.z + normalVec.z * p.x + binormalVec.z * p.y
+					curvePos.x + normalVec.x * rval + binormalVec.x * uval,
+					curvePos.y + normalVec.y * rval + binormalVec.y * uval,
+					curvePos.z + normalVec.z * rval + binormalVec.z * uval
 				);
 
 				var finalNor = new Vec4(
-					normalVec.x * n.x + binormalVec.x * n.y + tangentVec.x * n.z,
-					normalVec.y * n.x + binormalVec.y * n.y + tangentVec.y * n.z,
-					normalVec.z * n.x + binormalVec.z * n.y + tangentVec.z * n.z
+					normalVec.x * nrval + binormalVec.x * nuval + tangentVec.x * nfval,
+					normalVec.y * nrval + binormalVec.y * nuval + tangentVec.y * nfval,
+					normalVec.z * nrval + binormalVec.z * nuval + tangentVec.z * nfval
 				);
 				finalNor.normalize();
 
