@@ -19,12 +19,15 @@ class MeshRenderDraw extends iron.Trait {
 
 	@prop
 	public var showOutline:Bool = false;
+
+	@prop
+	public var active:Bool = true;
 	
 	public function new() {
 		super();
-		notifyOnInit( () -> {
-
+		notifyOnInit(function() {
 			RenderDraw.notifyOnRender( (draw:RenderDraw) -> {
+				if (!active) return;
 				draw.strength = strength;
 				draw.color = kha.Color.fromFloats(color.x, color.y, color.z, color.w);
 				
@@ -34,5 +37,10 @@ class MeshRenderDraw extends iron.Trait {
 			
 			});
 		});
+	}
+
+	override public function remove() {
+		super.remove();
+		active = false;
 	}
 }
