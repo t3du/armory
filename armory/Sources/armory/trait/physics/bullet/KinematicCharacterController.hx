@@ -169,7 +169,7 @@ class KinematicCharacterController extends Trait {
 		body.setUserIndex(id);
 		#end
 
-		// physics.addKinematicCharacterController(this);
+		physics.addKinematicCharacterController(this);
 
 		if (onReady != null) onReady();
 	}
@@ -248,7 +248,7 @@ class KinematicCharacterController extends Trait {
 	#end
 
 	public function removeFromWorld() {
-		// if (physics != null) physics.removeKinematicCharacterController(this);
+		if (physics != null) physics.removeKinematicCharacterController(this);
 	}
 
 	public function activate() {

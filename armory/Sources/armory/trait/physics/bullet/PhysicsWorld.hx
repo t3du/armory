@@ -209,27 +209,31 @@ class PhysicsWorld extends Trait {
 		constraint.delete();
 	}
 
-	// public function addKinematicCharacterController(controller:KinematicCharacterController) {
-	// 	if (!pairCache){ // Only create PairCache if needed
-	// 		world.getPairCache().setInternalGhostPairCallback(BtGhostPairCallbackPointer.create());
-	// 		pairCache = true;
-	// 	}
-	// 	world.addAction(controller.character);
-	// 	world.addCollisionObjectToGroup(controller.body, controller.group, controller.group);
-	// }
+	public function addKinematicCharacterController(controller:KinematicCharacterController) {
+		if (!pairCache){ // Only create PairCache if needed
+			#if js
+			world.getPairCache().setInternalGhostPairCallback(new bullet.Bt.GhostPairCallback());
+			#elseif cpp
+			world.getPairCache().setInternalGhostPairCallback(untyped __cpp__("new btGhostPairCallback()"));
+			#end
+			pairCache = true;
+		}
+		world.addAction(controller.character);
+		world.addCollisionObjectToGroup(controller.body, controller.group, -1);
+	}
 
-	// public function removeKinematicCharacterController(controller:KinematicCharacterController) {
-	// 	if (world != null) {
-	// 		world.removeCollisionObject(controller.body);
-	// 		world.removeAction(controller.character);
-	// 	}
-	// 	#if js
-	// 	bullet.Bt.Ammo.destroy(controller.body);
-	// 	#else
-	// 	var cbody = controller.body;
-	// 	untyped __cpp__("delete cbody");
-	// 	#end
-	// }
+	public function removeKinematicCharacterController(controller:KinematicCharacterController) {
+		if (world != null) {
+			world.removeCollisionObject(controller.body);
+			world.removeAction(controller.character);
+		}
+		#if js
+		bullet.Bt.Ammo.destroy(controller.body);
+		#else
+		var cbody = controller.body;
+		untyped __cpp__("delete cbody");
+		#end
+	}
 
 	/**
 	   Used to get intersecting rigid bodies with the passed in RigidBody as reference. Often used when checking for object collisions.
