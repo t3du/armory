@@ -23,5 +23,6 @@ class GetRigidBodyDataNode(ArmLogicTreeNode):
         self.add_output('ArmBoolSocket', 'Is Trigger')
         self.add_output('ArmFloatSocket', 'Bounciness')
         self.add_output('ArmBoolSocket', 'Gravity Enabled')
+        self.add_output('ArmVectorSocket', 'Gravity')
         self.add_output('ArmVectorSocket', 'Linear Factor')
         self.add_output('ArmVectorSocket', 'Angular Factor')

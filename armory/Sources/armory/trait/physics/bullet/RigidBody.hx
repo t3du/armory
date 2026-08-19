@@ -507,6 +507,11 @@ class RigidBody extends iron.Trait {
 		body.setGravity(vec1);
 	}
 
+	public function getGravity(): Vec4{
+		var g = body.getGravity();
+		return (new Vec4(g.x(), g.y(), g.z()));
+	}
+
 	public function setActivationState(newState: Int) {
 		var bodyColl: bullet.Bt.CollisionObject = body;
 		bodyColl.setActivationState(newState);
