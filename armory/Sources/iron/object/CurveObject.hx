@@ -232,9 +232,13 @@ class CurveObject extends Object {
 		return tangent;
 	}
 
-	public function getClosestPoint(target: Vec4, splineIndex: Int = 0, steps: Int = 200): Float {
+	public function getClosestPoint(target: Vec4, splineIndex: Int = 0): Float {
 		var minD = 1e10;
 		var bestT = 0.0;
+		var spline = data.splines[splineIndex];
+		var segments = spline.closed ? spline.points.length : spline.points.length - 1;
+		var steps = equidistantSamples > 0 ? equidistantSamples : Std.int(spline.resolution * segments);
+		if (steps < 1) steps = 1;
 		for (i in 0...steps + 1) {
 			var t = i / steps;
 			var p = getPoint(t, splineIndex);
@@ -247,9 +251,13 @@ class CurveObject extends Object {
 		return bestT;
 	}
 
-	public function getLength(splineIndex: Int = 0, steps: Int = 200): Float {
+	public function getLength(splineIndex: Int = 0): Float {
 		var length = 0.0;
 		var lastP = getPoint(0, splineIndex);
+		var spline = data.splines[splineIndex];
+		var segments = spline.closed ? spline.points.length : spline.points.length - 1;
+		var steps = equidistantSamples > 0 ? equidistantSamples : Std.int(spline.resolution * segments);
+		if (steps < 1) steps = 1;
 		for (i in 1...steps + 1) {
 			var p = getPoint(i / steps, splineIndex);
 			length += lastP.distanceTo(p);
@@ -429,7 +437,7 @@ class CurveObject extends Object {
 			var indices = indicesByMaterial.get(matIdx);
 
 			var segments = spline.closed ? spline.points.length : spline.points.length - 1;
-			var totalSteps = Std.int(spline.resolution * segments);
+			var totalSteps = equidistantSamples > 0 ? equidistantSamples : Std.int(spline.resolution * segments);
 			if (totalSteps < 1) totalSteps = 1;
 
 			var startStep = Std.int(totalSteps * Math.max(0.0, Math.min(1.0, factorStart)));
@@ -692,7 +700,7 @@ class CurveObject extends Object {
 			var indices = indicesByMaterial.get(matIdx);
 
 			var segments = spline.closed ? spline.points.length : spline.points.length - 1;
-			var totalSteps = Std.int(spline.resolution * segments);
+			var totalSteps = equidistantSamples > 0 ? equidistantSamples : Std.int(spline.resolution * segments);
 			if (totalSteps < 1) totalSteps = 1;
 
 			var startStep = Std.int(totalSteps * Math.max(0.0, Math.min(1.0, factorStart)));
@@ -1002,191 +1010,197 @@ class CurveObject extends Object {
 		var sizeVal = maxVal - minVal;
 		if (sizeVal <= 0.00001) sizeVal = 1.0;
 
-		var spline = data.splines[splineIndex];
-		var frameCount = 200;
-		var framesNor = new Array<Vec4>();
-		var framesBin = new Array<Vec4>();
-		var framesTan = new Array<Vec4>();
+		var startIdx = splineIndex == -1 ? 0 : splineIndex;
+		var endIdx = splineIndex == -1 ? splinesLength : splineIndex + 1;
 
-		var startTangent = getTangent(0.0, splineIndex);
-		if (spline.closed) {
-			var tIn = getTangent(1.0, splineIndex);
-			var tOut = getTangent(0.0, splineIndex);
-			startTangent.set(tIn.x + tOut.x, tIn.y + tOut.y, tIn.z + tOut.z);
-			startTangent.normalize();
-		}
+		for (sIdx in startIdx...endIdx) {
+			var spline = data.splines[sIdx];
+			var segments = spline.closed ? spline.points.length : spline.points.length - 1;
+			var frameCount = equidistantSamples > 0 ? equidistantSamples : Std.int(spline.resolution * segments);
+			var framesNor = new Array<Vec4>();
+			var framesBin = new Array<Vec4>();
+			var framesTan = new Array<Vec4>();
 
-		var _z = new Vec4(0, 0, 1);
-		if (Math.abs(startTangent.dot(_z)) > 0.9999) {
-			_z.set(0, 1, 0);
-		}
-		var _r = new Vec4();
-		_r.crossvecs(startTangent, _z).normalize();
-		var _u = new Vec4();
-		_u.crossvecs(_r, startTangent).normalize();
-
-		var normal = new Vec4(-_r.x, -_r.y, -_r.z);
-		var binormal = new Vec4(_u.x, _u.y, _u.z);
-
-		var lastTangent = startTangent.clone();
-
-		for (i in 0...frameCount + 1) {
-			var t = i / frameCount;
-			var currTangent = getTangent(t, splineIndex);
-
-			if (spline.closed && (t == 0.0 || t == 1.0)) {
-				var tIn = getTangent(1.0, splineIndex);
-				var tOut = getTangent(0.0, splineIndex);
-				currTangent.set(tIn.x + tOut.x, tIn.y + tOut.y, tIn.z + tOut.z);
-				currTangent.normalize();
+			var startTangent = getTangent(0.0, sIdx);
+			if (spline.closed) {
+				var tIn = getTangent(1.0, sIdx);
+				var tOut = getTangent(0.0, sIdx);
+				startTangent.set(tIn.x + tOut.x, tIn.y + tOut.y, tIn.z + tOut.z);
+				startTangent.normalize();
 			}
 
-			var axis = new Vec4();
-			axis.crossvecs(lastTangent, currTangent);
-			var dot = Math.max(-1.0, Math.min(1.0, lastTangent.dot(currTangent)));
-			if (axis.length() > 0.00001) {
-				axis.normalize();
-				var angle = Math.acos(dot);
-				var q = new Quat();
-				q.fromAxisAngle(axis, angle);
-				normal.applyQuat(q);
-				binormal.applyQuat(q);
+			var _z = new Vec4(0, 0, 1);
+			if (Math.abs(startTangent.dot(_z)) > 0.9999) {
+				_z.set(0, 1, 0);
 			}
-			lastTangent = currTangent.clone();
+			var _r = new Vec4();
+			_r.crossvecs(startTangent, _z).normalize();
+			var _u = new Vec4();
+			_u.crossvecs(_r, startTangent).normalize();
 
-			framesNor.push(normal.clone());
-			framesBin.push(binormal.clone());
-			framesTan.push(currTangent.clone());
-		}
+			var normal = new Vec4(-_r.x, -_r.y, -_r.z);
+			var binormal = new Vec4(_u.x, _u.y, _u.z);
 
-		if (spline.closed) {
-			var endDot = Math.max(-1.0, Math.min(1.0, framesNor[0].dot(framesNor[frameCount])));
-			var endAngle = Math.acos(endDot);
-			
-			var crossTest = new Vec4();
-			crossTest.crossvecs(framesNor[0], framesNor[frameCount]);
-			if (framesTan[0].dot(crossTest) < 0) {
-				endAngle = -endAngle;
-			}
-			
+			var lastTangent = startTangent.clone();
+
 			for (i in 0...frameCount + 1) {
 				var t = i / frameCount;
-				var qFix = new Quat();
-				qFix.fromAxisAngle(framesTan[i], -endAngle * t);
-				framesNor[i].applyQuat(qFix);
-				framesBin[i].applyQuat(qFix);
-			}
-		}
+				var currTangent = getTangent(t, sIdx);
 
-		for (rep in 0...repetitions) {
-			var baseIndex = rawPositions.length;
-			var repTStart = factorStart + (rep / repetitions) * (factorEnd - factorStart);
-			var repTEnd = factorStart + ((rep + 1) / repetitions) * (factorEnd - factorStart);
-
-			for (i in 0...baseVertCount) {
-				var p = unpackedPos[i];
-				var n = unpackedNor[i];
-				var uv = unpackedTex[i];
-
-				var fval = 0.0;
-				var rval = 0.0;
-				var uval = 0.0;
-				var nfval = 0.0;
-				var nrval = 0.0;
-				var nuval = 0.0;
-
-				switch (forwardAxis) {
-					case "X":
-						fval = p.x; rval = p.y; uval = p.z;
-						nfval = n.x; nrval = n.y; nuval = n.z;
-					case "-X":
-						fval = -p.x; rval = -p.y; uval = p.z;
-						nfval = -n.x; nrval = -n.y; nuval = n.z;
-					case "Y":
-						fval = p.y; rval = -p.x; uval = p.z;
-						nfval = n.y; nrval = -n.x; nuval = n.z;
-					case "-Y":
-						fval = -p.y; rval = p.x; uval = p.z;
-						nfval = -n.y; nrval = n.x; nuval = n.z;
-					case "Z":
-						fval = p.z; rval = -p.x; uval = -p.y;
-						nfval = n.z; nrval = -n.x; nuval = -n.y;
-					case "-Z":
-						fval = -p.z; rval = -p.x; uval = p.y;
-						nfval = -n.z; nrval = -n.x; nuval = n.y;
-					default:
-						fval = p.x; rval = p.y; uval = p.z;
-						nfval = n.x; nrval = n.y; nuval = n.z;
+				if (spline.closed && (t == 0.0 || t == 1.0)) {
+					var tIn = getTangent(1.0, sIdx);
+					var tOut = getTangent(0.0, sIdx);
+					currTangent.set(tIn.x + tOut.x, tIn.y + tOut.y, tIn.z + tOut.z);
+					currTangent.normalize();
 				}
 
-				var localT = (fval - minVal) / sizeVal;
-				var curveT = repTStart + localT * (repTEnd - repTStart);
+				var axis = new Vec4();
+				axis.crossvecs(lastTangent, currTangent);
+				var dot = Math.max(-1.0, Math.min(1.0, lastTangent.dot(currTangent)));
+				if (axis.length() > 0.00001) {
+					axis.normalize();
+					var angle = Math.acos(dot);
+					var q = new Quat();
+					q.fromAxisAngle(axis, angle);
+					normal.applyQuat(q);
+					binormal.applyQuat(q);
+				}
+				lastTangent = currTangent.clone();
 
-				if (curveT < 0) curveT = 0;
-				if (curveT > 1) curveT = 1;
-
-				var fIdx = curveT * frameCount;
-				var i0 = Std.int(fIdx);
-				var i1 = i0 + 1;
-				if (i1 > frameCount) i1 = frameCount;
-				var blend = fIdx - i0;
-
-				var n0 = framesNor[i0];
-				var n1 = framesNor[i1];
-				var b0 = framesBin[i0];
-				var b1 = framesBin[i1];
-				var t0 = framesTan[i0];
-				var t1 = framesTan[i1];
-
-				var normalVec = new Vec4(
-					n0.x + (n1.x - n0.x) * blend,
-					n0.y + (n1.y - n0.y) * blend,
-					n0.z + (n1.z - n0.z) * blend
-				);
-				normalVec.normalize();
-
-				var binormalVec = new Vec4(
-					b0.x + (b1.x - b0.x) * blend,
-					b0.y + (b1.y - b0.y) * blend,
-					b0.z + (b1.z - b0.z) * blend
-				);
-				binormalVec.normalize();
-
-				var tangentVec = new Vec4(
-					t0.x + (t1.x - t0.x) * blend,
-					t0.y + (t1.y - t0.y) * blend,
-					t0.z + (t1.z - t0.z) * blend
-				);
-				tangentVec.normalize();
-
-				var curvePos = getPoint(curveT, splineIndex);
-
-				var finalPos = new Vec4(
-					curvePos.x + normalVec.x * rval + binormalVec.x * uval,
-					curvePos.y + normalVec.y * rval + binormalVec.y * uval,
-					curvePos.z + normalVec.z * rval + binormalVec.z * uval
-				);
-
-				var finalNor = new Vec4(
-					normalVec.x * nrval + binormalVec.x * nuval + tangentVec.x * nfval,
-					normalVec.y * nrval + binormalVec.y * nuval + tangentVec.y * nfval,
-					normalVec.z * nrval + binormalVec.z * nuval + tangentVec.z * nfval
-				);
-				finalNor.normalize();
-
-				rawPositions.push(finalPos);
-				rawNormals.push(finalNor);
-				rawUVs.push(new Vec4(uv.x, uv.y, 0));
+				framesNor.push(normal.clone());
+				framesBin.push(binormal.clone());
+				framesTan.push(currTangent.clone());
 			}
 
-			for (ia in baseRaw.index_arrays) {
-				var mat = ia.material;
-				if (!indicesByMaterial.exists(mat)) indicesByMaterial.set(mat, []);
-				var destIndices = indicesByMaterial.get(mat);
-				var srcIndices = ia.values;
+			if (spline.closed) {
+				var endDot = Math.max(-1.0, Math.min(1.0, framesNor[0].dot(framesNor[frameCount])));
+				var endAngle = Math.acos(endDot);
+				
+				var crossTest = new Vec4();
+				crossTest.crossvecs(framesNor[0], framesNor[frameCount]);
+				if (framesTan[0].dot(crossTest) < 0) {
+					endAngle = -endAngle;
+				}
+				
+				for (i in 0...frameCount + 1) {
+					var t = i / frameCount;
+					var qFix = new Quat();
+					qFix.fromAxisAngle(framesTan[i], -endAngle * t);
+					framesNor[i].applyQuat(qFix);
+					framesBin[i].applyQuat(qFix);
+				}
+			}
 
-				for (i in 0...srcIndices.length) {
-					destIndices.push(baseIndex + srcIndices.get(i));
+			for (rep in 0...repetitions) {
+				var baseIndex = rawPositions.length;
+				var repTStart = factorStart + (rep / repetitions) * (factorEnd - factorStart);
+				var repTEnd = factorStart + ((rep + 1) / repetitions) * (factorEnd - factorStart);
+
+				for (i in 0...baseVertCount) {
+					var p = unpackedPos[i];
+					var n = unpackedNor[i];
+					var uv = unpackedTex[i];
+
+					var fval = 0.0;
+					var rval = 0.0;
+					var uval = 0.0;
+					var nfval = 0.0;
+					var nrval = 0.0;
+					var nuval = 0.0;
+
+					switch (forwardAxis) {
+						case "X":
+							fval = p.x; rval = p.y; uval = p.z;
+							nfval = n.x; nrval = n.y; nuval = n.z;
+						case "-X":
+							fval = -p.x; rval = -p.y; uval = p.z;
+							nfval = -n.x; nrval = -n.y; nuval = n.z;
+						case "Y":
+							fval = p.y; rval = -p.x; uval = p.z;
+							nfval = n.y; nrval = -n.x; nuval = n.z;
+						case "-Y":
+							fval = -p.y; rval = p.x; uval = p.z;
+							nfval = -n.y; nrval = n.x; nuval = n.z;
+						case "Z":
+							fval = p.z; rval = -p.x; uval = -p.y;
+							nfval = n.z; nrval = -n.x; nuval = -n.y;
+						case "-Z":
+							fval = -p.z; rval = -p.x; uval = p.y;
+							nfval = -n.z; nrval = -n.x; nuval = n.y;
+						default:
+							fval = p.x; rval = p.y; uval = p.z;
+							nfval = n.x; nrval = n.y; nuval = n.z;
+					}
+
+					var localT = (fval - minVal) / sizeVal;
+					var curveT = repTStart + localT * (repTEnd - repTStart);
+
+					if (curveT < 0) curveT = 0;
+					if (curveT > 1) curveT = 1;
+
+					var fIdx = curveT * frameCount;
+					var i0 = Std.int(fIdx);
+					var i1 = i0 + 1;
+					if (i1 > frameCount) i1 = frameCount;
+					var blend = fIdx - i0;
+
+					var n0 = framesNor[i0];
+					var n1 = framesNor[i1];
+					var b0 = framesBin[i0];
+					var b1 = framesBin[i1];
+					var t0 = framesTan[i0];
+					var t1 = framesTan[i1];
+
+					var normalVec = new Vec4(
+						n0.x + (n1.x - n0.x) * blend,
+						n0.y + (n1.y - n0.y) * blend,
+						n0.z + (n1.z - n0.z) * blend
+					);
+					normalVec.normalize();
+
+					var binormalVec = new Vec4(
+						b0.x + (b1.x - b0.x) * blend,
+						b0.y + (b1.y - b0.y) * blend,
+						b0.z + (b1.z - b0.z) * blend
+					);
+					binormalVec.normalize();
+
+					var tangentVec = new Vec4(
+						t0.x + (t1.x - t0.x) * blend,
+						t0.y + (t1.y - t0.y) * blend,
+						t0.z + (t1.z - t0.z) * blend
+					);
+					tangentVec.normalize();
+
+					var curvePos = getPoint(curveT, sIdx);
+
+					var finalPos = new Vec4(
+						curvePos.x + normalVec.x * rval + binormalVec.x * uval,
+						curvePos.y + normalVec.y * rval + binormalVec.y * uval,
+						curvePos.z + normalVec.z * rval + binormalVec.z * uval
+					);
+
+					var finalNor = new Vec4(
+						normalVec.x * nrval + binormalVec.x * nuval + tangentVec.x * nfval,
+						normalVec.y * nrval + binormalVec.y * nuval + tangentVec.y * nfval,
+						normalVec.z * nrval + binormalVec.z * nuval + tangentVec.z * nfval
+					);
+					finalNor.normalize();
+
+					rawPositions.push(finalPos);
+					rawNormals.push(finalNor);
+					rawUVs.push(new Vec4(uv.x, uv.y, 0));
+				}
+
+				for (ia in baseRaw.index_arrays) {
+					var mat = ia.material;
+					if (!indicesByMaterial.exists(mat)) indicesByMaterial.set(mat, []);
+					var destIndices = indicesByMaterial.get(mat);
+					var srcIndices = ia.values;
+
+					for (i in 0...srcIndices.length) {
+						destIndices.push(baseIndex + srcIndices.get(i));
+					}
 				}
 			}
 		}
@@ -1249,5 +1263,4 @@ class CurveObject extends Object {
 		md.geom.calculateAABB();
 		return md;
 	}
-
 }
