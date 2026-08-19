@@ -930,7 +930,7 @@ class CurveObject extends Object {
 		return md;
 	}
 
-	public function generateDeformedMesh(baseMesh: MeshData, repetitions: Int, factorStart: Float = 0.0, factorEnd: Float = 1.0, forwardAxis: String = "X"): MeshData {
+	public function generateDeformedMesh(baseMesh: MeshData, splineIndex = -1, forwardAxis: String = "X", repetitions: Int, factorStart: Float = 0.0, factorEnd: Float = 1.0): MeshData {
 		if (data.splines == null || splinesLength == 0 || baseMesh == null || repetitions <= 0)
 			return null;
 
@@ -1002,7 +1002,6 @@ class CurveObject extends Object {
 		var sizeVal = maxVal - minVal;
 		if (sizeVal <= 0.00001) sizeVal = 1.0;
 
-		var splineIndex = 0;
 		var spline = data.splines[splineIndex];
 		var frameCount = 200;
 		var framesNor = new Array<Vec4>();
