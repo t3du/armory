@@ -728,65 +728,57 @@ class CurveObject extends Object {
 
 			var lastTangent = tangent.clone();
 
-			for (s in 0...numRings) {
-				var stepIdx = startStep + s;
-				var t = stepIdx / totalSteps;
-				var p = getPoint(t, splineIndex);
-				var currTangent = getTangent(t, splineIndex);
-				if (spline.closed && (t == 0.0 || t == 1.0)) {
-					var tIn = getTangent(1.0, splineIndex);
-					var tOut = getTangent(0.0, splineIndex);
-					currTangent.set(tIn.x + tOut.x, tIn.y + tOut.y, tIn.z + tOut.z);
-					currTangent.normalize();
+			if (thickness == 0) {
+				for (s in 0...numRings) {
+					var stepIdx = startStep + s;
+					var t = stepIdx / totalSteps;
+					var p = getPoint(t, splineIndex);
+					var currTangent = getTangent(t, splineIndex);
+					if (spline.closed && (t == 0.0 || t == 1.0)) {
+						var tIn = getTangent(1.0, splineIndex);
+						var tOut = getTangent(0.0, splineIndex);
+						currTangent.set(tIn.x + tOut.x, tIn.y + tOut.y, tIn.z + tOut.z);
+						currTangent.normalize();
+					}
+
+					var axisVec = new Vec4();
+					axisVec.crossvecs(lastTangent, currTangent);
+					var dot = Math.max(-1.0, Math.min(1.0, lastTangent.dot(currTangent)));
+					if (axisVec.length() > 0.00001) {
+						axisVec.normalize();
+						var angle = Math.acos(dot);
+						var q = new Quat();
+						q.fromAxisAngle(axisVec, angle);
+						normal.applyQuat(q);
+						binormal.applyQuat(q);
+					}
+					lastTangent = currTangent;
+
+					var dirW = normal;
+					var dirH = binormal;
+
+					var vPos0 = new Vec4(p.x - dirW.x * halfW, p.y - dirW.y * halfW, p.z - dirW.z * halfW);
+					var vPos1 = new Vec4(p.x + dirW.x * halfW, p.y + dirW.y * halfW, p.z + dirW.z * halfW);
+
+					if (isClosedLoop && s == numRings - 1) {
+						vPos0 = rawPositions[baseIndex].clone();
+						vPos1 = rawPositions[baseIndex + 1].clone();
+					}
+
+					rawPositions.push(vPos0);
+					rawNormals.push(dirH);
+					rawUVs.push(new Vec4(t, 0.0, 0));
+
+					rawPositions.push(vPos1);
+					rawNormals.push(dirH);
+					rawUVs.push(new Vec4(t, 1.0, 0));
 				}
 
-				var axisVec = new Vec4();
-				axisVec.crossvecs(lastTangent, currTangent);
-				var dot = Math.max(-1.0, Math.min(1.0, lastTangent.dot(currTangent)));
-				if (axisVec.length() > 0.00001) {
-					axisVec.normalize();
-					var angle = Math.acos(dot);
-					var q = new Quat();
-					q.fromAxisAngle(axisVec, angle);
-					normal.applyQuat(q);
-					binormal.applyQuat(q);
-				}
-				lastTangent = currTangent;
-
-				var dirW = normal;
-				var dirH = binormal;
-
-				var offsets = [
-					new Vec4(-dirW.x * halfW - dirH.x * halfH, -dirW.y * halfW - dirH.y * halfH, -dirW.z * halfW - dirH.z * halfH),
-					new Vec4( dirW.x * halfW - dirH.x * halfH,  dirW.y * halfW - dirH.y * halfH,  dirW.z * halfW - dirH.z * halfH),
-					new Vec4( dirW.x * halfW + dirH.x * halfH,  dirW.y * halfW + dirH.y * halfH,  dirW.z * halfW + dirH.z * halfH),
-					new Vec4(-dirW.x * halfW + dirH.x * halfH, -dirW.y * halfW + dirH.y * halfH, -dirW.z * halfW + dirH.z * halfH)
-				];
-
-				var normDirs = [
-					new Vec4(-dirW.x, -dirW.y, -dirW.z),
-					new Vec4( dirW.x,  dirW.y,  dirW.z),
-					new Vec4( dirH.x,  dirH.y,  dirH.z),
-					new Vec4(-dirH.x, -dirH.y, -dirH.z)
-				];
-
-				for (i in 0...5) {
-					var idx = i % 4;
-					rawPositions.push(new Vec4(p.x + offsets[idx].x, p.y + offsets[idx].y, p.z + offsets[idx].z));
-					rawNormals.push(normDirs[idx]);
-					rawUVs.push(new Vec4(t, i / 4.0, 0));
-				}
-			}
-
-			for (s in 0...numRings) {
-				var nextS = s + 1;
-				if (s == numRings - 1) continue;
-
-				for (i in 0...4) {
-					var v0 = baseIndex + s * 5 + i;
-					var v1 = baseIndex + s * 5 + i + 1;
-					var v2 = baseIndex + nextS * 5 + i;
-					var v3 = baseIndex + nextS * 5 + i + 1;
+				for (s in 0...numRings - 1) {
+					var v0 = baseIndex + s * 2;
+					var v1 = baseIndex + s * 2 + 1;
+					var v2 = baseIndex + (s + 1) * 2;
+					var v3 = baseIndex + (s + 1) * 2 + 1;
 
 					indices.push(v0);
 					indices.push(v2);
@@ -796,83 +788,153 @@ class CurveObject extends Object {
 					indices.push(v2);
 					indices.push(v3);
 				}
-			}
+			} else {
+				for (s in 0...numRings) {
+					var stepIdx = startStep + s;
+					var t = stepIdx / totalSteps;
+					var p = getPoint(t, splineIndex);
+					var currTangent = getTangent(t, splineIndex);
+					if (spline.closed && (t == 0.0 || t == 1.0)) {
+						var tIn = getTangent(1.0, splineIndex);
+						var tOut = getTangent(0.0, splineIndex);
+						currTangent.set(tIn.x + tOut.x, tIn.y + tOut.y, tIn.z + tOut.z);
+						currTangent.normalize();
+					}
 
-			var isPartial = factorStart > 0.0 || factorEnd < 1.0;
-			if (fillCaps && (!spline.closed || isPartial)) {
-				var tStart = factorStart;
-				var startTangent = getTangent(tStart, splineIndex);
-				var capStartNormal = new Vec4(-startTangent.x, -startTangent.y, -startTangent.z);
+					var axisVec = new Vec4();
+					axisVec.crossvecs(lastTangent, currTangent);
+					var dot = Math.max(-1.0, Math.min(1.0, lastTangent.dot(currTangent)));
+					if (axisVec.length() > 0.00001) {
+						axisVec.normalize();
+						var angle = Math.acos(dot);
+						var q = new Quat();
+						q.fromAxisAngle(axisVec, angle);
+						normal.applyQuat(q);
+						binormal.applyQuat(q);
+					}
+					lastTangent = currTangent;
 
-				var pStart = new Vec4(0, 0, 0);
-				for (r in 0...4) {
-					var pos = rawPositions[baseIndex + r];
-					pStart.add(pos);
+					var dirW = normal;
+					var dirH = binormal;
+
+					var offsets = [
+						new Vec4(-dirW.x * halfW - dirH.x * halfH, -dirW.y * halfW - dirH.y * halfH, -dirW.z * halfW - dirH.z * halfH),
+						new Vec4( dirW.x * halfW - dirH.x * halfH,  dirW.y * halfW - dirH.y * halfH,  dirW.z * halfW - dirH.z * halfH),
+						new Vec4( dirW.x * halfW + dirH.x * halfH,  dirW.y * halfW + dirH.y * halfH,  dirW.z * halfW + dirH.z * halfH),
+						new Vec4(-dirW.x * halfW + dirH.x * halfH, -dirW.y * halfW + dirH.y * halfH, -dirW.z * halfW + dirH.z * halfH)
+					];
+
+					var normDirs = [
+						new Vec4(-dirW.x, -dirW.y, -dirW.z),
+						new Vec4( dirW.x,  dirW.y,  dirW.z),
+						new Vec4( dirH.x,  dirH.y,  dirH.z),
+						new Vec4(-dirH.x, -dirH.y, -dirH.z)
+					];
+
+					for (i in 0...5) {
+						var idx = i % 4;
+						rawPositions.push(new Vec4(p.x + offsets[idx].x, p.y + offsets[idx].y, p.z + offsets[idx].z));
+						rawNormals.push(normDirs[idx]);
+						rawUVs.push(new Vec4(t, i / 4.0, 0));
+					}
 				}
-				pStart.mult(0.25);
 
-				var capStartCenterIdx = rawPositions.length;
-				rawPositions.push(pStart);
-				rawNormals.push(capStartNormal);
-				rawUVs.push(new Vec4(0.5, 0.5, 0));
+				for (s in 0...numRings) {
+					var nextS = s + 1;
+					if (s == numRings - 1) continue;
 
-				var capStartRingBase = rawPositions.length;
-				for (r in 0...4) {
-					var origIdx = baseIndex + r;
-					var angle = (r / 4.0) * Math.PI * 2.0;
-					var u = 0.5 + 0.5 * Math.cos(angle);
-					var v = 0.5 + 0.5 * Math.sin(angle);
+					for (i in 0...4) {
+						var v0 = baseIndex + s * 5 + i;
+						var v1 = baseIndex + s * 5 + i + 1;
+						var v2 = baseIndex + nextS * 5 + i;
+						var v3 = baseIndex + nextS * 5 + i + 1;
 
-					rawPositions.push(rawPositions[origIdx].clone());
+						indices.push(v0);
+						indices.push(v2);
+						indices.push(v1);
+
+						indices.push(v1);
+						indices.push(v2);
+						indices.push(v3);
+					}
+				}
+
+				var isPartial = factorStart > 0.0 || factorEnd < 1.0;
+				if (fillCaps && (!spline.closed || isPartial)) {
+					var tStart = factorStart;
+					var startTangent = getTangent(tStart, splineIndex);
+					var capStartNormal = new Vec4(-startTangent.x, -startTangent.y, -startTangent.z);
+
+					var pStart = new Vec4(0, 0, 0);
+					for (r in 0...4) {
+						var pos = rawPositions[baseIndex + r];
+						pStart.add(pos);
+					}
+					pStart.mult(0.25);
+
+					var capStartCenterIdx = rawPositions.length;
+					rawPositions.push(pStart);
 					rawNormals.push(capStartNormal);
-					rawUVs.push(new Vec4(u, v, 0));
-				}
+					rawUVs.push(new Vec4(0.5, 0.5, 0));
 
-				for (r in 0...4) {
-					var nextR = (r + 1) % 4;
-					var v0 = capStartRingBase + r;
-					var v1 = capStartRingBase + nextR;
-					indices.push(capStartCenterIdx);
-					indices.push(v1);
-					indices.push(v0);
-				}
+					var capStartRingBase = rawPositions.length;
+					for (r in 0...4) {
+						var origIdx = baseIndex + r;
+						var angle = (r / 4.0) * Math.PI * 2.0;
+						var u = 0.5 + 0.5 * Math.cos(angle);
+						var v = 0.5 + 0.5 * Math.sin(angle);
 
-				var tEnd = factorEnd;
-				var endTangent = getTangent(tEnd, splineIndex);
-				var capEndNormal = endTangent.clone();
+						rawPositions.push(rawPositions[origIdx].clone());
+						rawNormals.push(capStartNormal);
+						rawUVs.push(new Vec4(u, v, 0));
+					}
 
-				var lastRingBase = baseIndex + (numRings - 1) * 5;
-				var pEnd = new Vec4(0, 0, 0);
-				for (r in 0...4) {
-					var pos = rawPositions[lastRingBase + r];
-					pEnd.add(pos);
-				}
-				pEnd.mult(0.25);
+					for (r in 0...4) {
+						var nextR = (r + 1) % 4;
+						var v0 = capStartRingBase + r;
+						var v1 = capStartRingBase + nextR;
+						indices.push(capStartCenterIdx);
+						indices.push(v1);
+						indices.push(v0);
+					}
 
-				var capEndCenterIdx = rawPositions.length;
-				rawPositions.push(pEnd);
-				rawNormals.push(capEndNormal);
-				rawUVs.push(new Vec4(0.5, 0.5, 0));
+					var tEnd = factorEnd;
+					var endTangent = getTangent(tEnd, splineIndex);
+					var capEndNormal = endTangent.clone();
 
-				var capEndRingBase = rawPositions.length;
-				for (r in 0...4) {
-					var origIdx = lastRingBase + r;
-					var angle = (r / 4.0) * Math.PI * 2.0;
-					var u = 0.5 + 0.5 * Math.cos(angle);
-					var v = 0.5 + 0.5 * Math.sin(angle);
+					var lastRingBase = baseIndex + (numRings - 1) * 5;
+					var pEnd = new Vec4(0, 0, 0);
+					for (r in 0...4) {
+						var pos = rawPositions[lastRingBase + r];
+						pEnd.add(pos);
+					}
+					pEnd.mult(0.25);
 
-					rawPositions.push(rawPositions[origIdx].clone());
+					var capEndCenterIdx = rawPositions.length;
+					rawPositions.push(pEnd);
 					rawNormals.push(capEndNormal);
-					rawUVs.push(new Vec4(u, v, 0));
-				}
+					rawUVs.push(new Vec4(0.5, 0.5, 0));
 
-				for (r in 0...4) {
-					var nextR = (r + 1) % 4;
-					var v0 = capEndRingBase + r;
-					var v1 = capEndRingBase + nextR;
-					indices.push(capEndCenterIdx);
-					indices.push(v0);
-					indices.push(v1);
+					var capEndRingBase = rawPositions.length;
+					for (r in 0...4) {
+						var origIdx = lastRingBase + r;
+						var angle = (r / 4.0) * Math.PI * 2.0;
+						var u = 0.5 + 0.5 * Math.cos(angle);
+						var v = 0.5 + 0.5 * Math.sin(angle);
+
+						rawPositions.push(rawPositions[origIdx].clone());
+						rawNormals.push(capEndNormal);
+						rawUVs.push(new Vec4(u, v, 0));
+					}
+
+					for (r in 0...4) {
+						var nextR = (r + 1) % 4;
+						var v0 = capEndRingBase + r;
+						var v1 = capEndRingBase + nextR;
+						indices.push(capEndCenterIdx);
+						indices.push(v0);
+						indices.push(v1);
+					}
 				}
 			}
 		}
