@@ -4,6 +4,7 @@ class GetCurveSplineNode(ArmLogicTreeNode):
     """Gets curve spline."""
     bl_idname = 'LNGetCurveSplineNode'
     bl_label = 'Get Curve Spline'
+    arm_section = 'get'
     arm_version = 1
 
     def arm_init(self, context):

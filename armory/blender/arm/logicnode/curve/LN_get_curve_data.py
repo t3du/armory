@@ -4,6 +4,7 @@ class GetCurveDataNode(ArmLogicTreeNode):
     """Gets curve data."""
     bl_idname = 'LNGetCurveDataNode'
     bl_label = 'Get Curve Data'
+    arm_section = 'get'
     arm_version = 1
 
     def arm_init(self, context):

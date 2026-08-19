@@ -4,6 +4,7 @@ class SetCurveShapeKeyNode(ArmLogicTreeNode):
     """Sets shape key value of the curve"""
     bl_idname = 'LNSetCurveShapeKeyNode'
     bl_label = 'Set Curve Shape Key'
+    arm_section = 'set'
     arm_version = 1
 
     def arm_init(self, context):

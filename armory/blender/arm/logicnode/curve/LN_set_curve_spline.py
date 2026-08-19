@@ -4,6 +4,7 @@ class SetCurveSplineNode(ArmLogicTreeNode):
     """Sets curve spline."""
     bl_idname = 'LNSetCurveSplineNode'
     bl_label = 'Set Curve Spline'
+    arm_section = 'set'
     arm_version = 1
 
     def arm_init(self, context):
