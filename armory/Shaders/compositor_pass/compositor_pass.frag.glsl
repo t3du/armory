@@ -11,6 +11,7 @@
 #endif
 
 uniform sampler2D tex;
+
 #ifdef _CDepth
 uniform sampler2D gbufferD;
 #endif
