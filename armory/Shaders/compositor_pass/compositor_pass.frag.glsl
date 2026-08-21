@@ -231,6 +231,45 @@ vec3 lensflare(vec2 uv, vec2 pos) {
 }
 #endif
 
+#ifdef _CDistort
+float distortHash(vec2 p) {
+	return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
+}
+
+float distortValueNoise(vec2 p) {
+	vec2 i = floor(p);
+	vec2 f = fract(p);
+	vec2 u = f * f * (3.0 - 2.0 * f);
+
+	float a = distortHash(i);
+	float b = distortHash(i + vec2(1.0, 0.0));
+	float c = distortHash(i + vec2(0.0, 1.0));
+	float d = distortHash(i + vec2(1.0, 1.0));
+
+	return mix(mix(a, b, u.x), mix(c, d, u.x), u.y);
+}
+
+vec2 distortSmoothNoise(vec2 p) {
+	return vec2(
+		distortValueNoise(p),
+		distortValueNoise(p + vec2(5.2, 1.3))
+	);
+}
+
+vec2 distortUV(vec2 uv, vec2 nUV, float t, float strength) {
+	float intensity = 0.01 * strength;
+	float scale = 4.0;
+	float speed = 0.25;
+
+	nUV.x += t * speed;
+	nUV.y += t * speed;
+	vec2 noise = distortSmoothNoise(nUV * scale);
+
+	uv += (-1.0 + noise * 2.0) * intensity;
+	return uv;
+}
+#endif
+
 void main() {
 	vec2 texCo = texCoord;
 #ifdef _DynRes
@@ -281,9 +320,28 @@ void main() {
 	#else
 		float strengthDistort = compoDistortStrength;
 	#endif
-	float uX = time * strengthDistort;
-	texCo.y = texCo.y + (sin(texCo.x*4.0+uX*2.0)*0.01);
-	texCo.x = texCo.x + (cos(texCo.y*4.0+uX*2.0)*0.01);
+
+	vec2 nUV = texCo;
+
+	texCo = distortUV(texCo, nUV, time, strengthDistort);
+	texCo = distortUV(texCo, vec2(nUV.x + 0.1, nUV.y + 0.1), time, strengthDistort);
+	texCo = distortUV(texCo, vec2(nUV.x + 0.2, nUV.y + 0.2), time, strengthDistort);
+	texCo = distortUV(texCo, vec2(nUV.x + 0.3, nUV.y + 0.3), time, strengthDistort);
+	texCo = distortUV(texCo, vec2(nUV.x + 0.4, nUV.y + 0.4), time, strengthDistort);
+	texCo = distortUV(texCo, vec2(nUV.x + 0.5, nUV.y + 0.5), time, strengthDistort);
+	texCo = distortUV(texCo, vec2(nUV.x + 0.6, nUV.y + 0.6), time, strengthDistort);
+	texCo = distortUV(texCo, vec2(nUV.x + 0.7, nUV.y + 0.7), time, strengthDistort);
+	texCo = distortUV(texCo, vec2(nUV.x + 0.8, nUV.y + 0.8), time, strengthDistort);
+	texCo = distortUV(texCo, vec2(nUV.x + 0.9, nUV.y + 0.9), time, strengthDistort);
+	texCo = distortUV(texCo, vec2(nUV.x + 0.15, nUV.y + 0.15), time, strengthDistort);
+	texCo = distortUV(texCo, vec2(nUV.x + 0.25, nUV.y + 0.25), time, strengthDistort);
+	texCo = distortUV(texCo, vec2(nUV.x + 0.35, nUV.y + 0.35), time, strengthDistort);
+	texCo = distortUV(texCo, vec2(nUV.x + 0.45, nUV.y + 0.45), time, strengthDistort);
+	texCo = distortUV(texCo, vec2(nUV.x + 0.55, nUV.y + 0.55), time, strengthDistort);
+	texCo = distortUV(texCo, vec2(nUV.x + 0.65, nUV.y + 0.65), time, strengthDistort);
+	texCo = distortUV(texCo, vec2(nUV.x + 0.75, nUV.y + 0.75), time, strengthDistort);
+	texCo = distortUV(texCo, vec2(nUV.x + 0.85, nUV.y + 0.85), time, strengthDistort);
+	texCo = distortUV(texCo, vec2(nUV.x + 0.95, nUV.y + 0.95), time, strengthDistort);
 #endif
 
 #ifdef _CDepth
