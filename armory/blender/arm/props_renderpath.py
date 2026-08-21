@@ -608,6 +608,7 @@ class ArmRPListItem(bpy.types.PropertyGroup):
                ('Uncharted', 'Uncharted', 'Uncharted')],
         name='Tonemap', description='Tonemapping operator', default='Filmic', update=assets.invalidate_shader_cache)
     arm_fisheye: BoolProperty(name="Fish Eye", default=False, update=assets.invalidate_shader_cache)
+    arm_fisheye_strength: FloatProperty(name="Strength", default=0.01, update=assets.invalidate_shader_cache)
     arm_vignette: BoolProperty(name="Vignette", default=False, update=assets.invalidate_shader_cache)
     arm_vignette_strength: FloatProperty(name="Strength", default=0.7, update=assets.invalidate_shader_cache)
     arm_lensflare: BoolProperty(name="Lens Flare", default=False, update=assets.invalidate_shader_cache)

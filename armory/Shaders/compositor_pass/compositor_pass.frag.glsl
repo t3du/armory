@@ -253,22 +253,25 @@ void main() {
 
 #ifdef _CFishEye
 	#ifdef _CPostprocess
-		const float fishEyeStrength = -(PPComp2.y);
+		float fishEyeStrength = PPComp2.y;
 	#else
-		const float fishEyeStrength = -0.01;
+		float fishEyeStrength = compoFisheyeStrength;
 	#endif
-	const vec2 m = vec2(0.5, 0.5);
-	vec2 d = texCo - m;
-	float r = sqrt(dot(d, d));
-	float power = (2.0 * PI / (2.0 * sqrt(dot(m, m)))) * fishEyeStrength;
-	float bind;
-	if (power > 0.0) { bind = sqrt(dot(m, m)); }
-	else { bind = m.x; }
-	if (power > 0.0) {
-		texCo = m + normalize(d) * tan(r * power) * bind / tan(bind * power);
-	}
-	else {
-		texCo = m + normalize(d) * atan(r * -power * 10.0) * bind / atan(-power * bind * 10.0);
+
+	if (abs(fishEyeStrength) > 0.0001) {
+		const vec2 m = vec2(0.5, 0.5);
+		vec2 d = texCo - m;
+		float r = sqrt(dot(d, d));
+		float power = - (2.0 * PI / (2.0 * sqrt(dot(m, m)))) * fishEyeStrength;
+		float bind;
+		if (power > 0.0) { bind = sqrt(dot(m, m)); }
+		else { bind = m.x; }
+		if (power > 0.0) {
+			texCo = m + normalize(d) * tan(r * power) * bind / tan(bind * power);
+		}
+		else {
+			texCo = m + normalize(d) * atan(r * -power * 10.0) * bind / atan(-power * bind * 10.0);
+		}
 	}
 #endif
 

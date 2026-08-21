@@ -743,6 +743,11 @@ const vec3 compoLetterboxColor = vec3(""" + str(round(rpdat.arm_letterbox_color[
 """const float compoDistortStrength = """ + str(round(rpdat.arm_distort_strength * 100) / 100) + """;
 """)
 
+        if rpdat.arm_fisheye:
+            f.write(
+"""const float compoFisheyeStrength = """ + str(round(rpdat.arm_fisheye_strength * 100) / 100) + """;
+""")
+
         if rpdat.arm_grain:
             f.write(
 """const float compoGrainStrength = """ + str(round(rpdat.arm_grain_strength * 100) / 100) + """;

@@ -2130,7 +2130,7 @@ class ARM_PT_RenderPathCompositorPanel(bpy.types.Panel):
         layout.separator()
 
         col = layout.column()
-        col.prop(rpdat, 'arm_fisheye')
+        draw_conditional_prop(col, 'Fish Eye', rpdat, 'arm_fisheye', 'arm_fisheye_strength')
         col.prop(rpdat, 'arm_lensflare')
         layout.separator()
 
