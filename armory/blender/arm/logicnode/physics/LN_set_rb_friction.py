@@ -4,7 +4,6 @@ class SetRigidBodyFrictionNode (ArmLogicTreeNode):
     """Sets the friction of the given rigid body."""
     bl_idname = 'LNSetRigidBodyFrictionNode'
     bl_label = 'Set RB Friction'
-    bl_icon = 'NONE'
     arm_version = 1
 
     def arm_init(self, context):
