@@ -9,8 +9,8 @@ class Constraint {
 	var raw: TConstraint;
 	var target: Transform = null;
 
-	public function new(constr: TConstraint) {
-		raw = constr;
+	public function new(constraint: TConstraint) {
+		raw = constraint;
 	}
 
 	public function apply(transform: Transform) {
@@ -22,12 +22,16 @@ class Constraint {
 		if (target == null && raw.type != "LIMIT_LOCATION" && raw.type != "LIMIT_ROTATION" && raw.type != "LIMIT_SCALE") return;
 
 		if (raw.type == "COPY_LOCATION") {
-			if (raw.use_x)
-				transform.world._30 = target.world._30;
-			if (raw.use_y)
-				transform.world._31 = target.world._31;
-			if (raw.use_z)
-				transform.world._32 = target.world._32;
+			if (raw.use_offset) {
+				if (raw.use_x) transform.world._30 += target.world._30;
+				if (raw.use_y) transform.world._31 += target.world._31;
+				if (raw.use_z) transform.world._32 += target.world._32;
+			}
+			else {
+				if (raw.use_x) transform.world._30 = target.world._30;
+				if (raw.use_y) transform.world._31 = target.world._31;
+				if (raw.use_z) transform.world._32 = target.world._32;
+			}
 		}
 
 		else if (raw.type == "COPY_ROTATION") {
@@ -49,12 +53,16 @@ class Constraint {
 
 		else if (raw.type == "COPY_SCALE") {
 			var ts = target.scale;
-			if (raw.use_x)
-				transform.scale.x = transform.scale.x;
-			if (raw.use_y)
-				transform.scale.y = transform.scale.y;
-			if (raw.use_z)
-				transform.scale.z = transform.scale.z;
+			if (raw.use_offset) {
+				if (raw.use_x) transform.scale.x *= ts.x;
+				if (raw.use_y) transform.scale.y *= ts.y;
+				if (raw.use_z) transform.scale.z *= ts.z;
+			}
+			else {
+				if (raw.use_x) transform.scale.x = ts.x;
+				if (raw.use_y) transform.scale.y = ts.y;
+				if (raw.use_z) transform.scale.z = ts.z;
+			}
 			var loc = new Vec4(transform.world._30, transform.world._31, transform.world._32);
 			transform.world.compose(loc, transform.rot, transform.scale);
 		}
