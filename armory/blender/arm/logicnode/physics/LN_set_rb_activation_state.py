@@ -4,7 +4,6 @@ class SetActivationStateNode(ArmLogicTreeNode):
     """Sets the rigid body simulation state of the given object."""
     bl_idname = 'LNSetActivationStateNode'
     bl_label = 'Set RB Activation State'
-    bl_icon = 'NONE'
     arm_version = 1
 
     property0: HaxeEnumProperty(
