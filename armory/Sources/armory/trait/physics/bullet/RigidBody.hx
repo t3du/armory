@@ -611,8 +611,13 @@ class RigidBody extends iron.Trait {
 	public function setFriction(f: Float) {
 		var bodyColl: bullet.Bt.CollisionObject = body;
 		bodyColl.setFriction(f);
-		// bodyColl.setRollingFriction(f);
 		this.friction = f;
+	}
+
+	public function setAngularFriction(f: Float) {
+		var bodyColl: bullet.Bt.CollisionObject = body;
+		bodyColl.setRollingFriction(f);
+		this.angularFriction = f;
 	}
 
 	public function notifyOnContact(f: RigidBody->Void) {
