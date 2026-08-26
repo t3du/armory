@@ -69,14 +69,20 @@ class RenderDraw {
 
 	static var g: kha.graphics4.Graphics;
 
-	public static function notifyOnRender(f: RenderDraw->Void) {
+	public static function notifyOnRender(f: RenderDraw->Void): kha.graphics4.Graphics->Int->Int->Void {
 		if (inst == null) inst = new RenderDraw();
-		iron.RenderPath.notifyOnContext("mesh", function(g4: kha.graphics4.Graphics, i: Int, len: Int) {
+		var cb = function(g4: kha.graphics4.Graphics, i: Int, len: Int) {
 			g = g4;
 			if (i == 0) inst.begin();
 			f(inst);
 			if (i == len - 1) inst.end();
-		});
+		};
+		iron.RenderPath.notifyOnContext("mesh", cb);
+		return cb;
+	}
+
+	public static function removeOnRender(cb: kha.graphics4.Graphics->Int->Int->Void) {
+		iron.RenderPath.removeNotifyOnContext("mesh", cb);
 	}
 
 	static var wv1 = new iron.math.Vec4();

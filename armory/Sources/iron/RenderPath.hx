@@ -396,6 +396,13 @@ class RenderPath {
 		ar.push(onContext);
 	}
 
+	public static function removeNotifyOnContext(name: String, onContext: Graphics->Int->Int->Void) {
+		if (contextEvents != null) {
+			var ar = contextEvents.get(name);
+			if (ar != null)	ar.remove(onContext);
+		}
+	}
+
 	#if rp_decals
 	public function drawDecals(context: String) {
 		if (ConstData.boxVB == null) ConstData.createBoxData();

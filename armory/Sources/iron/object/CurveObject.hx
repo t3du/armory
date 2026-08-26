@@ -266,8 +266,11 @@ class CurveObject extends Object {
 		return length;
 	}
 
+	var renderCb: kha.graphics4.Graphics->Int->Int->Void = null;
+
 	public function draw(strength: Float = 0.005, color: kha.Color = Color.Black) {
-		RenderDraw.notifyOnRender(function(draw: RenderDraw) {
+		if (renderCb != null) RenderDraw.removeOnRender(renderCb);
+		renderCb = RenderDraw.notifyOnRender(function(draw: RenderDraw) {
 			if (!visible) return;
 			draw.color = color;
 			draw.strength = strength;
@@ -361,6 +364,10 @@ class CurveObject extends Object {
 
 	override public function remove() {
 		visible = false;
+		if (renderCb != null) {
+			RenderDraw.removeOnRender(renderCb);
+			renderCb = null;
+		}
 		super.remove();
 	}
 

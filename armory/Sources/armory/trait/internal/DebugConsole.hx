@@ -147,15 +147,22 @@ class DebugConsole extends Trait {
 
 	override public function remove() {
 		selectedObject = null;
+		if (renderCb != null) {
+			RenderDraw.removeOnRender(renderCb);
+			renderCb = null;
+		}
 		super.remove();
 	}
+
+	var renderCb: kha.graphics4.Graphics->Int->Int->Void = null;
 
 	function selectObject(o: iron.object.Object) {
 		selectedObject = o;
 
 		if (!debugDrawSet) {
 			debugDrawSet = true;
-			armory.trait.internal.RenderDraw.notifyOnRender(function(draw: armory.trait.internal.RenderDraw) {
+			if (renderCb != null) RenderDraw.removeOnRender(renderCb);
+			renderCb = armory.trait.internal.RenderDraw.notifyOnRender(function(draw: armory.trait.internal.RenderDraw) {
 				if (selectedObject != null) draw.bounds(selectedObject.transform);
 			});
 		}
