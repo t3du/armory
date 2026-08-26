@@ -10,12 +10,14 @@ import iron.Scene;
 class SetCurveMeshNode extends LogicNode {
 	public var property0: String;
 
+	var curve: CurveObject;
+
 	public function new(tree: LogicTree) {
 		super(tree);
 	}
 
 	override function run(from: Int) {
-		var curve: CurveObject = inputs[1].get();
+		curve = inputs[1].get();
 
 		var mData: MeshData = null;
 
@@ -66,5 +68,9 @@ class SetCurveMeshNode extends LogicNode {
 		}
 
 		runOutput(0);
+	}
+
+	override function get(from: Int): Dynamic {
+		return curve != null ? curve.curveMesh : null;
 	}
 }

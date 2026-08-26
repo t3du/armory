@@ -46,6 +46,7 @@ class SetCurveMeshNode(ArmLogicTreeNode):
         self.add_input('ArmBoolSocket', 'Fill Caps')
 
         self.add_output('ArmNodeSocketAction', 'Out')
+        self.add_output('ArmNodeSocketObject', 'Curve Mesh')
 
     def draw_buttons(self, context, layout):
         layout.prop(self, 'property0')
