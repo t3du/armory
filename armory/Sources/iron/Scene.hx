@@ -346,6 +346,11 @@ class Scene {
 		return g;
 	}
 
+	public function removeFromGroups(object: Object) {
+		if (groups == null) return;
+		for (name in groups.keys()) getGroup(name).remove(object);
+	}
+
 	public function addMeshObject(data: MeshData, materials: Vector<MaterialData>, parent: Object = null): MeshObject {
 		var object = new MeshObject(data, materials);
 		parent != null ? object.setParent(parent) : object.setParent(root);

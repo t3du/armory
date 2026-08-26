@@ -93,8 +93,7 @@ class Object {
 		Removes the game object from the scene.
 	**/
 	public function remove() {
-		for (g in Scene.active.raw.groups) 
-			Scene.active.getGroup(g.name).remove(this);
+		Scene.active.removeFromGroups(this);
 		if (isEmpty && Scene.active != null) Scene.active.empties.remove(this);
 		if (animation != null) animation.remove();
 		while (children.length > 0) children[0].remove();
