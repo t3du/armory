@@ -72,10 +72,10 @@ class WriteImageNode extends LogicNode {
 				tex.g2.scale(scl, scl);
 
 			for (f in @:privateAccess iron.App.traitRenders2D){
-		    	f(tex.g2);
-		    }
-		    
-		    tex.g2.end();
+				f(tex.g2);
+			}
+			
+			tex.g2.end();
 
 		}
 
@@ -114,8 +114,8 @@ class WriteImageNode extends LogicNode {
 				}
 			}
 
-            var writer = new iron.format.jpg.Writer(bo);
-            writer.write({width: tw, height: th, quality: 100, pixels: rgb});
+			var writer = new iron.format.jpg.Writer(bo);
+			writer.write({width: tw, height: th, quality: 100, pixels: rgb});
 
 			//var imgwriter = new iron.format.bmp.Writer(bo);
 			//imgwriter.write(iron.format.bmp.Tools.buildFromARGB(tw, th, rgb));
@@ -125,12 +125,12 @@ class WriteImageNode extends LogicNode {
 	
 			#elseif kha_html5
 			var blob = new js.html.Blob([bo.getBytes().getData()], {type: "application"});
-	        var url = js.html.URL.createObjectURL(blob);
-	        var a = cast(js.Browser.document.createElement("a"), js.html.AnchorElement);
-	        a.href = url;
-	        a.download = file;
-	        a.click();
-	        js.html.URL.revokeObjectURL(url);
+			var url = js.html.URL.createObjectURL(blob);
+			var a = cast(js.Browser.document.createElement("a"), js.html.AnchorElement);
+			a.href = url;
+			a.download = file;
+			a.click();
+			js.html.URL.revokeObjectURL(url);
 			#end
 
 			runOutput(0);
