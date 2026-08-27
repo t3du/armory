@@ -130,6 +130,18 @@ class SoundGenerator {
 		byteData = new BytesOutput();
 	}
 
+	private function writeSample(value: Float): Void {
+		if (bitsPerSample == 16) {
+			var sampleVal = Std.int(value);
+			byteData.writeInt16(sampleVal);
+			if (channels > 1) byteData.writeInt16(sampleVal);
+		} else if (bitsPerSample == 8) {
+			var sampleVal = Std.int(value) + 128;
+			byteData.writeByte(sampleVal);
+			if (channels > 1) byteData.writeByte(sampleVal);
+		}
+	}
+
 	public function addTone(frequency: Float, duration: Float): Void {
 		if (byteData == null) createSound();
 
@@ -165,18 +177,6 @@ class SoundGenerator {
 			var t = i / samplingRate;
 			var value = Math.sin(2 * Math.PI * currentFreq * t) * amplitude;
 			writeSample(value);
-		}
-	}
-
-	private function writeSample(value: Float): Void {
-		if (bitsPerSample == 16) {
-			var sampleVal = Std.int(value);
-			byteData.writeInt16(sampleVal);
-			if (channels > 1) byteData.writeInt16(sampleVal);
-		} else if (bitsPerSample == 8) {
-			var sampleVal = Std.int(value) + 128;
-			byteData.writeByte(sampleVal);
-			if (channels > 1) byteData.writeByte(sampleVal);
 		}
 	}
 
