@@ -102,7 +102,7 @@ class SoundGenerator {
 		Audio.play(sound, loop);
 	}
 
-	public function exportWav(filename: String): Void {
+	public function exportWav(file: String): Void {
 		if (byteData == null) return;
 
 		var rawBytes = byteData.getBytes();
@@ -123,7 +123,19 @@ class SoundGenerator {
 		};
 
 		writer.write(wavData);
-		Krom.fileSaveBytes(Krom.getFilesLocation() + "/" + filename, output.getBytes().getData());
+
+		#if kha_krom
+		Krom.fileSaveBytes(Krom.getFilesLocation() + "/" + file, output.getBytes().getData());
+		
+		#elseif kha_html5
+		var blob = new js.html.Blob([output.getBytes().getData()], {type: "application"});
+		var url = js.html.URL.createObjectURL(blob);
+		var a = cast(js.Browser.document.createElement("a"), js.html.AnchorElement);
+		a.href = url;
+		a.download = file;
+		a.click();
+		js.html.URL.revokeObjectURL(url);
+		#end
 	}
 
 	public function createSound(): Void {
