@@ -33,6 +33,7 @@ class PlaySoundNode(ArmLogicTreeNode):
     bl_idname = 'LNPlaySoundRawNode'
     bl_label = 'Play Sound'
     bl_width_default = 200
+    arm_section = 'raw'
     arm_version = 4
 
     def remove_extra_inputs(self, context):
