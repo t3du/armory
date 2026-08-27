@@ -9,11 +9,14 @@ import kha.arrays.Float32Array;
 import iron.system.Audio;
 
 class SoundGenerator {
-	
-	public var samplingRate: Int;
-	public var channels: Int;
-	public var bitsPerSample: Int;
+
+	var samplingRate: Int;
+	var channels: Int;
+	var bitsPerSample: Int;
 	var byteData: BytesOutput;
+	var sound: Sound;
+
+	public var channel: kha.audio1.AudioChannel = null;
 
 	public static inline var SOLF_174: Float = 174.0;
 	public static inline var SOLF_285: Float = 285.0;
@@ -76,14 +79,15 @@ class SoundGenerator {
 		this.samplingRate = samplingRate;
 		this.channels = channels;
 		this.bitsPerSample = bitsPerSample;
+		byteData = new BytesOutput();
 	}
 
-	public function play(loop: Bool = false): Void {
+	public function generate(): Void {
 		if (byteData == null) return;
 
 		var rawBytes = byteData.getBytes();
 		var totalSamples = Std.int(rawBytes.length / (bitsPerSample / 8));
-		var sound = new Sound();
+		sound = new Sound();
 		sound.uncompressedData = new Float32Array(totalSamples);
 		sound.sampleRate = samplingRate;
 		sound.channels = channels;
@@ -99,11 +103,28 @@ class SoundGenerator {
 				sound.uncompressedData[i] = val / 127.0;
 			}
 		}
-
-		Audio.play(sound, loop);
 	}
 
-	public function exportWav(file: String): Void {
+	public function play(loop: Bool = false, stream = false, volume: Float = 1.0): Void {
+		if (sound != null){
+			channel = Audio.play(sound, loop, stream);
+			channel.volume = volume;
+		}
+	}
+
+	public function stop(): Void {
+		if (channel != null) channel.stop();
+	}
+
+	public function pause(): Void {
+		if (channel != null) channel.pause();
+	}
+
+	public function setVolume(volume: Float): Void {
+		if (channel != null) channel.volume = volume;
+	}
+
+	public function write(file: String): Void {
 		if (byteData == null) return;
 
 		var rawBytes = byteData.getBytes();
@@ -139,10 +160,6 @@ class SoundGenerator {
 		#end
 	}
 
-	public function createSound(): Void {
-		byteData = new BytesOutput();
-	}
-
 	private function writeSample(value: Float): Void {
 		if (bitsPerSample == 16) {
 			var sampleVal = Std.int(value);
@@ -156,7 +173,7 @@ class SoundGenerator {
 	}
 
 	public function addTone(frequency: Float, duration: Float): Void {
-		if (byteData == null) createSound();
+		if (byteData == null) return;
 
 		var numSamples = Std.int(samplingRate * duration);
 		var amplitude = (bitsPerSample == 8) ? 127.0 : 16384.0;
@@ -169,7 +186,7 @@ class SoundGenerator {
 	}
 
 	public function addSilence(duration: Float): Void {
-		if (byteData == null) createSound();
+		if (byteData == null) return;
 
 		var numSamples = Std.int(samplingRate * duration);
 
@@ -179,7 +196,7 @@ class SoundGenerator {
 	}
 
 	public function addBridge(startFreq: Float, endFreq: Float, duration: Float): Void {
-		if (byteData == null) createSound();
+		if (byteData == null) return;
 
 		var numSamples = Std.int(samplingRate * duration);
 		var amplitude = (bitsPerSample == 8) ? 127.0 : 16384.0;
@@ -194,7 +211,7 @@ class SoundGenerator {
 	}
 
 	public function addWave(waveType: String, frequency: Float, duration: Float): Void {
-		if (byteData == null) createSound();
+		if (byteData == null) return;
 
 		var numSamples = Std.int(samplingRate * duration);
 		var amplitude = (bitsPerSample == 8) ? 127.0 : 16384.0;
@@ -220,7 +237,7 @@ class SoundGenerator {
 	}
 
 	public function addChord(frequencies: Array<Float>, duration: Float): Void {
-		if (byteData == null) createSound();
+		if (byteData == null) return;
 
 		var numSamples = Std.int(samplingRate * duration);
 		var amplitude = (bitsPerSample == 8) ? 127.0 : 16384.0;
@@ -239,7 +256,7 @@ class SoundGenerator {
 	}
 
 	public function addNoise(duration: Float): Void {
-		if (byteData == null) createSound();
+		if (byteData == null) return;
 
 		var numSamples = Std.int(samplingRate * duration);
 		var amplitude = (bitsPerSample == 8) ? 127.0 : 16384.0;
@@ -251,7 +268,7 @@ class SoundGenerator {
 	}
 
 	public function addEnvelope(frequency: Float, duration: Float, attack: Float, decay: Float, sustain: Float, release: Float): Void {
-		if (byteData == null) createSound();
+		if (byteData == null) return;
 
 		var numSamples = Std.int(samplingRate * duration);
 		var amplitude = (bitsPerSample == 8) ? 127.0 : 16384.0;
@@ -285,7 +302,7 @@ class SoundGenerator {
 	}
 
 	public function addVibrato(frequency: Float, duration: Float, lfoRate: Float, lfoDepth: Float): Void {
-		if (byteData == null) createSound();
+		if (byteData == null) return;
 
 		var numSamples = Std.int(samplingRate * duration);
 		var amplitude = (bitsPerSample == 8) ? 127.0 : 16384.0;
@@ -303,7 +320,7 @@ class SoundGenerator {
 	}
 
 	public function addSweep(startFreq: Float, endFreq: Float, duration: Float): Void {
-		if (byteData == null) createSound();
+		if (byteData == null) return;
 
 		var numSamples = Std.int(samplingRate * duration);
 		var amplitude = (bitsPerSample == 8) ? 127.0 : 16384.0;
