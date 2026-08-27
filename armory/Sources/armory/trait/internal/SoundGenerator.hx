@@ -9,6 +9,7 @@ import kha.arrays.Float32Array;
 import iron.system.Audio;
 
 class SoundGenerator {
+	
 	public var samplingRate: Int;
 	public var channels: Int;
 	public var bitsPerSample: Int;
