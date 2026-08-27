@@ -124,6 +124,10 @@ class SoundGenerator {
 		if (channel != null) channel.volume = volume;
 	}
 
+	public function setPitch(pitch: Float): Void {
+		if (sound != null) sound.sampleRate = Std.int(samplingRate * pitch);
+	}
+
 	public function write(file: String): Void {
 		if (byteData == null) return;
 
