@@ -16,6 +16,7 @@ class SpeakerObject extends Object {
 	public var sound(default, null): kha.Sound = null;
 	public var channels(default, null): Array<AudioChannel> = [];
 	public var volume(default, null) : FastFloat;
+	public var sampleRate(default, null) : Int;
 
 	public function new(data: TSpeakerData) {
 		super();
@@ -33,8 +34,9 @@ class SpeakerObject extends Object {
 	}
 
 	function init() {
+		sampleRate = sound.sampleRate;
 		if (data.pitch != 1.0)
-			sound.sampleRate = Std.int(sound.sampleRate * data.pitch);
+			sound.sampleRate = Std.int(sampleRate * data.pitch);
 		if (visible && data.play_on_start) play();
 	}
 
@@ -71,8 +73,9 @@ class SpeakerObject extends Object {
 			this.sound = sound;
 		});
 
+		sampleRate = this.sound.sampleRate;
 		if (data.pitch != 1.0)
-			this.sound.sampleRate = Std.int(this.sound.sampleRate * data.pitch);
+			this.sound.sampleRate = Std.int(sampleRate * data.pitch);
 	}
 
 	public function setVolume(volume: FastFloat) {
