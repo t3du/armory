@@ -60,7 +60,7 @@ class PlaySoundRawNode extends LogicNode {
 				tree.removeUpdate(this.onUpdate);
 				runOutput(2);
 			
-			case UpdateVolume:
+			case SetVolume:
 				if (channel != null) channel.volume = inputs[4].get();
 		}
 	}
@@ -87,5 +87,5 @@ private enum abstract PlayState(Int) from Int to Int {
 	var Play = 0;
 	var Pause = 1;
 	var Stop = 2;
-	var UpdateVolume = 3;
+	var SetVolume = 3;
 }

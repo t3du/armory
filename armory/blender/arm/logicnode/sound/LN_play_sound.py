@@ -12,7 +12,7 @@ class PlaySoundNode(ArmLogicTreeNode):
         nothing happens.
     @input Stop: Stops the playing sound. If the playback is paused,
         this will reset the playback position to the start of the sound.
-    @input Update Volume: Updates the volume of the current playback.
+    @input Set Volume: Updates the volume of the current playback.
     @input Volume: Volume of the playback. Typically ranges from 0 to 1.
 
     @output Out: activated once when Play is activated.
@@ -81,7 +81,7 @@ class PlaySoundNode(ArmLogicTreeNode):
         self.add_input('ArmNodeSocketAction', 'Play')
         self.add_input('ArmNodeSocketAction', 'Pause')
         self.add_input('ArmNodeSocketAction', 'Stop')
-        self.add_input('ArmNodeSocketAction', 'Update Volume')
+        self.add_input('ArmNodeSocketAction', 'Set Volume')
         self.add_input('ArmFloatSocket', 'Volume', default_value=1.0)
 
         self.add_output('ArmNodeSocketAction', 'Out')
