@@ -8,17 +8,15 @@ class PlaySoundRawNode extends LogicNode {
 	public var property1: Bool;
 	/** Retrigger */
 	public var property2: Bool;
-	/** Override sample rate */
-	public var property3: Bool;
-	/** Playback sample rate */
-	public var property4: Int;
 	/** Whether to stream the sound from disk **/
-	public var property5: Bool;
+	public var property3: Bool;
 
-	public var property6: String;
+	public var property4: String;
 
+	var soundName: String = null;
 	var sound: kha.Sound = null;
 	var channel: kha.audio1.AudioChannel = null;
+	var sampleRate: Int;
 
 	public function new(tree: LogicTree) {
 		super(tree);
@@ -27,24 +25,25 @@ class PlaySoundRawNode extends LogicNode {
 	override function run(from: Int) {
 		switch (from) {
 			case Play:
-				if (property6 == 'Sound' ? sound == null : true) {
-					iron.data.Data.getSound(property6 == 'Sound' ? property0 : inputs[5].get(), function(s: kha.Sound) {
+				var file: String = property4 == 'Sound' ? property0 : inputs[6].get();
+				if (soundName != file) {
+					soundName = file;
+					iron.data.Data.getSound(file, function(s: kha.Sound) {
 						this.sound = s;
+						this.sampleRate = s.sampleRate;
 					});
 				}
 
 				// Resume
 				if (channel != null) {
 					if (property2) channel.stop();
-					if (property6 == 'Sound Name')
-						channel = iron.system.Audio.play(sound, property1, property5);
 					channel.play();
 					channel.volume = inputs[4].get();
 				}
 				// Start
 				else if (sound != null) {
-					if (property3) sound.sampleRate = property4;
-					channel = iron.system.Audio.play(sound, property1, property5);
+					sound.sampleRate = Std.int(sampleRate * inputs[5].get());
+					channel = iron.system.Audio.play(sound, property1, property3);
 					channel.volume = inputs[4].get();
 				}
 
