@@ -12,6 +12,6 @@ class SetPositionSpeakerNode(ArmLogicTreeNode):
     def arm_init(self, context):
         self.add_input('ArmNodeSocketAction', 'In')
         self.add_input('ArmNodeSocketObject', 'Speaker')
-        self.add_input('ArmFloatSocket', 'Position (seconds)')
+        self.add_input('ArmFloatSocket', 'Position')
 
         self.add_output('ArmNodeSocketAction', 'Out')

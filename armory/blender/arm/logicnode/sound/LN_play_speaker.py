@@ -14,5 +14,8 @@ class PlaySpeakerNode(ArmLogicTreeNode):
     def arm_init(self, context):
         self.add_input('ArmNodeSocketAction', 'In')
         self.add_input('ArmNodeSocketObject', 'Speaker')
+        self.add_input('ArmBoolSocket', 'Retrigger')
+        self.add_input('ArmBoolSocket', 'Loop')
+        self.add_input('ArmBoolSocket', 'Stream')
 
         self.add_output('ArmNodeSocketAction', 'Out')

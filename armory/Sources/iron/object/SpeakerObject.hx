@@ -33,6 +33,8 @@ class SpeakerObject extends Object {
 	}
 
 	function init() {
+		if (data.pitch != 1.0)
+			sound.sampleRate = Std.int(sound.sampleRate * data.pitch);
 		if (visible && data.play_on_start) play();
 	}
 
@@ -68,6 +70,9 @@ class SpeakerObject extends Object {
 		Data.getSound(sound, function(sound: kha.Sound) {
 			this.sound = sound;
 		});
+
+		if (data.pitch != 1.0)
+			this.sound.sampleRate = Std.int(this.sound.sampleRate * data.pitch);
 	}
 
 	public function setVolume(volume: FastFloat) {
