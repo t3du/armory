@@ -11,7 +11,8 @@ class SetPitchSoundNode extends LogicNode {
 	override function run(from: Int) {
 		var object: SpeakerObject = cast(inputs[1].get(), SpeakerObject);
 		if (object == null){ runOutput(0); return; }
-		object.sound.sampleRate = Std.int(object.sampleRate * inputs[2].get());
+		object.data.pitch = inputs[2].get();
+		object.sound.sampleRate = Std.int(object.sampleRate * object.data.pitch);
 		runOutput(0);
 	}
 }
