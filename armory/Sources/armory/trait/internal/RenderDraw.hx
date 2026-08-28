@@ -134,7 +134,6 @@ class RenderDraw {
 	}
 
 	public function camera(transform: iron.object.Transform) {
-		trace(transform.scale);
 		var scl = transform.scale;
 		var d = 2.0 * scl.z;
 		var w = 0.8 * scl.x;
