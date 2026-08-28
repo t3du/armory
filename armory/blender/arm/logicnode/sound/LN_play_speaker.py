@@ -19,3 +19,4 @@ class PlaySpeakerNode(ArmLogicTreeNode):
         self.add_input('ArmBoolSocket', 'Stream')
 
         self.add_output('ArmNodeSocketAction', 'Out')
+        self.add_output('ArmNodeSocketAction', 'Done')

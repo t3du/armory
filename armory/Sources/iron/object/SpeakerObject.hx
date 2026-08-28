@@ -40,18 +40,19 @@ class SpeakerObject extends Object {
 		if (visible && data.play_on_start) play();
 	}
 
-	public function play() {
-		if (sound == null || data.muted) return;
+	public function play(): AudioChannel {
+		if (sound == null || data.muted) return null;
 		if (paused) {
 			for (c in channels) c.play();
 			paused = false;
-			return;
+			return null;
 		}
 		var channel = Audio.play(sound, data.loop, data.stream);
 		if (channel != null) {
 			channels.push(channel);
 			if (data.attenuation > 0 && channels.length == 1) App.notifyOnUpdate(update);
 		}
+		return channel;
 	}
 
 	public function pause() {
