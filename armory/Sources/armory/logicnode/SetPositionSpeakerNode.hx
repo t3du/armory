@@ -12,10 +12,9 @@ class SetPositionSpeakerNode extends LogicNode {
 
 	override function run(from: Int) {
 		var object: SpeakerObject = cast(inputs[1].get(), SpeakerObject);
-		if (object == null || object.sound == null) return;
+		if (object == null || object.sound == null){ runOutput(0); return; }
 		
-		var positionInSeconds:Float = inputs[2].get();
-		if (positionInSeconds < 0) positionInSeconds = 0; 
+		var position:Float = inputs[2].get();
 
 		var volume = object.data.volume;
 		var loop = object.data.loop;
@@ -27,7 +26,8 @@ class SetPositionSpeakerNode extends LogicNode {
 		if (channel != null) {
 			object.channels.push(channel);
 			channel.volume = volume;
-			@:privateAccess channel.set_position(positionInSeconds);
+			if (position > channel.length) position = 0;
+			channel.position = position;
 		}
 		
 		runOutput(0);
