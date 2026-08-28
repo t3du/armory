@@ -14,8 +14,8 @@ class SoundGenerator {
 	var channels: Int;
 	var bitsPerSample: Int;
 	var byteData: BytesOutput;
-	var sound: Sound;
-
+	
+	public var sound: Sound;
 	public var channel: kha.audio1.AudioChannel = null;
 
 	public static inline var SOLF_174: Float = 174.0;
