@@ -85,6 +85,178 @@ class RenderDraw {
 		iron.RenderPath.removeNotifyOnContext("mesh", cb);
 	}
 
+	public function light(transform: iron.object.Transform) {
+		var segments = 12;
+		var r = 0.3;
+		var h = 2.0;
+
+		var loc = transform.getWorldPosition();
+		var right = transform.world.right();
+		var look = transform.world.look();
+		var up = transform.world.up();
+
+		var bottom = new Vec4(
+			loc.x - up.x * h,
+			loc.y - up.y * h,
+			loc.z - up.z * h
+		);
+
+		linev(loc, bottom);
+
+		var prev = new Vec4();
+		var first = new Vec4();
+
+		for (i in 0...segments) {
+			if (i % 2 != 0) continue;
+
+			var angle1 = (i / segments) * Math.PI * 2;
+			var angle2 = ((i + 1) / segments) * Math.PI * 2;
+
+			var x1 = Math.cos(angle1) * r;
+			var y1 = Math.sin(angle1) * r;
+			var x2 = Math.cos(angle2) * r;
+			var y2 = Math.sin(angle2) * r;
+
+			var p1 = new Vec4(
+				loc.x + right.x * x1 + look.x * y1,
+				loc.y + right.y * x1 + look.y * y1,
+				loc.z + right.z * x1 + look.z * y1
+			);
+
+			var p2 = new Vec4(
+				loc.x + right.x * x2 + look.x * y2,
+				loc.y + right.y * x2 + look.y * y2,
+				loc.z + right.z * x2 + look.z * y2
+			);
+
+			linev(p1, p2);
+		}
+	}
+
+	public function camera(transform: iron.object.Transform) {
+		trace(transform.scale);
+		var scl = transform.scale;
+		var d = 2.0 * scl.z;
+		var w = 0.8 * scl.x;
+		var h = 0.6 * scl.y;
+		var th = 0.4 * scl.y;
+
+		var loc = transform.getWorldPosition();
+		var right = transform.world.right();
+		var look = transform.world.look();
+		var up = transform.world.up();
+
+		var c1 = new Vec4(
+			loc.x - up.x * d + right.x * w + look.x * h,
+			loc.y - up.y * d + right.y * w + look.y * h,
+			loc.z - up.z * d + right.z * w + look.z * h
+		);
+		var c2 = new Vec4(
+			loc.x - up.x * d - right.x * w + look.x * h,
+			loc.y - up.y * d - right.y * w + look.y * h,
+			loc.z - up.z * d - right.z * w + look.z * h
+		);
+		var c3 = new Vec4(
+			loc.x - up.x * d - right.x * w - look.x * h,
+			loc.y - up.y * d - right.y * w - look.y * h,
+			loc.z - up.z * d - right.z * w - look.z * h
+		);
+		var c4 = new Vec4(
+			loc.x - up.x * d + right.x * w - look.x * h,
+			loc.y - up.y * d + right.y * w - look.y * h,
+			loc.z - up.z * d + right.z * w - look.z * h
+		);
+
+		var topPeak = new Vec4(
+			loc.x - up.x * d + look.x * (h + th),
+			loc.y - up.y * d + look.y * (h + th),
+			loc.z - up.z * d + look.z * (h + th)
+		);
+
+		linev(loc, c1);
+		linev(loc, c2);
+		linev(loc, c3);
+		linev(loc, c4);
+
+		linev(c1, c2);
+		linev(c2, c3);
+		linev(c3, c4);
+		linev(c4, c1);
+
+		linev(c1, topPeak);
+		linev(c2, topPeak);
+	}
+
+	public function speaker(transform: iron.object.Transform) {
+		var segments = 8;
+		var r1 = 0.5;
+		var r2 = 0.25;
+		var h1 = 0.3;
+		var h2 = 0.3;
+
+		var loc = transform.getWorldPosition();
+		var right = transform.world.right();
+		var look = transform.world.look();
+		var up = transform.world.up();
+
+		var prevBase = new Vec4();
+		var prevMid = new Vec4();
+		var prevTop = new Vec4();
+		var firstBase = new Vec4();
+		var firstMid = new Vec4();
+		var firstTop = new Vec4();
+
+		for (i in 0...segments) {
+			var angle = (i / segments) * Math.PI * 2;
+			var cos = Math.cos(angle);
+			var sin = Math.sin(angle);
+
+			var mx = cos * r2;
+			var my = sin * r2;
+
+			var bx = cos * r1;
+			var by = sin * r1;
+
+			var currTop = new Vec4(
+				loc.x + right.x * mx + look.x * my + up.x * h1,
+				loc.y + right.y * mx + look.y * my + up.y * h1,
+				loc.z + right.z * mx + look.z * my + up.z * h1
+			);
+
+			var currMid = new Vec4(
+				loc.x + right.x * mx + look.x * my,
+				loc.y + right.y * mx + look.y * my,
+				loc.z + right.z * mx + look.z * my
+			);
+
+			var currBase = new Vec4(
+				loc.x + right.x * bx + look.x * by - up.x * h2,
+				loc.y + right.y * bx + look.y * by - up.y * h2,
+				loc.z + right.z * bx + look.z * by - up.z * h2
+			);
+
+			linev(currTop, currMid);
+			linev(currMid, currBase);
+
+			if (i > 0) {
+				linev(prevBase, currBase);
+				linev(prevMid, currMid);
+				linev(prevTop, currTop);
+			} else {
+				firstBase.setFrom(currBase);
+				firstMid.setFrom(currMid);
+				firstTop.setFrom(currTop);
+			}
+
+			prevBase.setFrom(currBase);
+			prevMid.setFrom(currMid);
+			prevTop.setFrom(currTop);
+		}
+
+		linev(prevBase, firstBase);
+		linev(prevMid, firstMid);
+		linev(prevTop, firstTop);
+	}
 	static var wv1 = new iron.math.Vec4();
 	static var wv2 = new iron.math.Vec4();
 	static var wv3 = new iron.math.Vec4();

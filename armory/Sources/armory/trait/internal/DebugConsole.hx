@@ -163,7 +163,17 @@ class DebugConsole extends Trait {
 			debugDrawSet = true;
 			if (renderCb != null) RenderDraw.removeOnRender(renderCb);
 			renderCb = armory.trait.internal.RenderDraw.notifyOnRender(function(draw: armory.trait.internal.RenderDraw) {
-				if (selectedObject != null) draw.bounds(selectedObject.transform);
+				if (selectedObject != null)
+					switch (Type.getClass(selectedObject)) {
+						case iron.object.SpeakerObject:
+							draw.speaker(selectedObject.transform);
+						case iron.object.CameraObject:
+							draw.camera(selectedObject.transform);
+						case iron.object.LightObject:
+							draw.light(selectedObject.transform);
+						default:
+							draw.bounds(selectedObject.transform);
+					}
 			});
 		}
 	}
