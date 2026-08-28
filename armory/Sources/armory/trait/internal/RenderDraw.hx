@@ -18,8 +18,8 @@ class RenderDraw {
 
 	static var inst: RenderDraw = null;
 
-	public var color: kha.Color = 0xffff0000;
-	public var strength = 0.02;
+	public var color: kha.Color = 0xff00ff00;
+	public var strength = 0.05;
 
 	var vertexBuffer: VertexBuffer;
 	var indexBuffer: IndexBuffer;
