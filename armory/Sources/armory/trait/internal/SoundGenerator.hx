@@ -339,4 +339,138 @@ class SoundGenerator {
 			writeSample(sampleVal);
 		}
 	}
+
+	public function playDSPFilter(mode: String, freq1: Float, freq2: Float = 0.0): Void {
+		if (sound == null || sound.uncompressedData == null) return;
+
+		var dt = 1.0 / samplingRate;
+		var lastOutput: Float = 0.0;
+		var lastInput: Float = 0.0;
+		var lastLow: Float = 0.0;
+		var lastHigh: Float = 0.0;
+		var sampleIndex = 0;
+		var data = sound.uncompressedData;
+
+		var alphaLow = dt / ((1.0 / (2.0 * Math.PI * freq1)) + dt);
+		var alphaHigh = (1.0 / (2.0 * Math.PI * freq1)) / ((1.0 / (2.0 * Math.PI * freq1)) + dt);
+		var alphaBandLow = dt / ((1.0 / (2.0 * Math.PI * freq2)) + dt);
+
+		kha.audio2.Audio.audioCallback = function(samplesRequested: kha.internal.IntBox, buffer: kha.audio2.Buffer): Void {
+			var samples = buffer.data;
+			var frames = Std.int(samples.length / 2);
+			for (i in 0...frames) {
+				if (sampleIndex < data.length) {
+					var input = data[sampleIndex++];
+					var output: Float = 0.0;
+
+					if (mode == "Low") {
+						lastOutput = lastOutput + alphaLow * (input - lastOutput);
+						output = lastOutput;
+					} else if (mode == "High") {
+						output = alphaHigh * (lastOutput + input - lastInput);
+						lastInput = input;
+						lastOutput = output;
+					} else if (mode == "Band") {
+						var hp = alphaHigh * (lastHigh + input - lastInput);
+						lastInput = input;
+						lastHigh = hp;
+						lastLow = lastLow + alphaBandLow * (hp - lastLow);
+						output = lastLow;
+					}
+
+					if (output > 1.0) output = 1.0;
+					else if (output < -1.0) output = -1.0;
+
+					samples[i * 2] = output;
+					samples[i * 2 + 1] = output;
+				} else {
+					samples[i * 2] = 0.0;
+					samples[i * 2 + 1] = 0.0;
+				}
+			}
+		};
+	}
+
+	public function playHaasDSP(delayMs: Float): Void {
+		if (sound == null || sound.uncompressedData == null) return;
+
+		var delaySamples = Std.int((delayMs / 1000.0) * samplingRate);
+		if (delaySamples < 1) delaySamples = 1;
+		var delayBuffer = [for (i in 0...delaySamples) 0.0];
+		var bufferIndex = 0;
+		var sampleIndex = 0;
+		var data = sound.uncompressedData;
+
+		kha.audio2.Audio.audioCallback = function(samplesRequested: kha.internal.IntBox, buffer: kha.audio2.Buffer): Void {
+			var samples = buffer.data;
+			var frames = Std.int(samples.length / 2);
+			for (i in 0...frames) {
+				if (sampleIndex < data.length) {
+					var input = data[sampleIndex++];
+					var delayedSample = delayBuffer[bufferIndex];
+					delayBuffer[bufferIndex] = input;
+					bufferIndex = (bufferIndex + 1) % delaySamples;
+
+					samples[i * 2] = input;
+					samples[i * 2 + 1] = delayedSample;
+				} else {
+					samples[i * 2] = 0.0;
+					samples[i * 2 + 1] = 0.0;
+				}
+			}
+		};
+	}
+
+	public function playHRTFPanner(camera: iron.object.CameraObject, soundPos: iron.math.Vec4): Void {
+		if (sound == null || sound.uncompressedData == null) return;
+
+		var camTransform = camera.transform;
+		var relPos = soundPos.sub(camTransform.loc);
+		var rightVector = camTransform.right();
+		var dotRight = relPos.x * rightVector.x + relPos.y * rightVector.y + relPos.z * rightVector.z;
+		var dist = relPos.length();
+		var pan = dist > 0 ? dotRight / dist : 0.0;
+
+		var leftGain = Math.min(1.0, 1.0 - pan);
+		var rightGain = Math.min(1.0, 1.0 + pan);
+
+		var maxDelayMs = 0.75;
+		var maxDelaySamples = Std.int((maxDelayMs / 1000.0) * samplingRate);
+		if (maxDelaySamples < 1) maxDelaySamples = 1;
+		var delaySamples = Std.int(Math.abs(pan) * maxDelaySamples);
+
+		var delayBuffer = [for (i in 0...maxDelaySamples + 1) 0.0];
+		var bufferIndex = 0;
+		var sampleIndex = 0;
+		var data = sound.uncompressedData;
+
+		kha.audio2.Audio.audioCallback = function(samplesRequested: kha.internal.IntBox, buffer: kha.audio2.Buffer): Void {
+			var samples = buffer.data;
+			var frames = Std.int(samples.length / 2);
+			for (i in 0...frames) {
+				if (sampleIndex < data.length) {
+					var input = data[sampleIndex++];
+
+					delayBuffer[bufferIndex] = input;
+					var delayedIndex = (bufferIndex - delaySamples + delayBuffer.length) % delayBuffer.length;
+					var delayedInput = delayBuffer[delayedIndex];
+					bufferIndex = (bufferIndex + 1) % delayBuffer.length;
+
+					var left = (pan > 0) ? delayedInput * leftGain : input * leftGain;
+					var right = (pan < 0) ? delayedInput * rightGain : input * rightGain;
+
+					if (left > 1.0) left = 1.0;
+					else if (left < -1.0) left = -1.0;
+					if (right > 1.0) right = 1.0;
+					else if (right < -1.0) right = -1.0;
+
+					samples[i * 2] = left;
+					samples[i * 2 + 1] = right;
+				} else {
+					samples[i * 2] = 0.0;
+					samples[i * 2 + 1] = 0.0;
+				}
+			}
+		};
+	}
 }
