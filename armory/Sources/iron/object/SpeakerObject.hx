@@ -1,6 +1,7 @@
 package iron.object;
 
 import kha.FastFloat;
+import kha.Sound;
 import kha.audio1.AudioChannel;
 import iron.data.Data;
 import iron.data.SceneFormat;
@@ -13,7 +14,7 @@ class SpeakerObject extends Object {
 
 	public var data: TSpeakerData;
 	public var paused(default, null) = false;
-	public var sound(default, null): kha.Sound = null;
+	public var sound(default, null): Sound = null;
 	public var channels(default, null): Array<AudioChannel> = [];
 	public var volume(default, null) : FastFloat;
 	public var sampleRate(default, null) : Int;
@@ -27,8 +28,8 @@ class SpeakerObject extends Object {
 
 		if (data.sound == "") return;
 
-		Data.getSound(data.sound, function(sound: kha.Sound) {
-			this.sound = sound;
+		Data.getSound(data.sound, function(sound: Sound) {
+			this.sound = cloneSound(sound);
 			App.notifyOnInit(init);
 		});
 	}
@@ -70,8 +71,8 @@ class SpeakerObject extends Object {
 
 		data.sound = sound;
 
-		Data.getSound(sound, function(sound: kha.Sound) {
-			this.sound = sound;
+		Data.getSound(sound, function(sound: Sound) {
+			this.sound = cloneSound(sound);
 		});
 
 		sampleRate = this.sound.sampleRate;
@@ -111,6 +112,17 @@ class SpeakerObject extends Object {
 		stop();
 		if (Scene.active != null) Scene.active.speakers.remove(this);
 		super.remove();
+	}
+
+	function cloneSound(sound: Sound): Sound {
+		if (sound == null) return null;
+		var s = Type.createEmptyInstance(Sound);
+		s.compressedData = sound.compressedData;
+		s.uncompressedData = sound.uncompressedData;
+		s.sampleRate = sound.sampleRate;
+		s.length = sound.length;
+		s.channels = sound.channels;
+		return s;
 	}
 
 #end

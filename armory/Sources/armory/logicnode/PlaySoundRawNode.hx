@@ -1,5 +1,10 @@
 package armory.logicnode;
 
+import kha.Sound;
+import kha.audio1.AudioChannel;
+import iron.system.Audio;
+import iron.data.Data;
+
 class PlaySoundRawNode extends LogicNode {
 
 	/** The name of the sound */
@@ -14,8 +19,8 @@ class PlaySoundRawNode extends LogicNode {
 	public var property4: String;
 
 	var soundName: String = null;
-	var sound: kha.Sound = null;
-	var channel: kha.audio1.AudioChannel = null;
+	var sound: Sound = null;
+	var channel: AudioChannel = null;
 	var sampleRate: Int;
 
 	public function new(tree: LogicTree) {
@@ -28,8 +33,8 @@ class PlaySoundRawNode extends LogicNode {
 				var file: String = property4 == 'Sound' ? property0 : inputs[6].get();
 				if (soundName != file) {
 					soundName = file;
-					iron.data.Data.getSound(file, function(s: kha.Sound) {
-						this.sound = s;
+					Data.getSound(file, function(s: Sound) {
+						this.sound = cloneSound(s);
 						this.sampleRate = s.sampleRate;
 					});
 				}
@@ -43,7 +48,7 @@ class PlaySoundRawNode extends LogicNode {
 				// Start
 				else if (sound != null) {
 					sound.sampleRate = Std.int(sampleRate * inputs[5].get());
-					channel = iron.system.Audio.play(sound, property1, property3);
+					channel = Audio.play(sound, property1, property3);
 					channel.volume = inputs[4].get();
 				}
 
@@ -74,6 +79,17 @@ class PlaySoundRawNode extends LogicNode {
 			// Running
 			else runOutput(1);
 		}
+	}
+
+	function cloneSound(sound: Sound): Sound {
+		if (sound == null) return null;
+		var s = Type.createEmptyInstance(Sound);
+		s.compressedData = sound.compressedData;
+		s.uncompressedData = sound.uncompressedData;
+		s.sampleRate = sound.sampleRate;
+		s.length = sound.length;
+		s.channels = sound.channels;
+		return s;
 	}
 
 	override function get(from: Int): Dynamic {
