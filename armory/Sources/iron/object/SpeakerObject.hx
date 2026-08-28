@@ -84,6 +84,11 @@ class SpeakerObject extends Object {
 		data.volume = volume;
 	}
 
+	public function setPosition(position: Float) {
+		for (c in channels)
+			if (position < c.length) c.position = position;
+	}
+
 	function update() {
 		if (paused) return;
 		for (c in channels) if (c.finished) channels.remove(c);

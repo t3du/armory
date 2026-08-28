@@ -13,22 +13,8 @@ class SetPositionSpeakerNode extends LogicNode {
 	override function run(from: Int) {
 		var object: SpeakerObject = cast(inputs[1].get(), SpeakerObject);
 		if (object == null || object.sound == null){ runOutput(0); return; }
-		
-		var position:Float = inputs[2].get();
 
-		var volume = object.data.volume;
-		var loop = object.data.loop;
-		var stream = object.data.stream;
-		
-		object.stop();
-
-		var channel = Audio.play(object.sound, loop, stream);
-		if (channel != null) {
-			object.channels.push(channel);
-			channel.volume = volume;
-			if (position > channel.length) position = 0;
-			channel.position = position;
-		}
+		object.setPosition(inputs[2].get());
 		
 		runOutput(0);
 	}
