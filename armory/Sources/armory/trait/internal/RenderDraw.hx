@@ -85,6 +85,26 @@ class RenderDraw {
 		iron.RenderPath.removeNotifyOnContext("mesh", cb);
 	}
 
+	public function empty(transform: iron.object.Transform) {
+		var scl = transform.scale;
+		var loc = transform.getWorldPosition();
+		var right = transform.world.right();
+		var look = transform.world.look();
+		var up = transform.world.up();
+
+		var p1 = new Vec4(loc.x - right.x * scl.x, loc.y - right.y * scl.x, loc.z - right.z * scl.x);
+		var p2 = new Vec4(loc.x + right.x * scl.x, loc.y + right.y * scl.x, loc.z + right.z * scl.x);
+		linev(p1, p2);
+
+		var p3 = new Vec4(loc.x - look.x * scl.y, loc.y - look.y * scl.y, loc.z - look.z * scl.y);
+		var p4 = new Vec4(loc.x + look.x * scl.y, loc.y + look.y * scl.y, loc.z + look.z * scl.y);
+		linev(p3, p4);
+
+		var p5 = new Vec4(loc.x - up.x * scl.z, loc.y - up.y * scl.z, loc.z - up.z * scl.z);
+		var p6 = new Vec4(loc.x + up.x * scl.z, loc.y + up.y * scl.z, loc.z + up.z * scl.z);
+		linev(p5, p6);
+	}
+
 	public function light(transform: iron.object.Transform) {
 		var segments = 12;
 		var r = 0.3;

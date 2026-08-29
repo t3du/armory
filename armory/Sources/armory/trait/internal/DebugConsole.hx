@@ -171,6 +171,9 @@ class DebugConsole extends Trait {
 							draw.camera(selectedObject.transform);
 						case iron.object.LightObject:
 							draw.light(selectedObject.transform);
+						case iron.object.Object:
+							if (@:privateAccess selectedObject.isEmpty) draw.empty(selectedObject.transform);
+							else draw.bounds(selectedObject.transform);
 						default:
 							draw.bounds(selectedObject.transform);
 					}
