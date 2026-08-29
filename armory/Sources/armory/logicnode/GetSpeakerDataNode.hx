@@ -18,9 +18,23 @@ class GetSpeakerDataNode extends LogicNode {
 			case 1:
 				return object.data.pitch;
 			case 2:
-				return object.channels.length > 0 ? object.channels[0].length : 0;
+				return object.channels.length;
 			case 3:
-				return object.channels.length > 0 ? object.channels[0].position : 0;
+				var len: Array<Float> = null;
+				if (object.channels.length > 0){
+					len = [];
+					for (channel in object.channels)
+						len.push(channel.length);
+				}
+				return len;
+			case 4:
+				var pos: Array<Float> = null;
+				if (object.channels.length > 0){
+					pos = [];
+					for (channel in object.channels)
+						pos.push(channel.position);
+				}
+				return pos;
 			default:
 				return null;
 		}

@@ -11,5 +11,6 @@ class GetSpeakerDataNode(ArmLogicTreeNode):
 
         self.add_output('ArmFloatSocket', 'Volume')
         self.add_output('ArmFloatSocket', 'Pitch')
-        self.add_output('ArmFloatSocket', 'Length')
-        self.add_output('ArmFloatSocket', 'Position')
+        self.add_output('ArmIntSocket', 'Channels')
+        self.add_output('ArmNodeSocketArray', 'Length')
+        self.add_output('ArmNodeSocketArray', 'Position')
