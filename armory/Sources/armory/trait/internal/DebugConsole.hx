@@ -577,10 +577,11 @@ class DebugConsole extends Trait {
 						}
 
 						var col: Array<String> = [];
-				
-						for (g in iron.Scene.active.raw.groups){
-							if(iron.Scene.active.getGroup(g.name).indexOf(selectedObject) != -1) col.push(g.name);
-						}
+
+						var groups = iron.Scene.active.raw.groups;
+						if (groups != null)
+							for (g in groups)
+								if(iron.Scene.active.getGroup(g.name).indexOf(selectedObject) != -1) col.push(g.name);
 
 						if (col.length > 0) {
 							ui.text("Collections: "+col.length);
