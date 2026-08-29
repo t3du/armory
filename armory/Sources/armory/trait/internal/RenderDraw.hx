@@ -208,10 +208,10 @@ class RenderDraw {
 
 	public function speaker(transform: iron.object.Transform) {
 		var segments = 8;
-		var r1 = 0.5;
-		var r2 = 0.25;
-		var h1 = 0.3;
-		var h2 = 0.3;
+		var r1 = 0.4;
+		var r2 = 0.2;
+		var h1 = 0.2;
+		var h2 = 0.2;
 
 		var loc = transform.getWorldPosition();
 		var right = transform.world.right();
