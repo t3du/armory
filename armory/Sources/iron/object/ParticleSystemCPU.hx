@@ -117,11 +117,11 @@ class ParticleSystemCPU {
 			scale = r.particle_size;
 			scaleRandom = r.size_random;
 
-			velocity = new Vec3(r.object_align_factor[0], r.object_align_factor[1], r.object_align_factor[2]).mult(frameRate / baseFrameRate).mult(1 / scale);
+			velocity = new Vec3(r.object_align_factor[0], r.object_align_factor[1], r.object_align_factor[2]).mult(frameRate / baseFrameRate);
 			velocityRandom = r.factor_random * (frameRate / baseFrameRate);
 
 			if (Scene.active.raw.gravity != null) {
-				gravity = new Vec3(Scene.active.raw.gravity[0], Scene.active.raw.gravity[1], Scene.active.raw.gravity[2]).mult(frameRate / baseFrameRate).mult(1 / scale);
+				gravity = new Vec3(Scene.active.raw.gravity[0], Scene.active.raw.gravity[1], Scene.active.raw.gravity[2]).mult(frameRate / baseFrameRate);
 			}
 			gravityFactor = r.weight_gravity * (frameRate / baseFrameRate);
 			textureFactor = r.weight_texture;
@@ -149,7 +149,7 @@ class ParticleSystemCPU {
 					case 0: // Emission
 						loopAnim = {
 							tick: function () {
-								spawnTime += Time.delta * Time.scale;
+								spawnTime += Time.delta;
 								var expected: Int = Math.floor(spawnTime / spawnRate);
 								while (spawnedParticles < expected && spawnedParticles < count) {
 									spawnParticle();
@@ -368,7 +368,7 @@ class ParticleSystemCPU {
 
 	function updateParticles() {
 		for (particle => physics in particlePhysics) {
-			physics.age += Time.delta * Time.scale;
+			physics.age += Time.delta;
 
 			if (physics.age >= physics.lifetime) {
 				particlePhysics.remove(particle);
@@ -376,9 +376,9 @@ class ParticleSystemCPU {
 				continue;
 			}
 
-			physics.velocity.x += physics.gravity.x * Time.delta * Time.scale;
-			physics.velocity.y += physics.gravity.y * Time.delta * Time.scale;
-			physics.velocity.z += physics.gravity.z * Time.delta * Time.scale;
+			physics.velocity.x += physics.gravity.x * Time.delta;
+			physics.velocity.y += physics.gravity.y * Time.delta;
+			physics.velocity.z += physics.gravity.z * Time.delta;
 
 			if (curveGuides != null && curveGuides.length > 0) {
 				var curveVelX: FastFloat = 0.0;
@@ -430,9 +430,9 @@ class ParticleSystemCPU {
 			}
 
 			particle.transform.translate(
-				physics.velocity.x * Time.delta * Time.scale,
-				physics.velocity.y * Time.delta * Time.scale,
-				physics.velocity.z * Time.delta * Time.scale
+				physics.velocity.x * Time.delta,
+				physics.velocity.y * Time.delta,
+				physics.velocity.z * Time.delta
 			);
 
 			if (rotation && dynamicRotation && orientationAxis == 3) setVelocityHair(particle, physics.velocity, randQuat, phaseQuat);
