@@ -19,6 +19,9 @@ import kha.arrays.Uint32Array;
 class ParticleSystemCPU {
 	public var data: ParticleData;
 	public var speed: FastFloat = 1.0; // Not used yet. Added to go in hand with `ParticleSystemGPU`
+	public var curveGuides: Array<CurveObject> = [];
+	public var curveGuideStrength: FastFloat = 1.0;
+	public var curveGuideSpeed: FastFloat = 1.0;
 	var r: TParticleData;
 
 	// Format
@@ -141,37 +144,32 @@ class ParticleSystemCPU {
 
 			Scene.active.notifyOnInit(function () {
 				for (i in 0...count) addToPool();
-			});
 
-			switch (type) {
-				case 0: // Emission
-					loopAnim = {
-						tick: function () {
-							spawnTime += Time.delta * Time.scale;
-							var expected: Int = Math.floor(spawnTime / spawnRate);
-							while (spawnedParticles < expected && spawnedParticles < count) {
-								spawnParticle();
-								spawnedParticles++;
+				switch (type) {
+					case 0: // Emission
+						loopAnim = {
+							tick: function () {
+								spawnTime += Time.delta * Time.scale;
+								var expected: Int = Math.floor(spawnTime / spawnRate);
+								while (spawnedParticles < expected && spawnedParticles < count) {
+									spawnParticle();
+									spawnedParticles++;
+								}
+								updateParticles();
+							},
+							target: null,
+							props: null,
+							duration: loop ? lifetimeSeconds : lifetimeSeconds * 2,
+							done: function () {
+								if (loop) start();
 							}
-							updateParticles();
-						},
-						target: null,
-						props: null,
-						duration: loop ? lifetimeSeconds : lifetimeSeconds * 2,
-						done: function () {
-							if (loop) start();
 						}
-					}
-
-					Scene.active.notifyOnInit(function () {
 						if (autoStart) start();
-					});
-				case 1: // Hair
-					Scene.active.notifyOnInit(function () {
+					case 1: // Hair
 						for (i in 0...count) spawnParticle();
-					});
-				default:
-			}
+					default:
+				}
+			});
 		});
 	}
 
@@ -381,6 +379,55 @@ class ParticleSystemCPU {
 			physics.velocity.x += physics.gravity.x * Time.delta * Time.scale;
 			physics.velocity.y += physics.gravity.y * Time.delta * Time.scale;
 			physics.velocity.z += physics.gravity.z * Time.delta * Time.scale;
+
+			if (curveGuides != null && curveGuides.length > 0) {
+				var curveVelX: FastFloat = 0.0;
+				var curveVelY: FastFloat = 0.0;
+				var curveVelZ: FastFloat = 0.0;
+				var validCurves: Int = 0;
+
+				for (curve in curveGuides) {
+					if (curve != null && curve.data != null && curve.data.splines != null && curve.splinesLength > 0) {
+						var t = physics.age / physics.lifetime;
+
+						var tangent = curve.getTangent(t, 0);
+						tangent.w = 0.0;
+						tangent.applymat4(curve.transform.world);
+						tangent.normalize();
+
+						var curveLen = curve.getLength(0);
+						var speed = (curveLen / physics.lifetime) * curveGuideSpeed;
+
+						var tgtX = tangent.x * speed;
+						var tgtY = tangent.y * speed;
+						var tgtZ = tangent.z * speed;
+
+						if (localCoords) {
+							var targetVel = new Vec4(tgtX, tgtY, tgtZ, 0.0);
+							var invOwnerRot = new Quat(-owner.transform.rot.x, -owner.transform.rot.y, -owner.transform.rot.z, owner.transform.rot.w);
+							targetVel.applyQuat(invOwnerRot);
+							tgtX = targetVel.x;
+							tgtY = targetVel.y;
+							tgtZ = targetVel.z;
+						}
+
+						curveVelX += tgtX;
+						curveVelY += tgtY;
+						curveVelZ += tgtZ;
+						validCurves++;
+					}
+				}
+
+				if (validCurves > 0) {
+					curveVelX /= validCurves;
+					curveVelY /= validCurves;
+					curveVelZ /= validCurves;
+
+					physics.velocity.x += (curveVelX - physics.velocity.x) * curveGuideStrength;
+					physics.velocity.y += (curveVelY - physics.velocity.y) * curveGuideStrength;
+					physics.velocity.z += (curveVelZ - physics.velocity.z) * curveGuideStrength;
+				}
+			}
 
 			particle.transform.translate(
 				physics.velocity.x * Time.delta * Time.scale,
