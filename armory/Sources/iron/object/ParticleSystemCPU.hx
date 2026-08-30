@@ -22,6 +22,7 @@ class ParticleSystemCPU {
 	public var curveGuides: Array<CurveObject> = [];
 	public var curveGuideStrength: FastFloat = 1.0;
 	public var curveGuideSpeed: FastFloat = 1.0;
+	var paused: Bool = false;
 	var r: TParticleData;
 
 	// Format
@@ -151,6 +152,7 @@ class ParticleSystemCPU {
 					case 0: // Emission
 						loopAnim = {
 							tick: function () {
+								if (paused) return;
 								spawnTime += Time.delta;
 								var expected: Int = Math.floor(spawnTime / spawnRate);
 								while (spawnedParticles < expected && spawnedParticles < count) {
@@ -182,14 +184,12 @@ class ParticleSystemCPU {
 		Tween.to(loopAnim);
 	}
 
-	// TODO
 	public function pause() {
-
+		paused = true;
 	}
 
-	// TODO
 	public function resume() {
-
+		paused = false;
 	}
 
 	public function stop() {
