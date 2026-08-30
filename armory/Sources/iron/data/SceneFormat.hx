@@ -413,6 +413,7 @@ typedef TParticleData = {
 	// Velocity
 	public var object_align_factor: Float32Array;
 	public var factor_random: FastFloat;
+	public var normal_factor: FastFloat;
 	// Rotation
 	public var use_rotations: Bool;
 	public var rotation_mode: Int; // 0 - None, 1 - Normal, 2 - Normal-Tangent, 3 - Velocity/Hair, 4 - Global X, 5 - Global Y, 6 - Global Z, 7 - Object X, 8 - Object Y, 9 - Object Z

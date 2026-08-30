@@ -40,6 +40,7 @@ class ParticleSystemCPU {
 	// Velocity
 	var velocity: Vec3 = new Vec3(0.0, 0.0, 1.0); // object_align_factor: Float32Array
 	var velocityRandom: FastFloat = 0.0; // factor_random
+	var normalFactor: FastFloat = 0.0;
 
 	// Rotation
 	var rotation: Bool = false; // use_rotations
@@ -119,6 +120,7 @@ class ParticleSystemCPU {
 
 			velocity = new Vec3(r.object_align_factor[0], r.object_align_factor[1], r.object_align_factor[2]).mult(frameRate / baseFrameRate);
 			velocityRandom = r.factor_random * (frameRate / baseFrameRate);
+			normalFactor = r.normal_factor * (frameRate / baseFrameRate);
 
 			if (Scene.active.raw.gravity != null) {
 				gravity = new Vec3(Scene.active.raw.gravity[0], Scene.active.raw.gravity[1], Scene.active.raw.gravity[2]).mult(frameRate / baseFrameRate);
@@ -244,12 +246,16 @@ class ParticleSystemCPU {
 		var scalePos: FastFloat = owner.data.scalePos;
 		var scalePosParticle: FastFloat = cast(o, MeshObject).data.scalePos;
 
+		var normDir: Vec3 = new Vec3();
+
 		// TODO: add all properties from Blender's UI
 		switch (emitFrom) {
 			case 0: // Vertices
 				var pa: TVertexArray = owner.data.geom.positions;
 				var i: Int = Std.int(Math.random() * (pa.values.length / pa.size));
 				var loc: Vec4 = new Vec4(pa.values[i * pa.size] * normFactor, pa.values[i * pa.size + 1] * normFactor, pa.values[i * pa.size + 2] * normFactor, 1);
+
+				if (normalFactor != 0.0) normDir = new Vec3(loc.x, loc.y, loc.z).normalize();
 
 				if (!localCoords) {
 					loc.applyQuat(objectRot);
@@ -272,6 +278,8 @@ class ParticleSystemCPU {
 				var pos: Vec3 = randomPointInTriangle(v0, v1, v2);
 				var loc: Vec4 = new Vec4(pos.x, pos.y, pos.z, 1).mult(normFactor);
 
+				if (normalFactor != 0.0) normDir = new Vec3(loc.x, loc.y, loc.z).normalize();
+
 				if (!localCoords) {
 					loc.applyQuat(objectRot);
 					loc.add(objectPos);
@@ -281,6 +289,8 @@ class ParticleSystemCPU {
 				var scaleFactorVolume: Vec4 = new Vec4().setFrom(owner.transform.dim);
 				scaleFactorVolume.mult(0.5);
 				var loc: Vec4 = new Vec4((Math.random() * 2.0 - 1.0) * scaleFactorVolume.x, (Math.random() * 2.0 - 1.0) * scaleFactorVolume.y, (Math.random() * 2.0 - 1.0) * scaleFactorVolume.z, 1);
+
+				if (normalFactor != 0.0) normDir = new Vec3(loc.x, loc.y, loc.z).normalize();
 
 				if (!localCoords) {
 					loc.applyQuat(objectRot);
@@ -307,7 +317,9 @@ class ParticleSystemCPU {
 		var randomZ: FastFloat = (Math.random() * 2 / (scale * particleScale) - 1 / (scale * particleScale)) * velocityRandom;
 		var g: Vec3 = new Vec3();
 
-		var rotatedVelocity: Vec4 = new Vec4(velocity.x + randomX, velocity.y + randomY, velocity.z + randomZ, 1);
+		if (normalFactor != 0.0) normDir = normDir.mult(normalFactor);
+
+		var rotatedVelocity: Vec4 = new Vec4(velocity.x + randomX + normDir.x, velocity.y + randomY + normDir.y, velocity.z + randomZ + normDir.z, 1);
 		if (!localCoords) rotatedVelocity.applyQuat(objectRot);
 
 		if (rotation) {
