@@ -2092,6 +2092,7 @@ Make sure the mesh only has tris/quads.""")
                 if bobject.type == 'CAMERA':
                     self.output['camera_ref'] = asset_name
                     self.has_spawning_camera = True
+                    asset_name = bobject.name
 
                 out_collection['object_refs'].append(asset_name)
 
