@@ -14,14 +14,14 @@ class RemovePhysicsConstraintNode extends LogicNode {
 	override function run(from: Int) {
 		var pivotObject: Object = inputs[1].get();
 
-		if (pivotObject == null) return;
+		if (pivotObject == null){ runOutput(0); return; }
 
 #if arm_bullet
 		var con = pivotObject.getTrait(PhysicsConstraint);
 		
-		if (con != null) {
-			pivotObject.removeTrait(con);
-		}
+		if (con != null)
+			con.remove();
+
 #end
 		runOutput(0);
 	}
