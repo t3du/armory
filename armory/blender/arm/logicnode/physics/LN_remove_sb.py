@@ -9,5 +9,6 @@ class RemoveSoftBodyNode(ArmLogicTreeNode):
     def arm_init(self, context):
         self.add_input('ArmNodeSocketAction', 'In')
         self.add_input('ArmNodeSocketObject', 'Object')
+        self.add_input('ArmBoolSocket', 'Restore Geom')
         
         self.add_output('ArmNodeSocketAction', 'Out')
