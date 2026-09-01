@@ -27,16 +27,16 @@ class SoftBody extends Trait {
 	static var physics: PhysicsWorld = null;
 
 	public var ready = false;
-	var shape: SoftShape;
-	var bend: Int;
-	var mass: Float;
-	var margin: Float;
+	public var shape: SoftShape;
+	public var bend: Int;
+	public var mass: Float;
+	public var margin: Float;
 
-	var friction: Float;
-	var damping: Float;
-	var pressure: Float;
-	var linearStiffness: Float;
-	var angularStiffness: Float;
+	public var friction: Float;
+	public var damping: Float;
+	public var pressure: Float;
+	public var linearStiffness: Float;
+	public var angularStiffness: Float;
 
 	public var vertOffsetX = 0.0;
 	public var vertOffsetY = 0.0;
