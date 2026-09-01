@@ -208,7 +208,6 @@ class PhysicsHook extends Trait {
 				});
 			}
 
-			@:privateAccess
 			var newSoftBody = new SoftBody(
 				softBody.shape,
 				softBody.bend,
