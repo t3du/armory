@@ -8,7 +8,7 @@ class GetRigidBodyDataNode(ArmLogicTreeNode):
     arm_version = 1
 
     def arm_init(self, context):
-        self.add_input('ArmNodeSocketObject', 'Object')
+        self.add_input('ArmNodeSocketObject', 'RB')
 
         self.add_output('ArmBoolSocket', 'Is RB')
         self.add_output('ArmIntSocket', 'Collision Group')
