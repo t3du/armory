@@ -7,7 +7,7 @@ class GetSoftBodyDataNode(ArmLogicTreeNode):
     arm_version = 1
 
     def arm_init(self, context):
-        self.add_input('ArmNodeSocketObject', 'Object')
+        self.add_input('ArmNodeSocketObject', 'SB')
         
         self.add_output('ArmBoolSocket', 'Has SB')
         self.add_output('ArmFloatSocket', 'Mass')
