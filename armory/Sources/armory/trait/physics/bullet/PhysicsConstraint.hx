@@ -1,7 +1,6 @@
 package armory.trait.physics.bullet;
 
 import iron.math.Vec4;
-import iron.Scene;
 import iron.object.Object;
 #if arm_bullet
 import Math;
@@ -338,7 +337,6 @@ class PhysicsConstraint extends iron.Trait {
 			
 			id = nextId;
 			nextId++;
-
 
 			notifyOnRemove(removeFromWorld);
 		}
