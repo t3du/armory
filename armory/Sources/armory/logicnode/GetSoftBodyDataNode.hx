@@ -26,16 +26,16 @@ class GetSoftBodyDataNode extends LogicNode {
 
 		return switch (from) {
 			case 0: true; // Has SB
-			case 1: @:privateAccess sb.mass;
-			case 2: @:privateAccess sb.bend;
-			case 3: @:privateAccess sb.shape;
-			case 4: @:privateAccess sb.margin;
+			case 1: sb.mass;
+			case 2: sb.bend;
+			case 3: sb.shape;
+			case 4: sb.margin;
 			case 5: new Vec4(sb.vertOffsetX, sb.vertOffsetY, sb.vertOffsetZ);
-			case 6: @:privateAccess sb.friction;
-			case 7: @:privateAccess sb.damping;
-			case 8: @:privateAccess sb.pressure;
-			case 9: @:privateAccess sb.linearStiffness;
-			case 10: @:privateAccess sb.angularStiffness;
+			case 6: sb.friction;
+			case 7: sb.damping;
+			case 8: sb.pressure;
+			case 9: sb.linearStiffness;
+			case 10: sb.angularStiffness;
 			default: null;
 		}
 		#end
