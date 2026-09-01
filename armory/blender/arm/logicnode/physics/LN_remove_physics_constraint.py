@@ -7,6 +7,6 @@ class RemovePhysicsConstraintNode(ArmLogicTreeNode):
 
     def init(self, context):
         self.inputs.new('ArmNodeSocketAction', 'In')
-        self.inputs.new('ArmNodeSocketObject', 'Object')
+        self.inputs.new('ArmNodeSocketObject', 'Pivot Object')
 
         self.outputs.new('ArmNodeSocketAction', 'Out')
