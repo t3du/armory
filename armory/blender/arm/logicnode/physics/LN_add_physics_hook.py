@@ -8,6 +8,6 @@ class AddPhysicsHookNode(ArmLogicTreeNode):
     def init(self, context):
         self.inputs.new('ArmNodeSocketAction', 'In')
         self.inputs.new('ArmNodeSocketObject', 'Object')
-        self.inputs.new('ArmNodeSocketObject', 'Target')
+        self.inputs.new('ArmNodeSocketObject', 'Hook')
         self.inputs.new('ArmNodeSocketArray', 'Vertices')
         self.outputs.new('ArmNodeSocketAction', 'Out')
