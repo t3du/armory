@@ -48,10 +48,7 @@ class PhysicsHook extends Trait {
 		this.targetName = targetName;
 		this.verts = verts;
 
-		iron.Scene.active.notifyOnInit(function() {
-			notifyOnInit(init);
-			notifyOnUpdate(update);
-		});
+		notifyOnInit(init);
 	}
 
 	function init() {
@@ -117,6 +114,8 @@ class PhysicsHook extends Trait {
 					}
 				}
 			}
+			notifyOnUpdate(update);
+			notifyOnRemove(removeFromWorld);
 			return;
 		}
 	#end
@@ -144,11 +143,11 @@ class PhysicsHook extends Trait {
 			vec1.setZ(10);
 			constraint.setAngularUpperLimit(vec1);
 			physics.world.addConstraint(constraint, false);
+			notifyOnRemove(removeFromWorld);
 			return;
 		}
 
-		// Rigid body or soft body not initialized yet
-		notifyOnInit(init);
+		this.remove();		
 	}
 
 	function update() {
@@ -182,7 +181,7 @@ class PhysicsHook extends Trait {
 		// }
 	}
 
-	public function removePhysicsHook() {
+	public function removeFromWorld() {
 		var physics = PhysicsWorld.active;
 		if (physics == null) return;
 
@@ -191,32 +190,56 @@ class PhysicsHook extends Trait {
 			constraint = null;
 		}
 
+		//hack: SB loses collision after removing hook
 		#if arm_physics_soft
-		var sb = object.getTrait(SoftBody);
-		if (sb != null && sb.ready) {
-			#if js
-			var anchors = sb.body.get_m_anchors();
-			while (anchors.size() > 0) {
-				anchors.pop_back();
+		var softBody = object.getTrait(SoftBody);
+		if (softBody != null && softBody.body != null) {
+			@:privateAccess
+			var oldNodes = softBody.body.get_m_nodes();
+			var count = oldNodes.size();
+
+			var savedData = [];
+			for (i in 0...count) {
+				var pos = oldNodes.at(i).get_m_x();
+				var nor = oldNodes.at(i).get_m_n();
+				savedData.push({
+					x: pos.x(), y: pos.y(), z: pos.z(),
+					nx: nor.x(), ny: nor.y(), nz: nor.z()
+				});
 			}
-			#else
-			sb.body.m_anchors.clear();
-			#end
 
-			var cfg = sb.body.get_m_cfg();
-			cfg.set_collisions(0x0001 | 0x0010 | 0x0020 | 0x0040);
-			
-			sb.body.activate(true);
-			
-			physics.world.updateSingleAabb(sb.body);
+			@:privateAccess
+			var newSoftBody = new SoftBody(
+				softBody.shape,
+				softBody.bend,
+				softBody.mass,
+				softBody.margin,
+				softBody.friction,
+				softBody.damping,
+				softBody.linearStiffness,
+				softBody.angularStiffness,
+				softBody.pressure
+			);
 
-			if (hookRB != null) {
-				physics.world.removeRigidBody(hookRB);
-				hookRB = null;
+			object.removeTrait(softBody);
+			object.addTrait(newSoftBody);
+
+			@:privateAccess {
+				newSoftBody.init();
+				newSoftBody._init = null;
+
+				if (newSoftBody.body != null) {
+					var newNodes = newSoftBody.body.get_m_nodes();
+					for (i in 0...count) {
+						var d = savedData[i];
+						newNodes.at(i).get_m_x().setValue(d.x, d.y, d.z);
+						newNodes.at(i).get_m_n().setValue(d.nx, d.ny, d.nz);
+					}
+					newSoftBody.update();
+				}
 			}
 		}
 		#end
-		
 	}
 
 }
