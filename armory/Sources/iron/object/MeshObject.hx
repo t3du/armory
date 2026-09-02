@@ -197,7 +197,7 @@ class MeshObject extends Object {
 			var radiusScale = data.isSkinned ? 2.0 : 1.0;
 			#if arm_gpu_particles
 			// particleSystems for update, particleOwner for render
-			if (particleSystems != null && particleSystems != null && particleSystems.length > 0) return setCulled(isShadow, false);
+			if (particleSystems != null && particleSystems.length > 0) return setCulled(isShadow, false);
 			#end
 			/*
 			if (context == "voxel") radiusScale *= 100;
