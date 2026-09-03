@@ -237,6 +237,7 @@ class ARM_PT_ParticlesPropsPanel(bpy.types.Panel):
         if obj == None:
             return
 
+        layout.prop(obj.settings, 'arm_particle_type')
         layout.prop(obj.settings, 'arm_auto_start')
         layout.prop(obj.settings, 'arm_is_unique')
         layout.prop(obj.settings, 'arm_local_coords')
