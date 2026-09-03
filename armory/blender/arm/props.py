@@ -469,7 +469,7 @@ def init_properties():
                ('cylindrical', 'Cylindrical', 'Cylindrical')],
         name="Billboard", default='off', description="Track camera", update=assets.invalidate_shader_cache)
     bpy.types.Material.arm_tilesheet_flag = BoolProperty(name="Tilesheet Flag", description="This material is used for tilesheet", default=False)
-    bpy.types.Material.arm_particle_flag = BoolProperty(name="Particle Flag", description="This material is used for particles", default=False)
+    bpy.types.Material.arm_particle_gpu_flag = BoolProperty(name="Particle GPU Flag", description="This material is used for particles gpu", default=False)
     bpy.types.Material.arm_particle_fade = BoolProperty(name="Particle Fade", description="Fade particles in and out", default=False)
     bpy.types.Material.arm_blending = BoolProperty(name="Blending", description="Enable additive blending", default=False)
     bpy.types.Material.arm_blending_source = EnumProperty(
@@ -584,6 +584,10 @@ def init_properties():
     bpy.types.Node.arm_watch = BoolProperty(name="Watch", description="Watch value of this node in debug console", default=False)
     bpy.types.Node.arm_version = IntProperty(name="Node Version", description="The version of an instanced node", default=0)
     # Particles
+    bpy.types.ParticleSettings.arm_particle_type = EnumProperty(
+        items=[('GPU', 'GPU', 'GPU'),
+               ('CPU', 'CPU', 'CPU')],
+        name='Type', description='Particle simulation type', default='GPU')
     bpy.types.ParticleSettings.arm_auto_start = BoolProperty(name="Auto Start", description="Automatically start this particle system on load", default=True)
     bpy.types.ParticleSettings.arm_is_unique = BoolProperty(name="Is Unique", description="Make this particle system look different each time it starts. Only affects GPU particles. Default behavior for CPU particles", default=False)
     bpy.types.ParticleSettings.arm_local_coords = BoolProperty(name="Local Coords", description="Keep spawned particles parented to their emitter. Only affects CPU particles. Default behavior for GPU particles at the moment", default=False)
