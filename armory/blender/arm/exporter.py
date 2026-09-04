@@ -641,6 +641,14 @@ class ArmoryExporter:
             if bobject is None or particle_sys.render_type != 'OBJECT' or not bobject.arm_export:
                 continue
 
+            if not any(
+                mod.show_render
+                for obj in bpy.data.objects
+                for mod in obj.modifiers
+                if mod.type == 'PARTICLE_SYSTEM' and mod.particle_system and mod.particle_system.settings == particle_sys
+            ):
+                continue
+
             for slot in bobject.material_slots:
                 if slot.material is None:
                     continue
