@@ -912,7 +912,7 @@ class Uniforms {
 					m = helpMat;
 				}
 				#end
-				#if arm_gpu_particles
+				#if arm_particles
 				case "_particleData": {
 					var mo = cast(object, MeshObject);
 					if (mo.particleOwner != null && mo.particleOwner.particleSystems != null) {
@@ -1123,7 +1123,7 @@ class Uniforms {
 				case "_texUnpack": {
 					f = texUnpack != null ? texUnpack : 1.0;
 				}
-				#if arm_gpu_particles
+				#if arm_particles
 				case "_particleSizeRandom": {
 					var mo = cast(object, MeshObject);
 					if (mo.particleOwner != null && mo.particleOwner.particleSystems != null) {

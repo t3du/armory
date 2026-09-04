@@ -399,6 +399,7 @@ typedef TParticleData = {
 	public var name: String;
 	public var type: Int; // 0 - Emitter, Hair
 	// Arm
+	public var particle_gpu: Bool;
 	public var auto_start: Bool;
 	public var is_unique: Bool;
 	public var local_coords: Bool;
@@ -444,6 +445,7 @@ typedef TParticleReference = {
 	public var name: String;
 	public var particle: String;
 	public var seed: Int;
+	public var particle_gpu: Bool;
 }
 
 #if js

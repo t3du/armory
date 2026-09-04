@@ -47,7 +47,7 @@ def make(context_id, rpasses):
     # Blend context
     mat = mat_state.material
     blend = mat.arm_blending
-    particle = mat.arm_particle_flag
+    particle = mat.arm_particle_gpu_flag
     dprepass = rid == 'Forward' and rpdat.rp_depthprepass
     if blend:
         con['name'] = 'blend'
@@ -583,7 +583,7 @@ def make_forward(con_mesh):
             frag.write('fragColor[0].rgb = tonemapFilmic(fragColor[0].rgb);')
 
     # Particle opacity
-    if mat_state.material.arm_particle_flag and arm.utils.get_rp().arm_particles == 'GPU' and mat_state.material.arm_particle_fade:
+    if mat_state.material.arm_particle_gpu_flag and arm.utils.get_rp().arm_particles == 'On' and mat_state.material.arm_particle_fade:
         frag.write('fragColor[0].rgb *= p_fade;')
 
 

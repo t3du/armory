@@ -1,6 +1,6 @@
 package iron.object;
 
-#if arm_cpu_particles
+#if arm_particles
 import iron.Scene;
 import iron.data.Data;
 import iron.data.ParticleData;
@@ -19,6 +19,7 @@ import kha.arrays.Uint32Array;
 class ParticleSystemCPU {
 	public var data: ParticleData;
 	public var speed: FastFloat = 1.0; // Not used yet. Added to go in hand with `ParticleSystemGPU`
+	public var particle_gpu: Bool = false;
 	public var curveGuides: Array<CurveObject> = [];
 	public var curveGuideStrength: FastFloat = 1.0;
 	public var curveGuideSpeed: FastFloat = 1.0;

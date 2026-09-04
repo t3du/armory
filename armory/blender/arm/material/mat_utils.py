@@ -52,7 +52,7 @@ def get_rpasses(material):
             ar.append('refraction')
         if rpdat.rp_voxelao and has_voxels:
             ar.append('voxel')
-        if rpdat.rp_renderer == 'Forward' and rpdat.rp_depthprepass and not material.arm_blending and not material.arm_particle_flag:
+        if rpdat.rp_renderer == 'Forward' and rpdat.rp_depthprepass and not material.arm_blending and not material.arm_particle_gpu_flag:
             ar.append('depth')
 
     if material.arm_cast_shadow and rpdat.rp_shadows and ('mesh' in ar):

@@ -1,6 +1,6 @@
 package iron.object;
 
-#if arm_gpu_particles
+#if arm_particles
 import kha.FastFloat;
 import kha.graphics4.Usage;
 import kha.arrays.Float32Array;
@@ -16,6 +16,7 @@ import iron.math.Vec4;
 class ParticleSystemGPU {
 	public var data: ParticleData;
 	public var speed = 1.0;
+	public var particle_gpu: Bool = true;
 	var currentSpeed = 0.0;
 	var particles: Array<Particle>;
 	var ready: Bool;

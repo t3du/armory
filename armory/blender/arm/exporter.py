@@ -497,7 +497,7 @@ class ArmoryExporter:
         instance objects that use the armdefault material.
         """
         for ps in bpy.data.particles:
-            if ps.render_type != 'OBJECT' or ps.instance_object is None or not ps.instance_object.arm_export:
+            if ps.render_type != 'OBJECT' or ps.instance_object is None or ps.arm_particle_type != 'GPU' or not ps.instance_object.arm_export:
                 continue
 
             po = ps.instance_object
@@ -535,7 +535,8 @@ class ArmoryExporter:
         pref = {
             'name': psys.name,
             'seed': psys.seed,
-            'particle': psys.settings.name
+            'particle': psys.settings.name,
+            'particle_gpu': True if psys.settings.arm_particle_type == 'GPU' else False
         }
         out_object['particle_refs'].append(pref)
 
@@ -638,14 +639,14 @@ class ArmoryExporter:
         particle_sys: bpy.types.ParticleSettings
         for particle_sys in bpy.data.particles:
             bobject = particle_sys.instance_object
-            if bobject is None or particle_sys.render_type != 'OBJECT' or not bobject.arm_export:
+            if bobject is None or particle_sys.render_type != 'OBJECT' or particle_sys.arm_particle_type == 'CPU' or not bobject.arm_export:
                 continue
 
             for slot in bobject.material_slots:
                 if slot.material is None:
                     continue
                 if slot.material.library is not None:
-                    slot.material.arm_particle_flag = True
+                    slot.material.arm_particle_gpu_flag = True
                     continue
                 if slot.material.name.endswith('_armpart'):
                     continue
@@ -656,7 +657,7 @@ class ArmoryExporter:
                 if mat is None:
                     mat = slot.material.copy()
                     mat.name = mat_name
-                    mat.arm_particle_flag = True
+                    mat.arm_particle_gpu_flag = True
                     matvars.append(mat)
                 slot.material = mat
 
@@ -2201,14 +2202,14 @@ Make sure the mesh only has tris/quads.""")
         o['stream'] = objref.arm_stream
         self.output['speaker_datas'].append(o)
 
-    def make_default_mat(self, mat_name, mat_objs, is_particle=False):
+    def make_default_mat(self, mat_name, mat_objs, is_gpu_particle=False):
         if mat_name in bpy.data.materials:
             return
         mat = bpy.data.materials.new(name=mat_name)
         # if default_exists:
             # mat.arm_cached = True
-        if is_particle:
-            mat.arm_particle_flag = True
+        if is_gpu_particle:
+            mat.arm_particle_gpu_flag = True
         # Empty material roughness
         mat.use_nodes = True
         for node in mat.node_tree.nodes:
@@ -2465,6 +2466,7 @@ Make sure the mesh only has tris/quads.""")
                 'fps': render.fps,
                 'name': particleRef[1]["structName"],
                 'type': 0 if psettings.type == 'EMITTER' else 1, # HAIR
+                'particle_gpu': True if psettings.arm_particle_type == 'GPU' else False,
                 'auto_start': psettings.arm_auto_start,
                 'is_unique': psettings.arm_is_unique,
                 'local_coords': psettings.arm_local_coords,
@@ -2758,7 +2760,7 @@ Make sure the mesh only has tris/quads.""")
             if len(bpy.data.particles) > 0:
                 self.use_default_material_part()
             if len(self.default_part_material_objects) > 0:
-                self.make_default_mat('armdefaultpart', self.default_part_material_objects, is_particle=True)
+                self.make_default_mat('armdefaultpart', self.default_part_material_objects, is_gpu_particle=True)
 
             self.export_materials()
             self.export_particle_systems()
