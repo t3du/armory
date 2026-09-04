@@ -10,7 +10,7 @@ class CurveGuideNode extends LogicNode {
 	}
 
 	override function run(from: Int) {
-		#if arm_cpu_particles
+		#if arm_particles
 		var object: Object = inputs[1].get();
 		var slot: Int = inputs[2].get();
 
@@ -20,7 +20,7 @@ class CurveGuideNode extends LogicNode {
 	
 		var psys = mo.particleSystems != null ? mo.particleSystems[slot] : null;
 			
-		if (psys == null){ runOutput(0); return; }
+		if (psys == null || psys.particle_gpu){ runOutput(0); return; }
 
 		psys.curveGuides = inputs[3].get();
 		psys.curveGuideStrength = inputs[4].get();
