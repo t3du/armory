@@ -19,9 +19,9 @@ class AddSoftBodyNode extends LogicNode {
 		var margin: Float = inputs[5].get();
 		var friction: Float = inputs[6].get();
 		var damping: Float = inputs[7].get();
-		var pressure: Float = inputs[8].get();
-		var lStiff: Float = inputs[9].get();
-		var aStiff: Float = inputs[10].get();
+		var lStiff: Float = inputs[8].get();
+		var aStiff: Float = inputs[9].get();
+		var pressure: Float = inputs[10].get();
 
 		#if arm_physics_soft
 		var sb: SoftBody = obj.getTrait(SoftBody);
