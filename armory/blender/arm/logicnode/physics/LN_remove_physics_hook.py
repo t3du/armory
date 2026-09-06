@@ -8,4 +8,5 @@ class RemovePhysicsHookNode(ArmLogicTreeNode):
     def init(self, context):
         self.inputs.new('ArmNodeSocketAction', 'In')
         self.inputs.new('ArmNodeSocketObject', 'Object')
+        
         self.outputs.new('ArmNodeSocketAction', 'Out')
