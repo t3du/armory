@@ -3478,7 +3478,6 @@ Make sure the mesh only has tris/quads.""")
         softbody/cloth modifier.
         """
         ArmoryExporter.export_physics = True
-        assets.add_khafile_def('arm_physics_soft')
 
         phys_pkg = 'bullet' if bpy.data.worlds['Arm'].arm_physics_engine == 'Bullet' else 'oimo'
         out_trait = {'type': 'Script', 'class_name': 'armory.trait.physics.' + phys_pkg + '.SoftBody'}
