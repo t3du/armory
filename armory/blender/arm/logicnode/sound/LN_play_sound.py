@@ -92,4 +92,87 @@ class PlaySoundNode(ArmLogicTreeNode):
 
 
     def get_replacement_node(self, node_tree: bpy.types.NodeTree):
+        if self.arm_version == 4:
+
+            # v4:
+            # property3 = Use Custom Sample Rate
+            # property4 = Sample Rate
+            # property5 = Stream
+            # property6 = Sound / Sound Name
+            #
+            # v5:
+            # property3 = Stream
+            # property4 = Sound / Sound Name
+            # input 5   = Pitch
+
+            # Read old v4 properties directly from Blender ID properties.
+            old_stream = self.get('property5', False)
+            old_sound_mode = self.get('property6', 0)
+
+            # property6 was stored as an integer enum in old nodes.
+            # Convert it to the string identifier expected by the new
+            # EnumProperty.
+            #
+            # 0 = Sound
+            # 1 = Sound Name
+            if isinstance(old_sound_mode, int):
+                old_sound_mode = 'Sound Name' if old_sound_mode == 1 else 'Sound'
+
+            # Be defensive in case an unexpected old value exists.
+            if old_sound_mode not in {'Sound', 'Sound Name'}:
+                old_sound_mode = 'Sound'
+
+            input_mapping = {
+                0: 0,  # Play
+                1: 1,  # Pause
+                2: 2,  # Stop
+                3: 3,  # Set Volume
+                4: 4,  # Volume
+            }
+
+            # In v4 Sound Name was input 5.
+            # In v5 Pitch occupies input 5, so Sound Name becomes input 6.
+            if old_sound_mode == 'Sound Name' and len(self.inputs) > 5:
+                input_mapping[5] = 6
+
+            return NodeReplacement(
+                'LNPlaySoundRawNode',
+                4,
+                'LNPlaySoundRawNode',
+                5,
+
+                # Input socket mapping
+                input_mapping,
+
+                # Output socket mapping
+                {
+                    0: 0,
+                    1: 1,
+                    2: 2,
+                    3: 3,
+                    4: 4,
+                },
+
+                # Properties whose meaning remains unchanged
+                {
+                    'property0': 'property0',
+                    'property1': 'property1',
+                    'property2': 'property2',
+                },
+
+                # Defaults for newly added inputs
+                {
+                    5: 1.0,  # Pitch
+                },
+
+                # New v5 property values
+                {
+                    'property3': old_stream,
+                    'property4': old_sound_mode,
+                }
+            )
+
         return NodeReplacement.Identity(self)
+
+
+
