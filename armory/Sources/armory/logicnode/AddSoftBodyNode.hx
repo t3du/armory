@@ -11,7 +11,7 @@ class AddSoftBodyNode extends LogicNode {
 
 	override function run(from: Int) {
 		var obj: Object = inputs[1].get();
-		if (obj == null) return;
+		if (obj == null) { runOutput(0); return; }
 
 		var shape: Int = inputs[2].get(); // 0: Cloth, 1: Volume
 		var bend: Float = inputs[3].get();
