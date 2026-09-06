@@ -362,7 +362,7 @@ class SoftBody extends Trait {
 		}
 		//Set scalePos and buildMatrix
 		mo.data.scalePos = scalePos;
-		mo.transform.scaleWorld = 1.0;
+		mo.transform.scaleWorld = scalePos;
 		mo.transform.buildMatrix();
 
 		//Set vertices with location offset
