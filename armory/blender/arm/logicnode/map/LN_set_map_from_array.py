@@ -17,7 +17,7 @@ class SetMapFromArrayNode(ArmLogicTreeNode):
     bl_label = 'Set Map From Array'
     arm_version = 1
 
-    def init(self, context):
+    def arm_init(self, context):
         self.add_input('ArmNodeSocketAction', 'In')
         self.add_input('ArmDynamicSocket', 'Map')
         self.add_input('ArmNodeSocketArray', 'Keys')

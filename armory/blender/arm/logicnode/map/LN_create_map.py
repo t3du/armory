@@ -31,7 +31,7 @@ class CreateMapNode(ArmLogicTreeNode):
         layout.prop(self, 'property1')
 
 
-    def init(self, context):
+    def arm_init(self, context):
         self.add_input('ArmNodeSocketAction', 'In')
 
         self.add_output('ArmNodeSocketAction', 'Out')

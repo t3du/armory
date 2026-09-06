@@ -5,7 +5,7 @@ class RemovePhysicsHookNode(ArmLogicTreeNode):
     bl_label = 'Remove Physics Hook'
     arm_version = 1
 
-    def init(self, context):
+    def arm_init(self, context):
         self.inputs.new('ArmNodeSocketAction', 'In')
         self.inputs.new('ArmNodeSocketObject', 'Object')
         

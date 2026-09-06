@@ -13,6 +13,6 @@ class JsonStringifyNode(ArmLogicTreeNode):
     bl_label = 'JSON Stringify'
     arm_version = 1
 
-    def init(self, context):
+    def arm_init(self, context):
         self.add_input('ArmDynamicSocket', 'Value')
         self.add_output('ArmStringSocket', 'JSON')

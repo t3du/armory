@@ -17,7 +17,7 @@ class SetMapValueNode(ArmLogicTreeNode):
     bl_label = 'Set Map Value'
     arm_version = 1
 
-    def init(self, context):
+    def arm_init(self, context):
         self.add_input('ArmNodeSocketAction', 'In')
         self.add_input('ArmDynamicSocket', 'Map')
         self.add_input('ArmDynamicSocket', 'Key')

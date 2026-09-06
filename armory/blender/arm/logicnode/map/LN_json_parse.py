@@ -13,6 +13,6 @@ class ParseJsonNode(ArmLogicTreeNode):
     bl_label = 'Parse JSON'
     arm_version = 1
 
-    def init(self, context):
+    def arm_init(self, context):
         self.add_input('ArmStringSocket', 'JSON')
         self.add_output('ArmDynamicSocket', 'Value')

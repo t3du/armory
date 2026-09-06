@@ -16,7 +16,7 @@ class SetVirtualButtonNode(ArmLogicTreeNode):
     property1: bpy.props.StringProperty(name='Virtual Button', default='')
     property2: bpy.props.StringProperty(name='Physical Button', default='')
 
-    def init(self, context):
+    def arm_init(self, context):
         self.inputs.new('ArmNodeSocketAction', 'In')
         self.outputs.new('ArmNodeSocketAction', 'Out')
 
