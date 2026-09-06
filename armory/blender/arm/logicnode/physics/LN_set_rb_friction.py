@@ -1,6 +1,6 @@
 from arm.logicnode.arm_nodes import *
 
-class SetRigidBodyFrictionNode (ArmLogicTreeNode):
+class SetRigidBodyFrictionNode(ArmLogicTreeNode):
     """Sets the friction of the given rigid body."""
     bl_idname = 'LNSetRigidBodyFrictionNode'
     bl_label = 'Set RB Friction'

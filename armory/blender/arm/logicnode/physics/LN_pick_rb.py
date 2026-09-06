@@ -1,6 +1,5 @@
 from arm.logicnode.arm_nodes import *
 
-
 class PickObjectNode(ArmLogicTreeNode):
     """Picks the rigid body in the given location using the screen
     coordinates (2D).

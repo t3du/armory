@@ -1,6 +1,6 @@
 from arm.logicnode.arm_nodes import *
 
-class RemovePhysicsNode (ArmLogicTreeNode):
+class RemovePhysicsNode(ArmLogicTreeNode):
     """Removes the rigid body from the given object."""
     bl_idname = 'LNRemovePhysicsNode'
     bl_label = 'Remove RB'
