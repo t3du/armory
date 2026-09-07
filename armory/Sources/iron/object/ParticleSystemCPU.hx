@@ -401,32 +401,54 @@ class ParticleSystemCPU {
 				for (curve in curveGuides) {
 					if (curve != null && curve.data != null && curve.data.splines != null && curve.splinesLength > 0) {
 						var t = physics.age / physics.lifetime;
+						if (t > 1.0) t = 1.0;
+						if (t < 0.0) t = 0.0;
 
-						var tangent = curve.getTangent(t, 0);
-						tangent.w = 0.0;
-						tangent.applymat4(curve.transform.world);
-						tangent.normalize();
-
-						var curveLen = curve.getLength(0);
-						var speed = (curveLen / physics.lifetime) * curveGuideSpeed;
-
-						var tgtX = tangent.x * speed;
-						var tgtY = tangent.y * speed;
-						var tgtZ = tangent.z * speed;
-
-						if (localCoords) {
-							var targetVel = new Vec4(tgtX, tgtY, tgtZ, 0.0);
-							var invOwnerRot = new Quat(-owner.transform.rot.x, -owner.transform.rot.y, -owner.transform.rot.z, owner.transform.rot.w);
-							targetVel.applyQuat(invOwnerRot);
-							tgtX = targetVel.x;
-							tgtY = targetVel.y;
-							tgtZ = targetVel.z;
+						var totalCurveLength: FastFloat = 0.0;
+						for (i in 0...curve.splinesLength) {
+							totalCurveLength += curve.getLength(i);
 						}
 
-						curveVelX += tgtX;
-						curveVelY += tgtY;
-						curveVelZ += tgtZ;
-						validCurves++;
+						if (totalCurveLength > 0) {
+							var targetDist = t * totalCurveLength;
+							var accumulatedDist: FastFloat = 0.0;
+
+							for (i in 0...curve.splinesLength) {
+								var len = curve.getLength(i);
+								if (targetDist <= accumulatedDist + len || i == curve.splinesLength - 1) {
+									var distInSpline = targetDist - accumulatedDist;
+									var localT = len > 0 ? distInSpline / len : 0.0;
+									if (localT > 1.0) localT = 1.0;
+
+									var tangent = curve.getTangent(localT, i);
+									tangent.w = 0.0;
+									tangent.applymat4(curve.transform.world);
+									tangent.normalize();
+
+									var speed = (totalCurveLength / physics.lifetime) * curveGuideSpeed;
+
+									var tgtX = tangent.x * speed;
+									var tgtY = tangent.y * speed;
+									var tgtZ = tangent.z * speed;
+
+									if (localCoords) {
+										var targetVel = new Vec4(tgtX, tgtY, tgtZ, 0.0);
+										var invOwnerRot = new Quat(-owner.transform.rot.x, -owner.transform.rot.y, -owner.transform.rot.z, owner.transform.rot.w);
+										targetVel.applyQuat(invOwnerRot);
+										tgtX = targetVel.x;
+										tgtY = targetVel.y;
+										tgtZ = targetVel.z;
+									}
+
+									curveVelX += tgtX;
+									curveVelY += tgtY;
+									curveVelZ += tgtZ;
+									validCurves++;
+									break;
+								}
+								accumulatedDist += len;
+							}
+						}
 					}
 				}
 
