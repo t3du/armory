@@ -255,7 +255,28 @@ class ParticleSystemCPU {
 				var i: Int = Std.int(Math.random() * (pa.values.length / pa.size));
 				var loc: Vec4 = new Vec4(pa.values[i * pa.size] * normFactor, pa.values[i * pa.size + 1] * normFactor, pa.values[i * pa.size + 2] * normFactor, 1);
 
-				if (normalFactor != 0.0) normDir = new Vec3(loc.x, loc.y, loc.z).normalize();
+				if (normalFactor != 0.0) {
+					var na: TVertexArray = owner.data.geom.normals;
+					if (na != null) {
+						if (na.size >= 3) {
+							normDir = new Vec3(na.values[i * na.size], na.values[i * na.size + 1], na.values[i * na.size + 2]).normalize();
+						} else if (na.size == 2) {
+							var vx: FastFloat = na.values[i * 2] / 32767.0;
+							var vy: FastFloat = na.values[i * 2 + 1] / 32767.0;
+							var vz: FastFloat = 1.0 - Math.abs(vx) - Math.abs(vy);
+							if (vz < 0) {
+								var oldX = vx;
+								vx = (1.0 - Math.abs(vy)) * (oldX >= 0 ? 1.0 : -1.0);
+								vy = (1.0 - Math.abs(oldX)) * (vy >= 0 ? 1.0 : -1.0);
+							}
+							normDir = new Vec3(vx, vy, vz).normalize();
+						} else {
+							normDir = new Vec3(loc.x, loc.y, loc.z).normalize();
+						}
+					} else {
+						normDir = new Vec3(loc.x, loc.y, loc.z).normalize();
+					}
+				}
 
 				if (!localCoords) {
 					loc.applyQuat(objectRot);
@@ -275,10 +296,18 @@ class ParticleSystemCPU {
 				var v1: Vec3 = new Vec3(positions[i1 * 4], positions[i1 * 4 + 1], positions[i1 * 4 + 2]);
 				var v2: Vec3 = new Vec3(positions[i2 * 4], positions[i2 * 4 + 1], positions[i2 * 4 + 2]);
 
+				if (normalFactor != 0.0) {
+					var e1x = v1.x - v0.x;
+					var e1y = v1.y - v0.y;
+					var e1z = v1.z - v0.z;
+					var e2x = v2.x - v0.x;
+					var e2y = v2.y - v0.y;
+					var e2z = v2.z - v0.z;
+					normDir = new Vec3(e1y * e2z - e1z * e2y, e1z * e2x - e1x * e2z, e1x * e2y - e1y * e2x).normalize();
+				}
+
 				var pos: Vec3 = randomPointInTriangle(v0, v1, v2);
 				var loc: Vec4 = new Vec4(pos.x, pos.y, pos.z, 1).mult(normFactor);
-
-				if (normalFactor != 0.0) normDir = new Vec3(loc.x, loc.y, loc.z).normalize();
 
 				if (!localCoords) {
 					loc.applyQuat(objectRot);
@@ -298,7 +327,7 @@ class ParticleSystemCPU {
 				}
 				o.transform.loc.setFrom(loc);
 		}
-
+		
 		particleScale = 1 - scaleRandom * Math.random();
 		var localFactor: Vec3 = localCoords ? new Vec3(objectScale.x, objectScale.y, objectScale.z) : new Vec3(1, 1, 1);
 		var sc: Vec4 = new Vec4(o.transform.scale.x / localFactor.x, o.transform.scale.y / localFactor.y, o.transform.scale.z / localFactor.z, 1.0).mult(scale).mult(particleScale);
