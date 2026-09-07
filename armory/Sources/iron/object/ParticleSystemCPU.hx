@@ -255,9 +255,7 @@ class ParticleSystemCPU {
 				var i: Int = Std.int(Math.random() * (pa.values.length / pa.size));
 				var loc: Vec4 = new Vec4(pa.values[i * pa.size] * normFactor, pa.values[i * pa.size + 1] * normFactor, pa.values[i * pa.size + 2] * normFactor, 1);
 
-				if (normalFactor != 0.0) {
-					normDir = new Vec3(loc.x, loc.y, loc.z).normalize();
-				}
+				normDir = new Vec3(loc.x, loc.y, loc.z).normalize();
 
 				if (!localCoords) {
 					loc.applyQuat(objectRot);
@@ -277,15 +275,13 @@ class ParticleSystemCPU {
 				var v1: Vec3 = new Vec3(positions[i1 * 4], positions[i1 * 4 + 1], positions[i1 * 4 + 2]);
 				var v2: Vec3 = new Vec3(positions[i2 * 4], positions[i2 * 4 + 1], positions[i2 * 4 + 2]);
 
-				if (normalFactor != 0.0) {
-					var e1x = v1.x - v0.x;
-					var e1y = v1.y - v0.y;
-					var e1z = v1.z - v0.z;
-					var e2x = v2.x - v0.x;
-					var e2y = v2.y - v0.y;
-					var e2z = v2.z - v0.z;
-					normDir = new Vec3(e1y * e2z - e1z * e2y, e1z * e2x - e1x * e2z, e1x * e2y - e1y * e2x).normalize();
-				}
+				var e1x = v1.x - v0.x;
+				var e1y = v1.y - v0.y;
+				var e1z = v1.z - v0.z;
+				var e2x = v2.x - v0.x;
+				var e2y = v2.y - v0.y;
+				var e2z = v2.z - v0.z;
+				normDir = new Vec3(e1y * e2z - e1z * e2y, e1z * e2x - e1x * e2z, e1x * e2y - e1y * e2x).normalize();
 
 				var pos: Vec3 = randomPointInTriangle(v0, v1, v2);
 				var loc: Vec4 = new Vec4(pos.x, pos.y, pos.z, 1).mult(normFactor);
@@ -300,7 +296,7 @@ class ParticleSystemCPU {
 				scaleFactorVolume.mult(0.5);
 				var loc: Vec4 = new Vec4((Math.random() * 2.0 - 1.0) * scaleFactorVolume.x, (Math.random() * 2.0 - 1.0) * scaleFactorVolume.y, (Math.random() * 2.0 - 1.0) * scaleFactorVolume.z, 1);
 
-				if (normalFactor != 0.0) normDir = new Vec3(loc.x, loc.y, loc.z).normalize();
+				normDir = new Vec3(loc.x, loc.y, loc.z).normalize();
 
 				if (!localCoords) {
 					loc.applyQuat(objectRot);
@@ -327,9 +323,9 @@ class ParticleSystemCPU {
 		var randomZ: FastFloat = (Math.random() * 2 / (scale * particleScale) - 1 / (scale * particleScale)) * velocityRandom;
 		var g: Vec3 = new Vec3();
 
-		if (normalFactor != 0.0) normDir = normDir.mult(normalFactor);
+		var normVel: Vec3 = new Vec3(normDir.x * normalFactor, normDir.y * normalFactor, normDir.z * normalFactor);
 
-		var rotatedVelocity: Vec4 = new Vec4(velocity.x + randomX + normDir.x, velocity.y + randomY + normDir.y, velocity.z + randomZ + normDir.z, 1);
+		var rotatedVelocity: Vec4 = new Vec4(velocity.x + randomX + normVel.x, velocity.y + randomY + normVel.y, velocity.z + randomZ + normVel.z, 1);
 		if (!localCoords) rotatedVelocity.applyQuat(objectRot);
 
 		if (rotation) {
@@ -346,7 +342,13 @@ class ParticleSystemCPU {
 				case 0: // None
 					o.transform.rotate(new Vec4(0, 0, 1, 1), -Math.PI * 0.5);
 				case 1: // Normal
+					var normVec: Vec4 = new Vec4(normDir.x, normDir.y, normDir.z, 1);
+					if (!localCoords) normVec.applyQuat(objectRot);
+					setVelocityHair(o, normVec, randQuat, phaseQuat);
 				case 2: // Normal-Tangent
+					var normVec: Vec4 = new Vec4(normDir.x, normDir.y, normDir.z, 1);
+					if (!localCoords) normVec.applyQuat(objectRot);
+					setVelocityHair(o, normVec, randQuat, phaseQuat);
 				case 3: // Velocity/Hair
 					setVelocityHair(o, rotatedVelocity, randQuat, phaseQuat);
 				case 4: // Global X
@@ -354,7 +356,7 @@ class ParticleSystemCPU {
 				case 5: // Global Y
 					o.transform.rot.fromEuler(0, 0, 0).mult(phaseQuat).mult(randQuat);
 				case 6: // Global Z
-					o.transform.rot.fromEuler(0, -Math.PI * 0.5, -Math.PI * 0.5).mult(phaseQuat).mult(randQuat);
+					o.transform.rot.fromEuler(Math.PI * 0.5, 0, 0).mult(phaseQuat).mult(randQuat);
 				case 7: // Object X
 					o.transform.rot.setFrom(objectRot);
 					dirQuat.fromEuler(0, 0, -Math.PI * 0.5);
@@ -364,7 +366,7 @@ class ParticleSystemCPU {
 					o.transform.rot.mult(phaseQuat).mult(randQuat);
 				case 9: // Object Z
 					o.transform.rot.setFrom(objectRot);
-					dirQuat.fromEuler(0, -Math.PI * 0.5, 0).mult(new Quat().fromEuler(0, 0, -Math.PI * 0.5));
+					dirQuat.fromEuler(Math.PI * 0.5, 0, 0);
 					o.transform.rot.mult(dirQuat).mult(phaseQuat).mult(randQuat);
 				default:
 			}
