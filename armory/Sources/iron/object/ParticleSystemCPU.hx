@@ -256,26 +256,7 @@ class ParticleSystemCPU {
 				var loc: Vec4 = new Vec4(pa.values[i * pa.size] * normFactor, pa.values[i * pa.size + 1] * normFactor, pa.values[i * pa.size + 2] * normFactor, 1);
 
 				if (normalFactor != 0.0) {
-					var na: TVertexArray = owner.data.geom.normals;
-					if (na != null) {
-						if (na.size >= 3) {
-							normDir = new Vec3(na.values[i * na.size], na.values[i * na.size + 1], na.values[i * na.size + 2]).normalize();
-						} else if (na.size == 2) {
-							var vx: FastFloat = na.values[i * 2] / 32767.0;
-							var vy: FastFloat = na.values[i * 2 + 1] / 32767.0;
-							var vz: FastFloat = 1.0 - Math.abs(vx) - Math.abs(vy);
-							if (vz < 0) {
-								var oldX = vx;
-								vx = (1.0 - Math.abs(vy)) * (oldX >= 0 ? 1.0 : -1.0);
-								vy = (1.0 - Math.abs(oldX)) * (vy >= 0 ? 1.0 : -1.0);
-							}
-							normDir = new Vec3(vx, vy, vz).normalize();
-						} else {
-							normDir = new Vec3(loc.x, loc.y, loc.z).normalize();
-						}
-					} else {
-						normDir = new Vec3(loc.x, loc.y, loc.z).normalize();
-					}
+					normDir = new Vec3(loc.x, loc.y, loc.z).normalize();
 				}
 
 				if (!localCoords) {
