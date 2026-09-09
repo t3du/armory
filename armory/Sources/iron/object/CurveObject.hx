@@ -41,7 +41,7 @@ class CurveObject extends Object {
 		if (this.data.material_refs != null && this.data.material_refs.length > 0)
 			addMeshObject();
 		else
-			draw(this.data.strength, Color.fromFloats(this.data.color[0], this.data.color[1], this.data.color[2], this.data.color[3]));
+			draw();
 	}
 
 	public function addMeshObject(){
@@ -268,12 +268,11 @@ class CurveObject extends Object {
 
 	var renderCb: kha.graphics4.Graphics->Int->Int->Void = null;
 
-	public function draw(strength: Float = 0.005, color: kha.Color = Color.Black) {
+	public function draw() {
 		if (renderCb != null) RenderDraw.removeOnRender(renderCb);
 		renderCb = RenderDraw.notifyOnRender(function(draw: RenderDraw) {
-			if (!visible) return;
-			draw.color = color;
-			draw.strength = strength;
+			draw.color = Color.fromFloats(this.data.color[0], this.data.color[1], this.data.color[2], this.data.color[3]);
+			draw.strength = this.data.strength;
 
 			var worldMat = this.transform.world;
 			
@@ -363,7 +362,6 @@ class CurveObject extends Object {
 	}
 
 	override public function remove() {
-		visible = false;
 		if (renderCb != null) {
 			RenderDraw.removeOnRender(renderCb);
 			renderCb = null;

@@ -19,7 +19,7 @@ class GetCurveDataNode extends LogicNode {
 				case 1:
 					curve.equidistantSamples;
 				case 2:
-					curve.visible;
+					@:privateAccess curve.renderCb == null ? false : true;
 				case 3:
 					curve.data.strength;
 				case 4: 
