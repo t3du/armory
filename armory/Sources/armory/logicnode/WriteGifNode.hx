@@ -27,6 +27,7 @@ class WriteGifNode extends LogicNode {
 	var fdur: Float;
 
 	var duration: Float;
+	var totalFrames: Int = 0;
 
 	public function new(tree: LogicTree) {
 		super(tree);
@@ -60,12 +61,15 @@ class WriteGifNode extends LogicNode {
 		frames = [];
 		bo = new haxe.io.BytesOutput();
 		duration = 0.0;
+		totalFrames = 0;
 
         encoder = new iron.format.gif.GifEncoder(tw, th, fdur, -1, 10); //GifRepeat.Infinite, GifQuality.High
 
         encoder.start(bo);
 
         tree.notifyOnRender(render);
+
+        runOutput(0);
 
 		}
 		else{
@@ -87,7 +91,7 @@ class WriteGifNode extends LogicNode {
 		        js.html.URL.revokeObjectURL(url);
 				#end
 
-				runOutput(0);
+				runOutput(1);
 
 				tree.removeRender(render);
 
@@ -100,6 +104,10 @@ class WriteGifNode extends LogicNode {
 
 		}
 		
+	}
+
+	override function get(from: Int): Dynamic {
+		return totalFrames;
 	}
 
 	function render(g: kha.graphics4.Graphics) {
@@ -190,6 +198,7 @@ class WriteGifNode extends LogicNode {
 	        }
 
 			encoder.add(bo, frame);
+			totalFrames++;
 
 		}
 

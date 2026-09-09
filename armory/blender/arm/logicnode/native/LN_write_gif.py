@@ -2,7 +2,7 @@ from arm.logicnode.arm_nodes import *
 
 
 class WriteGifNode(ArmLogicTreeNode):
-    """Writes the given image to the given file. If the image
+    """Writes the given image gif to the given file. If the image gif
     already exists, the existing content of the image is overwritten.
 
     Aspect ratio must match display resolution ratio.
@@ -41,3 +41,5 @@ class WriteGifNode(ArmLogicTreeNode):
         self.add_input('ArmFloatSocket', 'Frame duration')
 
         self.add_output('ArmNodeSocketAction', 'Out')
+        self.add_output('ArmNodeSocketAction', 'Done')
+        self.add_output('ArmIntSocket', 'Total Frames')
