@@ -9,6 +9,8 @@ package iron.format.gif;
  * Ported to Haxe by Tilman Schmidt and Sven Bergström
  */
 
+import iron.App;
+
 import haxe.io.UInt8Array;
 import haxe.io.BytesOutput;
 
@@ -59,6 +61,11 @@ class GifEncoder {
 		/** Allows a custom print handler for error messages.
 			Defaults to Sys.println on sys targets, and trace otherwise. */
 	public var print: Dynamic->Void;
+
+	public var itemsPerFrame: Int = 1000;
+	public var frameQueue: Array<{frame: GifFrame, onComplete: Void->Void}> = [];
+	var isProcessing: Bool = false;
+	var pendingCommit: Void->Void = null;
 
 // Public API
 
@@ -168,7 +175,64 @@ class GifEncoder {
 
 	} //add
 
-	public function commit(output:BytesOutput) : Void {
+	//var totalFrames: Int = 0;
+	//var currentFrame: Int = 0;
+
+	public function addAsync(output:BytesOutput, frame:GifFrame, ?onComplete:Void->Void) : Void {
+		if (output == null || !started) return;
+
+		//totalFrames++;
+		frameQueue.push({frame: frame, onComplete: onComplete});
+
+		if (!isProcessing) {
+			processNextFrame(output);
+		}
+	}
+
+	function processNextFrame(output:BytesOutput):Void {
+		if (frameQueue.length == 0) {
+			isProcessing = false;
+			if (pendingCommit != null) {
+				var cb = pendingCommit;
+				pendingCommit = null;
+				cb();
+			}
+			return;
+		}
+
+		isProcessing = true;
+		//currentFrame++;
+		//trace('Frame $currentFrame de $totalFrames');
+
+		var item = frameQueue.shift();
+		var frame = item.frame;
+		var px = get_pixels(frame);
+
+		analyzeAsync(px, function() {
+			if (first_frame) {
+				write_palette(output);
+				if (repeat != GifRepeat.None) {
+					write_NetscapeExt(output);
+				}
+				first_frame = false;
+			}
+
+			var delay = if (frame.delay < 0) 1.0 / framerate else frame.delay;
+			write_GraphicControlExt(output, delay);
+			write_image_desc(output, first_frame);
+
+			if (!first_frame) {
+				write_palette(output);
+			}
+
+			write_pixelsAsync(output, function() {
+				if (item.onComplete != null) item.onComplete();
+				processNextFrame(output);
+			});
+		});
+	}
+
+	public function commit(output:BytesOutput, ?onComplete:Void->Void) : Void {
 
 		if(output == null) {
 			print("gif: commit() output must be not null.");
@@ -180,12 +244,22 @@ class GifEncoder {
 			return;
 		}
 
-		output.writeByte(0x3b); // Gif trailer
-		output.flush();
-		output.close();
+		var executeCommit = function() {
+			output.writeByte(0x3b); // Gif trailer
+			output.flush();
+			output.close();
 
-		started = false;
-		first_frame = true;
+			started = false;
+			first_frame = true;
+
+			if (onComplete != null) onComplete();
+		};
+
+		if (isProcessing || frameQueue.length > 0) {
+			pendingCommit = executeCommit;
+		} else {
+			executeCommit();
+		}
 
 	} //commit
 
@@ -210,10 +284,14 @@ class GifEncoder {
 		function analyze(pixels:UInt8Array) {
 
 			// Create reduced palette
+			//var t0 = haxe.Timer.stamp();
 			nq.reset(pixels, pixels.length, sampleInterval);
 			colorTab = nq.process();
+			//var t1 = haxe.Timer.stamp();
+			//trace("NeuQuant process time: " + (t1 - t0) + "s");
 
 				// Map image pixels to new palette
+			//var t2 = haxe.Timer.stamp();
 			var k:Int = 0;
 			for (i in 0...(width * height)) {
 				var r = pixels[k++] & 0xff;
@@ -223,8 +301,61 @@ class GifEncoder {
 				usedEntry[index] = true;
 				indexedPixels[i] = index;
 			}
+			//var t3 = haxe.Timer.stamp();
+			//trace("NeuQuant map loop time: " + (t3 - t2) + "s");
 
 		} //analyze
+
+		function analyzeAsync(pixels:UInt8Array, onComplete:Void->Void) {
+			//var t0 = haxe.Timer.stamp();
+			nq.reset(pixels, pixels.length, sampleInterval);
+			nq.learnInit();
+
+			function updateLearn() {
+				var done = nq.learnStep(itemsPerFrame);
+				if (done) {
+					App.removeUpdate(updateLearn);
+					//var t1 = haxe.Timer.stamp();
+					//trace("[NeuQuant] Learn time: " + (t1 - t0) + "s");
+					nq.unbiasnet();
+					nq.inxbuild();
+					colorTab = nq.colormap();
+					mapPixelsAsync(pixels, onComplete);
+				}
+			}
+
+			App.notifyOnUpdate(updateLearn);
+		}
+
+		function mapPixelsAsync(pixels:UInt8Array, onComplete:Void->Void) {
+			//var t0 = haxe.Timer.stamp();
+			var total = width * height;
+			var i = 0;
+			var k = 0;
+
+			function updateMap() {
+				var processed = 0;
+				while (processed < itemsPerFrame && i < total) {
+					var r = pixels[k++] & 0xff;
+					var g = pixels[k++] & 0xff;
+					var b = pixels[k++] & 0xff;
+					var index = nq.map(r, g, b);
+					usedEntry[index] = true;
+					indexedPixels[i] = index;
+					i++;
+					processed++;
+				}
+
+				if (i >= total) {
+					App.removeUpdate(updateMap);
+					//var t1 = haxe.Timer.stamp();
+					//trace("[NeuQuant] Map pixels time: " + (t1 - t0) + "s");
+					if (onComplete != null) onComplete();
+				}
+			}
+
+			App.notifyOnUpdate(updateMap);
+		}
 
 	//writers
 		//
@@ -282,10 +413,34 @@ class GifEncoder {
 			/** Encodes and writes pixel data. */
 		function write_pixels(output:BytesOutput):Void {
 		
+			//var t0 = haxe.Timer.stamp();
 			lzwEncoder.reset(indexedPixels, colorDepth);
 			lzwEncoder.encode(output);
+			//var t1 = haxe.Timer.stamp();
+			//trace("LZW encode time: " + (t1 - t0) + "s");
 		
 		} //write_pixels
+
+		function write_pixelsAsync(output:BytesOutput, onComplete:Void->Void):Void {
+			//var t0 = haxe.Timer.stamp();
+			lzwEncoder.reset(indexedPixels, colorDepth);
+			output.writeByte(lzwEncoder.getInitCodeSize());
+
+			lzwEncoder.compressInit(output);
+
+			function updateCompress() {
+				var done = lzwEncoder.compressStep(output, itemsPerFrame);
+				if (done) {
+					App.removeUpdate(updateCompress);
+					output.writeByte(0);
+					//var t1 = haxe.Timer.stamp();
+					//trace("[LZWEncoder] Compress time: " + (t1 - t0) + "s");
+					if (onComplete != null) onComplete();
+				}
+			}
+
+			App.notifyOnUpdate(updateCompress);
+		}
 
 			/** Writes Image Descriptor. */
 		function write_image_desc(output:BytesOutput, first:Bool):Void {

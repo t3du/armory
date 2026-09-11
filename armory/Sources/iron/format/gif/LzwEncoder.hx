@@ -1,4 +1,4 @@
- package iron.format.gif;
+package iron.format.gif;
 
 /*
  * No copyright asserted on the source code of this class. May be used
@@ -126,6 +126,11 @@ class LzwEncoder {
 	// Define the storage for the packet accumulator
 	var accum:UInt8Array;
 
+	var compress_ent:Int;
+	var compress_hshift:Int;
+	var compress_hsize_reg:Int;
+	var compress_done:Bool = false;
+
 	//----------------------------------------------------------------------------
 	public function new()
 	{
@@ -146,6 +151,10 @@ class LzwEncoder {
 		clear_flg = false;
 		cur_accum = 0;
 		cur_bits = 0;
+	}
+
+	public function getInitCodeSize():Int {
+		return initCodeSize;
 	}
 
 	// add a character to the end of the current packet, and if it is 254
@@ -174,6 +183,105 @@ class LzwEncoder {
 	{
 		for (i in 0...hsize)
 			htab[i] = -1;
+	}
+
+	public function compressInit(out:haxe.io.Output):Void
+	{
+		var init_bits = initCodeSize + 1;
+		g_init_bits = init_bits;
+
+		clear_flg = false;
+		n_bits = g_init_bits;
+		maxcode = maxCode(n_bits);
+
+		ClearCode = 1 << (init_bits - 1);
+		EOFCode = ClearCode + 1;
+		free_ent = ClearCode + 2;
+
+		a_count = 0;
+
+		curPixel = 0;
+		compress_ent = nextPixel();
+
+		compress_hshift = 0;
+		var fcode = hsize;
+		while (fcode < 65536) {
+			++compress_hshift;
+			fcode *= 2;
+		}
+
+		compress_hshift = 8 - compress_hshift;
+
+		compress_hsize_reg = hsize;
+		resetCodeTable(compress_hsize_reg);
+
+		output(ClearCode, out);
+		compress_done = false;
+	}
+
+	public function compressStep(out:haxe.io.Output, maxSteps:Int):Bool
+	{
+		if (compress_done) return true;
+
+		var processed = 0;
+		var c:Int;
+		var fcode:Int;
+		var i:Int;
+		var disp:Int;
+
+		while (processed < maxSteps && (c = nextPixel()) != EOF)
+		{
+			fcode = (c << maxbits) + compress_ent;
+			i = (c << compress_hshift) ^ compress_ent;
+
+			if (htab[i] == fcode)
+			{
+				compress_ent = codetab[i];
+				processed++;
+				continue;
+			}
+			else if (htab[i] >= 0)
+			{
+				disp = compress_hsize_reg - i;
+				if (i == 0)
+					disp = 1;
+				do
+				{
+					if ((i -= disp) < 0)
+						i += compress_hsize_reg;
+
+					if (htab[i] == fcode)
+					{
+						compress_ent = codetab[i];
+						break;
+					}
+				} while (htab[i] >= 0);
+				if (htab[i] == fcode) {
+					processed++;
+					continue;
+				}
+			}
+			output(compress_ent, out);
+			compress_ent = c;
+			if (free_ent < maxmaxcode)
+			{
+				codetab[i] = free_ent++;
+				htab[i] = fcode;
+			}
+			else
+				clearTable(out);
+
+			processed++;
+		}
+
+		if (curPixel >= pixAry.length) {
+			output(compress_ent, out);
+			output(EOFCode, out);
+			compress_done = true;
+			return true;
+		}
+
+		return false;
 	}
 
 	function compress(init_bits:Int, out:haxe.io.Output):Void

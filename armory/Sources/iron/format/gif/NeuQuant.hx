@@ -81,6 +81,16 @@ class NeuQuant {
 	var colormap_map: UInt8Array;   // Cached color map array
 	var colormap_index: Int32Array; // Cached color map index
 
+	var learn_i: Int;
+	var learn_pix: Int;
+	var learn_samplepixels: Int;
+	var learn_delta: Int;
+	var learn_alpha: Int;
+	var learn_radius: Int;
+	var learn_rad: Int;
+	var learn_step: Int;
+	var learn_lim: Int;
+
 	public function new()
 	{
 		netindex = new Int32Array(256);
@@ -126,6 +136,7 @@ class NeuQuant {
 	// Insertion sort of network and building of netindex[0..255] (to do after unbias)
 	public function inxbuild():Void
 	{
+		//var t0 = haxe.Timer.stamp();
 		var i:Int;
 		var j:Int;
 		var smallpos:Int;
@@ -188,106 +199,112 @@ class NeuQuant {
 
 		for (j in (previouscol + 1)...256)
 			netindex[j] = maxnetpos;
+
+		//var t1 = haxe.Timer.stamp();
+		//trace("inxbuild time: " + (t1 - t0) + "s");
 	}
 
 	// Main learning Loop
 	public function learn():Void
 	{
-		var i:Int;
-		var j:Int;
-		var b:Int;
-		var g:Int;
-		var r:Int;
-		var radius:Int;
-		var rad:Int;
-		var alpha:Int;
-		var step:Int;
-		var delta:Int;
-		var samplepixels:Int;
+		var t0 = haxe.Timer.stamp();
+		learnInit();
+		while (!learnStep(learn_samplepixels)) {}
+		//var t1 = haxe.Timer.stamp();
+		//trace("learn total time: " + (t1 - t0) + "s");
+	}
 
-		var p:UInt8Array;
-		var pix:Int;
-		var lim:Int;
-
+	public function learnInit():Void
+	{
 		if (lengthcount < minpicturebytes)
 			samplefac = 1;
 
 		alphadec = 30 + Std.int((samplefac - 1) / 3);
-		p = thepicture;
-		pix = 0;
-		lim = lengthcount;
-		samplepixels = Std.int(lengthcount / (3 * samplefac));
-		delta = Std.int(samplepixels / ncycles);
-		alpha = initalpha;
-		radius = initradius;
+		learn_pix = 0;
+		learn_lim = lengthcount;
+		learn_samplepixels = Std.int(lengthcount / (3 * samplefac));
+		learn_delta = Std.int(learn_samplepixels / ncycles);
+		learn_alpha = initalpha;
+		learn_radius = initradius;
 
-		rad = radius >> radiusbiasshift;
+		learn_rad = learn_radius >> radiusbiasshift;
 
-		if (rad <= 1)
-			rad = 0;
+		if (learn_rad <= 1)
+			learn_rad = 0;
 
-		for (i in 0...rad)
-			radpower[i] = Std.int(alpha * (((rad * rad - i * i) * radbias) / (rad * rad)));
+		for (i in 0...learn_rad)
+			radpower[i] = Std.int(learn_alpha * (((learn_rad * learn_rad - i * i) * radbias) / (learn_rad * learn_rad)));
 
 		if (lengthcount < minpicturebytes)
 		{
-			step = 3;
+			learn_step = 3;
 		}
 		else if ((lengthcount % prime1) != 0)
 		{
-			step = 3 * prime1;
+			learn_step = 3 * prime1;
 		}
 		else
 		{
 			if ((lengthcount % prime2) != 0)
 			{
-				step = 3 * prime2;
+				learn_step = 3 * prime2;
 			}
 			else
 			{
 				if ((lengthcount % prime3) != 0)
-					step = 3 * prime3;
+					learn_step = 3 * prime3;
 				else
-					step = 3 * prime4;
+					learn_step = 3 * prime4;
 			}
 		}
 
-		i = 0;
-		while (i < samplepixels)
+		learn_i = 0;
+	}
+
+	public function learnStep(maxSteps:Int):Bool
+	{
+		var processed = 0;
+		var p = thepicture;
+
+		while (processed < maxSteps && learn_i < learn_samplepixels)
 		{
-			b = (p[pix + 0] & 0xff) << netbiasshift;
-			g = (p[pix + 1] & 0xff) << netbiasshift;
-			r = (p[pix + 2] & 0xff) << netbiasshift;
-			j = contest(b, g, r);
+			var b = (p[learn_pix + 0] & 0xff) << netbiasshift;
+			var g = (p[learn_pix + 1] & 0xff) << netbiasshift;
+			var r = (p[learn_pix + 2] & 0xff) << netbiasshift;
+			var j = contest(b, g, r);
 
-			altersingle(alpha, j, b, g, r);
+			altersingle(learn_alpha, j, b, g, r);
 
-			if (rad != 0)
-				alterneigh(rad, j, b, g, r); // Alter neighbours
+			if (learn_rad != 0)
+				alterneigh(learn_rad, j, b, g, r); // Alter neighbours
 
-			pix += step;
+			learn_pix += learn_step;
 
-			if (pix >= lim)
-				pix -= lengthcount;
+			if (learn_pix >= learn_lim)
+				learn_pix -= lengthcount;
 
-			i++;
+			learn_i++;
 
-			if (delta == 0)
-				delta = 1;
+			if (learn_delta == 0)
+				learn_delta = 1;
 
-			if (i % delta == 0)
+			if (learn_i % learn_delta == 0)
 			{
-				alpha -= Std.int(alpha / alphadec);
-				radius -= Std.int(radius / radiusdec);
-				rad = radius >> radiusbiasshift;
+				learn_alpha -= Std.int(learn_alpha / alphadec);
+				learn_radius -= Std.int(learn_radius / radiusdec);
+				learn_rad = learn_radius >> radiusbiasshift;
 
-				if (rad <= 1)
-					rad = 0;
+				if (learn_rad <= 1)
+					learn_rad = 0;
 
-				for (j in 0...rad)
-					radpower[j] = Std.int(alpha * (((rad * rad - j * j) * radbias) / (rad * rad)));
+				for (k in 0...learn_rad)
+					radpower[k] = Std.int(learn_alpha * (((learn_rad * learn_rad - k * k) * radbias) / (learn_rad * learn_rad)));
 			}
+
+			processed++;
 		}
+
+		return learn_i >= learn_samplepixels;
 	}
 
 	// Search for BGR values 0..255 (after net is unbiased) and return colour index
