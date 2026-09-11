@@ -63,13 +63,13 @@ class WriteGifNode extends LogicNode {
 		duration = 0.0;
 		totalFrames = 0;
 
-        encoder = new iron.format.gif.GifEncoder(tw, th, fdur, -1, 10); //GifRepeat.Infinite, GifQuality.High
+		encoder = new iron.format.gif.GifEncoder(tw, th, fdur, -1, 10); //GifRepeat.Infinite, GifQuality.High
 
-        encoder.start(bo);
+		encoder.start(bo);
 
-        tree.notifyOnRender(render);
+		tree.notifyOnRender(render);
 
-        runOutput(0);
+		runOutput(0);
 
 		}
 		else{
@@ -83,12 +83,12 @@ class WriteGifNode extends LogicNode {
 		
 				#elseif kha_html5
 				var blob = new js.html.Blob([bo.getBytes().getData()], {type: "application"});
-		        var url = js.html.URL.createObjectURL(blob);
-		        var a = cast(js.Browser.document.createElement("a"), js.html.AnchorElement);
-		        a.href = url;
-		        a.download = file;
-		        a.click();
-		        js.html.URL.revokeObjectURL(url);
+				var url = js.html.URL.createObjectURL(blob);
+				var a = cast(js.Browser.document.createElement("a"), js.html.AnchorElement);
+				a.href = url;
+				a.download = file;
+				a.click();
+				js.html.URL.revokeObjectURL(url);
 				#end
 
 				runOutput(1);
@@ -156,10 +156,10 @@ class WriteGifNode extends LogicNode {
 				tex.g2.scale(scl, scl);
 
 			for (f in @:privateAccess iron.App.traitRenders2D){
-		    	f(tex.g2);
-		    }
-		    
-		    tex.g2.end();
+				f(tex.g2);
+			}
+			
+			tex.g2.end();
 
 		}
 
@@ -192,10 +192,10 @@ class WriteGifNode extends LogicNode {
 			}
 
 			var frame: GifFrame = {
-	            delay: fdur,
-	            flippedY: false,
-	            data: rgb
-	        }
+				delay: fdur,
+				flippedY: false,
+				data: rgb
+			}
 
 			encoder.add(bo, frame);
 			totalFrames++;
