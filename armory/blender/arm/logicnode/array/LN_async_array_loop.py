@@ -10,7 +10,7 @@ class AsyncArrayLoopNode(ArmLogicTreeNode):
     def arm_init(self, context):
         self.add_input('ArmNodeSocketAction', 'In')
         self.add_input('ArmNodeSocketArray', 'Array')
-        self.add_input('ArmIntSocket', 'Async Items')
+        self.add_input('ArmIntSocket', 'Async Items', default_value = 1)
 
         self.add_output('ArmNodeSocketAction', 'Loop')
         self.add_output('ArmDynamicSocket', 'Value')

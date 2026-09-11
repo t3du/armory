@@ -24,7 +24,7 @@ class AsyncLoopNode(ArmLogicTreeNode):
         self.add_input('ArmNodeSocketAction', 'In')
         self.add_input('ArmIntSocket', 'From')
         self.add_input('ArmIntSocket', 'To')
-        self.add_input('ArmIntSocket', 'Async Items')
+        self.add_input('ArmIntSocket', 'Async Items', default_value = 1)
 
         self.add_output('ArmNodeSocketAction', 'Loop')
         self.add_output('ArmIntSocket', 'Index')
