@@ -161,7 +161,6 @@ class Writer {
 	var YAC_HT: Map<Int,BitString>;
 	var UVAC_HT: Map<Int,BitString>;
 
-	// Función para crear la tabla Huffman (Helper)
 	function computeHuffmanTbl(nrcodes: Array<Int>, std_table: haxe.io.Bytes): Map<Int,BitString> {
 		var codevalue = 0;
 		var pos_in_table = 0;
@@ -186,8 +185,6 @@ class Writer {
 		YAC_HT = computeHuffmanTbl(std_ac_luminance_nrcodes, std_ac_luminance_values);
 		UVAC_HT = computeHuffmanTbl(std_ac_chrominance_nrcodes, std_ac_chrominance_values);
 
-		// CORRECCIÓN DE TABLAS: Asegurar la existencia de EOB (0x00) y ZRL (0xF0)
-		// Esto es necesario para evitar fallos si el 'computeHuffmanTbl' no incluye estos valores por algún motivo.
 		if (YAC_HT.get(0x00) == null) YAC_HT.set(0x00, new BitString(4, 0x00));
 		if (UVAC_HT.get(0x00) == null) UVAC_HT.set(0x00, new BitString(4, 0x00));
 		if (YAC_HT.get(0xF0) == null) YAC_HT.set(0xF0, new BitString(11, 0x1E));
@@ -227,7 +224,6 @@ class Writer {
 	var bytepos: Int;
 
 	function writeBits(bs: BitString) {
-		// Se confía en que bs no es nulo gracias al clamping y las correcciones de tablas.
 		var value: Int = bs.val;
 		var posval: Int = bs.len - 1;
 		while( posval >= 0 ) {
@@ -467,7 +463,6 @@ class Writer {
 		var Diff = Std.int( DU[0] - DC );
 		DC = DU[0];
 		
-		// CORRECCIÓN DE RANGO: Clamping de la diferencia DC (previene accesos a `category` fuera de rango)
 		if (Diff > 16383) Diff = 16383; 
 		if (Diff < -16383) Diff = -16383; 
 
@@ -494,7 +489,6 @@ class Writer {
 			var startpos = i;
 			while( ( DU[i] == 0.0 ) && ( i <= end0pos ) ) i++;
 
-			// Chequeo de seguridad si 'i' saltó más allá
 			if (i > end0pos) break;
 
 			var nrzeroes: Int = i - startpos;
@@ -503,12 +497,10 @@ class Writer {
 				nrzeroes &= 0xF;
 			}
 			
-			// CORRECCIÓN DE RANGO: Clamping del coeficiente AC
 			var du_val = Std.int( DU[i] );
 			if (du_val > 16383) du_val = 16383; 
 			if (du_val < -16383) du_val = -16383;
 			
-			// LÓGICA DE SALTO: Si el clamping forzó el valor a 0, saltamos.
 			if (du_val == 0) {
 				i++; 
 				continue;
@@ -517,7 +509,6 @@ class Writer {
 			idx = 32767 + du_val;
 			
 			var cat = category.get( idx );
-			// Si 'cat' es nulo, significa que el valor de 'du_val' está fuera del rango -16383..16383, lo cual el clamping debería haber prevenido.
 			var index_ac = nrzeroes * 16 + cat;
 
 			writeBits( HTAC.get( index_ac ) );
@@ -623,8 +614,6 @@ class Writer {
 			var xpos = 0;
 			while( xpos < width ) {
 				
-				// CORRECCIÓN CRÍTICA DE ESTADO: Limpieza de arreglos para evitar arrastre de valores (lo que el 'trace' estaba enmascarando)
-				// Se asegura que los buffers sean cero antes de llenarlos con RGB2YUV si no se llenan completamente.
 				for (k in 0...64) { YDU[k] = 0.0; UDU[k] = 0.0; VDU[k] = 0.0; }
 				
 				RGB2YUV(image.pixels, width, xpos, ypos);
