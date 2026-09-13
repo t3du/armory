@@ -3,7 +3,7 @@ from arm.logicnode.arm_nodes import *
 
 class WriteGifNode(ArmLogicTreeNode):
     """Writes the given image gif to the given file. If the image gif
-    already exists, the existing content of the image is overwritten.
+    already exists, the existing content of the image gif is overwritten.
 
     Aspect ratio must match display resolution ratio.
 
@@ -26,6 +26,18 @@ class WriteGifNode(ArmLogicTreeNode):
     arm_section = 'file'
     arm_version = 1
 
+    def remove_extra_inputs(self, context):
+        while len(self.inputs) > 12:
+            self.inputs.remove(self.inputs[-1])
+        if self.property0 == 'Async':
+            self.add_input('ArmIntSocket', 'Items Per Frame', default_value = 20000)
+
+    property0: HaxeEnumProperty(
+    'property0',
+    items = [('Sync', 'Sync', 'Sync'),
+             ('Async', 'Async', 'Async')],
+    name='', default='Async', update=remove_extra_inputs)
+
     def arm_init(self, context):
         self.add_input('ArmNodeSocketAction', 'Start')
         self.add_input('ArmNodeSocketAction', 'Stop')
@@ -39,7 +51,12 @@ class WriteGifNode(ArmLogicTreeNode):
         self.add_input('ArmIntSocket', 'sHeight')
         self.add_input('ArmBoolSocket', 'Render2D')
         self.add_input('ArmFloatSocket', 'Frame duration')
+        self.add_input('ArmIntSocket', 'Items Per Frame', default_value = 20000)
 
         self.add_output('ArmNodeSocketAction', 'Out')
         self.add_output('ArmNodeSocketAction', 'Done')
         self.add_output('ArmIntSocket', 'Total Frames')
+        self.add_output('ArmIntSocket', 'Current Frame')
+
+    def draw_buttons(self, context, layout):
+        layout.prop(self, 'property0')

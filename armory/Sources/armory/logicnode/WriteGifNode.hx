@@ -1,16 +1,21 @@
 package armory.logicnode;
 
 import iron.object.CameraObject;
-import kha.Color;
-
 import iron.format.gif.GifEncoder;
+import iron.system.Time;
+import iron.Scene;
+import iron.App;
+import kha.Color;
+import kha.Image;
 
 class WriteGifNode extends LogicNode {
 
+	public var property0: String;
+
 	var file: String;
 	var camera: CameraObject;
-	var renderTarget: kha.Image;
-	//var texAux: kha.Image;
+	var renderTarget: Image;
+	//var texAux: Image;
 
 	var width: Int;
 	var height: Int;
@@ -21,13 +26,14 @@ class WriteGifNode extends LogicNode {
 
 	var r2d: Bool;
 
-	var encoder: iron.format.gif.GifEncoder;
+	var encoder: GifEncoder;
 	var frames: Array<haxe.io.UInt8Array>;
 	var bo: haxe.io.BytesOutput;
 	var fdur: Float;
 
 	var duration: Float;
 	var totalFrames: Int = 0;
+	var currentFrame: Int = 0;
 
 	public function new(tree: LogicTree) {
 		super(tree);
@@ -49,9 +55,8 @@ class WriteGifNode extends LogicNode {
 
 		fdur = inputs[11].get();
 
-		//assert(Error, iron.App.w() % inputs[3].get() == 0 && iron.App.h() % inputs[4].get() == 0, "Aspect ratio must match display resolution ratio");
-
-		renderTarget = kha.Image.createRenderTarget(width, height,
+		//assert(Error, App.w() % inputs[3].get() == 0 && App.h() % inputs[4].get() == 0, "Aspect ratio must match display resolution ratio");
+		renderTarget = Image.createRenderTarget(width, height,
 			kha.graphics4.TextureFormat.RGBA32,
 			kha.graphics4.DepthStencilFormat.NoDepthAndStencil);
 
@@ -62,9 +67,10 @@ class WriteGifNode extends LogicNode {
 		bo = new haxe.io.BytesOutput();
 		duration = 0.0;
 		totalFrames = 0;
-
-		encoder = new iron.format.gif.GifEncoder(tw, th, fdur, -1, 10); //GifRepeat.Infinite, GifQuality.High
-
+		encoder = new GifEncoder(tw, th, fdur, -1, 10); //GifRepeat.Infinite, GifQuality.High
+		if (property0 == 'Async')
+			encoder.itemsPerFrame = inputs[12].get();
+		
 		encoder.start(bo);
 
 		tree.notifyOnRender(render);
@@ -75,31 +81,30 @@ class WriteGifNode extends LogicNode {
 		else{
 
 			if (frames != null){
-
-				encoder.commit(bo);
-
-				#if kha_krom
-				Krom.fileSaveBytes(Krom.getFilesLocation() +  "/" + file, bo.getBytes().getData());
-		
-				#elseif kha_html5
-				var blob = new js.html.Blob([bo.getBytes().getData()], {type: "application"});
-				var url = js.html.URL.createObjectURL(blob);
-				var a = cast(js.Browser.document.createElement("a"), js.html.AnchorElement);
-				a.href = url;
-				a.download = file;
-				a.click();
-				js.html.URL.revokeObjectURL(url);
-				#end
-
-				runOutput(1);
-
 				tree.removeRender(render);
 
-				renderTarget.unload();
-				//if (r2d)
-					//texAux.unload();
-				frames = null;
-				bo = null;
+				encoder.commit(bo, function() {
+					#if kha_krom
+					Krom.fileSaveBytes(Krom.getFilesLocation() +  "/" + file, bo.getBytes().getData());
+			
+					#elseif kha_html5
+					var blob = new js.html.Blob([bo.getBytes().getData()], {type: "application"});
+					var url = js.html.URL.createObjectURL(blob);
+					var a = cast(js.Browser.document.createElement("a"), js.html.AnchorElement);
+					a.href = url;
+					a.download = file;
+					a.click();
+					js.html.URL.revokeObjectURL(url);
+					#end
+
+					runOutput(1);
+
+					renderTarget.unload();
+					//if (r2d)
+						//texAux.unload();
+					frames = null;
+					bo = null;
+				});
 			}
 
 		}
@@ -107,23 +112,22 @@ class WriteGifNode extends LogicNode {
 	}
 
 	override function get(from: Int): Dynamic {
-		return totalFrames;
+		return
+		from == 2 ? totalFrames : totalFrames - (encoder != null && encoder.frameQueue.length > 0 ? encoder.frameQueue.length : 0);
 	}
 
 	function render(g: kha.graphics4.Graphics) {
 
-		duration += iron.system.Time.delta;
-		
+		duration += Time.delta;
 		if (duration < fdur)
 			return;
 		
 		duration = 0;
 
 		var ready = false;
-		final sceneCam = iron.Scene.active.camera;
+		final sceneCam = Scene.active.camera;
 		final oldRT = camera.renderTarget;
-
-		iron.Scene.active.camera = camera;
+		Scene.active.camera = camera;
 		camera.renderTarget = renderTarget;
 
 		camera.renderFrame(g);
@@ -131,11 +135,10 @@ class WriteGifNode extends LogicNode {
 		var tex = camera.renderTarget;
 
 		camera.renderTarget = oldRT;
-		iron.Scene.active.camera = sceneCam;
-
+		Scene.active.camera = sceneCam;
 		if (r2d){
 
-			tex = kha.Image.createRenderTarget(width, height,
+			tex = Image.createRenderTarget(width, height,
 				kha.graphics4.TextureFormat.RGBA32,
 				kha.graphics4.DepthStencilFormat.NoDepthAndStencil);
 
@@ -145,29 +148,26 @@ class WriteGifNode extends LogicNode {
 
 			tex.g2.color = Color.White;
 			tex.g2.drawScaledImage(renderTarget, 0, 0, width, height);
+			var scl = width/ App.w();
 
-			var scl = width/ iron.App.w();
-
-			if (kha.Image.renderTargetsInvertedY()){
+			if (Image.renderTargetsInvertedY()){
 				tex.g2.scale(scl, -scl);
 				tex.g2.translate(0, height);
 			}
 			else
 				tex.g2.scale(scl, scl);
 
-			for (f in @:privateAccess iron.App.traitRenders2D){
+			for (f in @:privateAccess App.traitRenders2D){
 				f(tex.g2);
 			}
 			
 			tex.g2.end();
-
 		}
 
 		var pixels = tex.getPixels();
 
-		for (i in 0...pixels.length){
+		for (i in 0...pixels.length)
 			if (pixels.get(i) != 0){ ready = true; break; }
-		}
 
 		//wait for getPixels ready
 		if (ready) { 
@@ -185,7 +185,7 @@ class WriteGifNode extends LogicNode {
 					#end
 
 					//ARGB 0xff
-					rgb.set(m * 3 + 0, pixels.get(l * 4 + 0)); 
+					rgb.set(m * 3 + 0, pixels.get(l * 4 + 0));
 					rgb.set(m * 3 + 1, pixels.get(l * 4 + 1));
 					rgb.set(m * 3 + 2, pixels.get(l * 4 + 2));
 				}
@@ -197,7 +197,12 @@ class WriteGifNode extends LogicNode {
 				data: rgb
 			}
 
-			encoder.add(bo, frame);
+			if (property0 == 'Async') 
+				encoder.addAsync(bo, frame);
+			else{ 
+				encoder.add(bo, frame);
+				currentFrame++;
+			}
 			totalFrames++;
 
 		}
