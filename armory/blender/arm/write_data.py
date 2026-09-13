@@ -36,7 +36,7 @@ def add_armory_library(sdk_path: str, name: str, rel_path=False) -> str:
     return ('project.addLibrary("' + sdk_path + '/' + name + '");\n').replace('\\', '/').replace('//', '/')
 
 
-def add_assets(path: str, quality=1.0, use_data_dir=False, rel_path=False) -> str:
+def add_assets(path: str, quality=1.0, use_data_dir=False, rel_path=False, noprocessing=False) -> str:
     if not bpy.data.worlds['Arm'].arm_minimize and path.endswith('.arm'):
         path = path[:-4] + '.json'
 
@@ -45,6 +45,8 @@ def add_assets(path: str, quality=1.0, use_data_dir=False, rel_path=False) -> st
 
     notinlist = not path.endswith('.ttf') # TODO
     s = 'project.addAssets("' + path + '", { notinlist: ' + str(notinlist).lower() + ' '
+    if noprocessing:
+        s += ', noprocessing: true'
     if quality < 1.0:
         s += ', quality: ' + str(quality)
     if use_data_dir:
@@ -273,9 +275,10 @@ project.addSources('Sources');
                 quality = wrd.arm_sound_quality
             elif s.endswith('.png') or s.endswith('.jpg'):
                 quality = wrd.arm_texture_quality
+            noprocessing = s.endswith('.avi')
 
             do_relpath_assets = rel_path and on_same_drive(ref, project_path)
-            khafile.write(add_assets(ref, quality=quality, use_data_dir=use_data_dir, rel_path=do_relpath_assets))
+            khafile.write(add_assets(ref, quality=quality, use_data_dir=use_data_dir, rel_path=do_relpath_assets, noprocessing=noprocessing))
 
         if wrd.arm_sound_quality < 1.0 or state.target == 'html5':
             assets.add_khafile_def('arm_soundcompress')
