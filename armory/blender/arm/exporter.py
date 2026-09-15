@@ -2332,7 +2332,20 @@ Make sure the mesh only has tris/quads.""")
                         trait['type'] = 'Script'
                         trait['class_name'] = 'armory.trait.internal.MovieTexture'
                         ArmoryExporter.import_traits.append(trait['class_name'])
-                        trait['parameters'] = ['"' + tex['file'] + '"']
+                        frames = int(tex.get('frames', 1))
+                        start_frame = max(0, int(tex.get('start_frame', 1)) - 1)
+                        offset = int(tex.get('offset', 0))
+                        end_frame = start_frame + offset + max(1, frames) - 1
+                        loop = 'true' if tex.get('cyclic', False) else 'false'
+                        trait['parameters'] = [
+                            '"' + tex['file'] + '"',
+                            '"' + o['name'] + '"',
+                            '"' + tex['name'] + '"',
+                            str(start_frame),
+                            str(end_frame),
+                            loop,
+                            str(offset)
+                        ]
                         for user in mat_armusers[material]:
                             user['traits'].append(trait)
 

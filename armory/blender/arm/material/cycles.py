@@ -880,7 +880,7 @@ def make_texture(
         return None
 
     ext = s[1].lower()
-    do_convert = ext not in ('jpg', 'png', 'hdr', 'mp4') # Convert image
+    do_convert = ext not in ('jpg', 'png', 'hdr', 'mp4', 'avi') # Convert image
     if do_convert:
         new_ext = 'png' if (ext in ('tga', 'dds')) else 'jpg'
         tex['file'] = tex['file'].rsplit('.', 1)[0] + '.' + new_ext
@@ -976,7 +976,14 @@ def make_texture_from_image_node(image_node: bpy.types.ShaderNodeTexImage, tex_n
     if matname is None:
         matname = mat_state.material.name
 
-    return make_texture(image_node.image, tex_name, matname, image_node.interpolation, image_node.extension)
+    tex = make_texture(image_node.image, tex_name, matname, image_node.interpolation, image_node.extension)
+    if tex is not None and image_node.image is not None and image_node.image.source == 'MOVIE':
+        user = image_node.image_user
+        tex['frames'] = user.frame_duration
+        tex['start_frame'] = user.frame_start
+        tex['offset'] = user.frame_offset
+        tex['cyclic'] = user.use_cyclic
+    return tex
 
 
 def is_pow(num):
