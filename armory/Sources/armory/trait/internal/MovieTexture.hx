@@ -8,21 +8,8 @@ import iron.format.avi.Reader;
 import iron.object.MeshObject;
 import haxe.io.Bytes;
 
-/**
-	Replaces the diffuse texture of the first material of the trait's object
-	with a video texture.
-
-	@see https://github.com/armory3d/armory_examples/tree/master/material_movie
-**/
 class MovieTexture extends Trait {
 
-	/**
-		Caches all render targets used by this trait for re-use when having
-		multiple videos of the same size. The lookup only takes place on trait
-		initialization.
-
-		Map layout: `[width => [height => image]]`
-	**/
 	static var frameCache: Map<String, Map<Int, Image>> = new Map();
 	static var videoFrames: Map<String, Array<Bytes>> = new Map();
 	static var videoFps: Map<String, Float> = new Map();
