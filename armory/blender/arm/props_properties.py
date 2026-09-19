@@ -163,6 +163,7 @@ def draw_properties(layout, obj):
             btn_arr.operator("arm_array.remove_item", icon='REMOVE', text="")
 
 class ARM_PT_ObjectPropsPanel(bpy.types.Panel):
+    bl_idname = "ARM_PT_ObjectCustomPropsPanel"
     bl_label = "Armory Props"
     bl_space_type = "PROPERTIES"
     bl_region_type = "WINDOW"
@@ -171,6 +172,7 @@ class ARM_PT_ObjectPropsPanel(bpy.types.Panel):
         draw_properties(self.layout, context.object)
 
 class ARM_PT_ScenePropsPanel(bpy.types.Panel):
+    bl_idname = "ARM_PT_SceneCustomPropsPanel"
     bl_label = "Armory Props"
     bl_space_type = "PROPERTIES"
     bl_region_type = "WINDOW"

@@ -457,8 +457,14 @@ def register():
     arm.logicnode.arm_node_group.register()
     arm.logicnode.tree_variables.register()
 
-    ARM_MT_NodeAddOverride.overridden_menu = bpy.types.NODE_MT_add
-    ARM_MT_NodeAddOverride.overridden_draw = bpy.types.NODE_MT_add.draw
+    current_menu = bpy.types.NODE_MT_add
+    if hasattr(current_menu, 'overridden_menu') and current_menu.overridden_menu is not None:
+        ARM_MT_NodeAddOverride.overridden_menu = current_menu.overridden_menu
+        ARM_MT_NodeAddOverride.overridden_draw = current_menu.overridden_draw
+    else:
+        ARM_MT_NodeAddOverride.overridden_menu = current_menu
+        ARM_MT_NodeAddOverride.overridden_draw = current_menu.draw
+    bpy.utils.unregister_class(current_menu)
 
     __reg_classes()
 
