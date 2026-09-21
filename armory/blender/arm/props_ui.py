@@ -23,6 +23,7 @@ import arm.nodes_logic
 import arm.ui_icons as ui_icons
 import arm.utils
 import arm.utils_vs
+import arm.video
 import arm.write_probes
 
 if arm.is_reload(__name__):
@@ -41,6 +42,7 @@ if arm.is_reload(__name__):
     ui_icons = arm.reload_module(ui_icons)
     arm.utils = arm.reload_module(arm.utils)
     arm.utils_vs = arm.reload_module(arm.utils_vs)
+    arm.video = arm.reload_module(arm.video)
     arm.write_probes = arm.reload_module(arm.write_probes)
 else:
     arm.enable_reload(__name__)
@@ -62,6 +64,70 @@ class ARM_OT_del_instanced_attr(bpy.types.Operator):
     idx: bpy.props.IntProperty()
     def execute(self, context):
         context.object.arm_instanced_attrs.remove(self.idx)
+        return {'FINISHED'}
+
+def update_video_info(self, context):
+    filepath = bpy.path.abspath(f"//Convert/{self.video_name}")
+    if os.path.exists(filepath):
+        clip = bpy.data.movieclips.load(filepath)
+        self.frame_end = int(clip.frame_duration)
+        self.width = clip.size[0]
+        self.height = clip.size[1]
+        self.fps = clip.fps
+        bpy.data.movieclips.remove(clip)
+
+class ARM_PG_VideoListItem(bpy.types.PropertyGroup):
+    video_name: StringProperty(name="Video Name", update=update_video_info)
+    frame_start: IntProperty(name="Frame Start", default=1, min=1)
+    frame_end: IntProperty(name="Frame End", default=-1, min=-1)
+    width: IntProperty(name="Width", default=1920, min=1)
+    height: IntProperty(name="Height", default=1080, min=1)
+    fps: FloatProperty(name="FPS", default=30.0, min=1.0)
+    quality: IntProperty(name="Quality", default=80, min=10, max=100)
+    audio: BoolProperty(name="Audio", default=True)
+
+class ARM_UL_VideoList(bpy.types.UIList):
+    def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
+        layout.prop(item, 'video_name', text='', emboss=False, icon='FILE_MOVIE')
+
+class ARM_OT_VideoListNewItem(bpy.types.Operator):
+    bl_idname = "arm.video_list_new_item"
+    bl_label = "Add Video"
+
+    def execute(self, context):
+        wrd = bpy.data.worlds['Arm']
+        wrd.arm_video_list.add()
+        wrd.arm_video_list_index = len(wrd.arm_video_list) - 1
+        return {'FINISHED'}
+
+class ARM_OT_VideoListDeleteItem(bpy.types.Operator):
+    bl_idname = "arm.video_list_delete_item"
+    bl_label = "Remove Video"
+
+    def execute(self, context):
+        wrd = bpy.data.worlds['Arm']
+        if len(wrd.arm_video_list) == 0:
+            return {'CANCELLED'}
+        wrd.arm_video_list.remove(wrd.arm_video_list_index)
+        wrd.arm_video_list_index = min(wrd.arm_video_list_index, len(wrd.arm_video_list) - 1)
+        return {'FINISHED'}
+
+class ARM_OT_ConvertVideo(bpy.types.Operator):
+    bl_idname = "arm.convert_video"
+    bl_label = "Convert Video list"
+    bl_description = "Videos must be in a Convert folder"
+
+    def execute(self, context):
+        wrd = bpy.data.worlds['Arm']
+        if len(wrd.arm_video_list) == 0:
+            self.report({'WARNING'}, "The video list is empty")
+            return {'CANCELLED'}
+
+        converted_paths, errors = arm.video.convert_videos(wrd.arm_video_list, arm.utils.get_fp())
+        if errors:
+            self.report({'WARNING'}, f"Converted {len(converted_paths)} video(s), {len(errors)} failed")
+            return {'CANCELLED'}
+        self.report({'INFO'}, f"Converted {len(converted_paths)} video(s)")
         return {'FINISHED'}
 
 class ARM_PT_ObjectPropsPanel(bpy.types.Panel):
@@ -1186,23 +1252,13 @@ class ARM_PT_ProjectFlagsPanel(bpy.types.Panel):
         col.prop(wrd, 'arm_deinterleaved_buffers')
         col.prop(wrd, 'arm_export_tangents')
 
-        col = layout.column(heading='Quality')
-        row = col.row()  # To expand below property UI horizontally
-        row.prop(wrd, 'arm_canvas_img_scaling_quality', expand=True)
-        col.prop(wrd, 'arm_texture_quality')
-        col.prop(wrd, 'arm_sound_quality')
-
-        col = layout.column(heading='External Assets')
-        col.prop(wrd, 'arm_copy_override')
-        col.operator('arm.copy_to_bundled', icon='IMAGE_DATA')
-
 class ARM_PT_ProjectFlagsDebugConsolePanel(bpy.types.Panel):
     bl_label = "Debug Console"
     bl_space_type = "PROPERTIES"
     bl_region_type = "WINDOW"
     bl_context = "render"
     bl_options = {'DEFAULT_CLOSED'}
-    bl_parent_id = "ARM_PT_ProjectFlagsPanel"
+    bl_parent_id = "ARM_PT_ArmoryProjectPanel"
 
     def draw_header(self, context):
         wrd = bpy.data.worlds['Arm']
@@ -1219,6 +1275,83 @@ class ARM_PT_ProjectFlagsDebugConsolePanel(bpy.types.Panel):
         col.prop(wrd, 'arm_debug_console_scale')
         col.prop(wrd, 'arm_debug_console_visible')
         col.prop(wrd, 'arm_debug_console_trace_pos')
+
+class ARM_PT_ProjectAssetsPanel(bpy.types.Panel):
+    bl_label = "Assets"
+    bl_space_type = "PROPERTIES"
+    bl_region_type = "WINDOW"
+    bl_context = "render"
+    bl_options = {'DEFAULT_CLOSED'}
+    bl_parent_id = "ARM_PT_ArmoryProjectPanel"
+
+    def draw(self, context):
+        layout = self.layout
+        wrd = bpy.data.worlds['Arm']
+
+        col = layout.column(align=True)
+        col.use_property_split = False
+
+        # Image
+        row = col.row(align=True)
+        row.alignment = 'LEFT'
+        row.separator(factor=1.0)
+        icon = 'DISCLOSURE_TRI_DOWN' if getattr(wrd, 'arm_assets_image_expanded', False) else 'DISCLOSURE_TRI_RIGHT'
+        row.prop(wrd, 'arm_assets_image_expanded', text="Image", icon=icon, emboss=False)
+
+        if getattr(wrd, 'arm_assets_image_expanded', False):
+            sub_row = col.row()
+            sub_row.separator(factor=2.0)
+            sub = sub_row.column()
+            sub.use_property_split = True
+            sub.use_property_decorate = False
+            r = sub.row()
+            r.prop(wrd, 'arm_canvas_img_scaling_quality', expand=True)
+            sub.prop(wrd, 'arm_texture_quality')
+            sub.prop(wrd, 'arm_copy_override')
+            sub.operator('arm.copy_to_bundled', icon='IMAGE_DATA')
+
+        # Sound
+        row = col.row(align=True)
+        row.alignment = 'LEFT'
+        row.separator(factor=1.0)
+        icon = 'DISCLOSURE_TRI_DOWN' if getattr(wrd, 'arm_assets_sound_expanded', False) else 'DISCLOSURE_TRI_RIGHT'
+        row.prop(wrd, 'arm_assets_sound_expanded', text="Sound", icon=icon, emboss=False)
+
+        if getattr(wrd, 'arm_assets_sound_expanded', False):
+            sub_row = col.row()
+            sub_row.separator(factor=2.0)
+            sub = sub_row.column()
+            sub.use_property_split = True
+            sub.use_property_decorate = False
+            sub.prop(wrd, 'arm_sound_quality')
+
+        # Video
+        row = col.row(align=True)
+        row.alignment = 'LEFT'
+        row.separator(factor=1.0)
+        icon = 'DISCLOSURE_TRI_DOWN' if getattr(wrd, 'arm_assets_video_expanded', False) else 'DISCLOSURE_TRI_RIGHT'
+        row.prop(wrd, 'arm_assets_video_expanded', text="Video", icon=icon, emboss=False)
+
+        if getattr(wrd, 'arm_assets_video_expanded', False):
+            rows = 2 if len(wrd.arm_video_list) <= 1 else 4
+            row = col.row()
+            row.template_list('ARM_UL_VideoList', '', wrd, 'arm_video_list', wrd, 'arm_video_list_index', rows=rows)
+            buttons = row.column(align=True)
+            buttons.operator('arm.video_list_new_item', icon='ADD', text='')
+            buttons.operator('arm.video_list_delete_item', icon='REMOVE', text='')
+
+            if wrd.arm_video_list_index >= 0 and len(wrd.arm_video_list) > 0:
+                item = wrd.arm_video_list[wrd.arm_video_list_index]
+                box = col.box()
+                box.prop(item, 'frame_start')
+                box.prop(item, 'frame_end')
+                box.prop(item, 'width')
+                box.prop(item, 'height')
+                box.prop(item, 'fps')
+                box.prop(item, 'quality')
+                box.prop(item, 'audio')
+
+            col.operator('arm.convert_video', icon='FILE_REFRESH')
 
 class ARM_PT_ProjectWindowPanel(bpy.types.Panel):
     bl_label = "Window"
@@ -3005,6 +3138,7 @@ __REG_CLASSES = (
     ARM_PT_ArmoryProjectPanel,
     ARM_PT_ProjectFlagsPanel,
     ARM_PT_ProjectFlagsDebugConsolePanel,
+    ARM_PT_ProjectAssetsPanel,
     ARM_PT_ProjectWindowPanel,
     ARM_PT_ProjectModulesPanel,
     ARM_PT_RenderPathPanel,
@@ -3051,7 +3185,12 @@ __REG_CLASSES = (
     ARM_OT_EditCustomCompositor,
     ArmInstancedAttr,
     ARM_OT_add_instanced_attr,
-    ARM_OT_del_instanced_attr
+    ARM_OT_del_instanced_attr,
+    ARM_PG_VideoListItem,
+    ARM_UL_VideoList,
+    ARM_OT_VideoListNewItem,
+    ARM_OT_VideoListDeleteItem,
+    ARM_OT_ConvertVideo
 )
 __reg_classes, __unreg_classes = bpy.utils.register_classes_factory(__REG_CLASSES)
 
@@ -3068,6 +3207,15 @@ def register():
     bpy.types.Material.arm_bind_textures_list_index = IntProperty(name='Index for arm_bind_textures_list', default=0)
 
     bpy.types.Object.arm_instanced_attrs = bpy.props.CollectionProperty(type=ArmInstancedAttr)
+    bpy.types.World.arm_video_list = CollectionProperty(type=ARM_PG_VideoListItem)
+    bpy.types.World.arm_video_list_index = IntProperty(name='Video Index', default=0)
+
+    if not hasattr(bpy.types.World, 'arm_assets_image_expanded'):
+        bpy.types.World.arm_assets_image_expanded = BoolProperty(name="Image", default=False)
+    if not hasattr(bpy.types.World, 'arm_assets_sound_expanded'):
+        bpy.types.World.arm_assets_sound_expanded = BoolProperty(name="Sound", default=False)
+    if not hasattr(bpy.types.World, 'arm_assets_video_expanded'):
+        bpy.types.World.arm_assets_video_expanded = BoolProperty(name="Video", default=False)
 
 def unregister():
     bpy.types.NODE_MT_context_menu.remove(draw_custom_node_menu)
