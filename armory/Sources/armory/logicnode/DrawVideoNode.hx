@@ -100,6 +100,10 @@ class DrawVideoNode extends LogicNode {
 			return;
 		}
 
+		if (channel != null) {
+			currentFrame = startFrame + Std.int(channel.position * videoFps);
+		}
+
 		if (currentFrame != displayedFrame && !isDecoding && rawFrames[currentFrame] != null) {
 			isDecoding = true;
 			var frameToLoad = currentFrame;
@@ -108,6 +112,7 @@ class DrawVideoNode extends LogicNode {
 				var pixels = img.getPixels();
 				var uploadImage = Image.fromBytes(pixels, img.width, img.height, kha.graphics4.TextureFormat.RGBA32);
 				img.unload();
+				img = null;
 			#else
 				var uploadImage = img;
 			#end
@@ -117,6 +122,7 @@ class DrawVideoNode extends LogicNode {
 				isDecoding = false;
 				if (oldImg != null) {
 					oldImg.unload();
+					oldImg = null;
 				}
 			}, (err: String) -> {
 				trace("DrawVideoNode ERROR" + frameToLoad + ": " + err);
@@ -130,12 +136,12 @@ class DrawVideoNode extends LogicNode {
 
 			RenderToTexture.g.color = Color.fromFloats(colorVec.x, colorVec.y, colorVec.z, colorVec.w);
 			RenderToTexture.g.drawScaledSubImage(currentImage, sx, sy, drawSWidth, drawSHeight, drawx, drawy, width, height);
-			if (displayedFrame == currentFrame) {
+
+			if (channel == null && displayedFrame == currentFrame) {
 				frameTime += iron.system.Time.delta;
 				var frameStep = 1.0 / videoFps;
 				if (frameTime >= frameStep) {
 					var framesToAdvance = Std.int(frameTime / frameStep);
-					if (framesToAdvance > 1) framesToAdvance = 1;
 					currentFrame += framesToAdvance;
 					frameTime -= framesToAdvance * frameStep;
 				}
