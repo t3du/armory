@@ -34,12 +34,15 @@ def _read_audio(temp_wav_path, frame_count, fps):
         sample_width = wav_file.getsampwidth()
         sample_rate = wav_file.getframerate()
         pcm_data = wav_file.readframes(wav_file.getnframes())
-    max_pcm_bytes = int(frame_count * sample_rate / fps) * channels * sample_width
+    max_pcm_bytes = int(round(frame_count * sample_rate / fps)) * channels * sample_width
     return channels, sample_width, sample_rate, pcm_data[:max_pcm_bytes]
 
 
 def _write_avi(output_path, jpeg_frames, audio_data, fps, width, height):
-    fps_rate = max(1, int(round(fps)))
+    scale = 10000
+    rate = int(round(fps * scale))
+    microseconds_per_frame = int(round(1000000 / fps))
+
     has_audio = audio_data is not None
     if has_audio:
         channels, sample_width, sample_rate, pcm_data = audio_data
@@ -68,7 +71,7 @@ def _write_avi(output_path, jpeg_frames, audio_data, fps, width, height):
         movi_offset += 8 + frame_size + len(frame_padding)
 
         if has_audio and pcm_offset < len(pcm_data):
-            next_pcm_offset = int((frame_index + 1) * sample_rate / fps) * block_align
+            next_pcm_offset = int(round((frame_index + 1) * sample_rate / fps)) * block_align
             if frame_index == len(jpeg_frames) - 1:
                 next_pcm_offset = len(pcm_data)
             audio_chunk = pcm_data[pcm_offset:next_pcm_offset]
@@ -86,8 +89,8 @@ def _write_avi(output_path, jpeg_frames, audio_data, fps, width, height):
     num_streams = 2 if has_audio else 1
     avih = struct.pack(
         "<IIIIIIIIIIIIII",
-        int(1000000 / fps_rate),
-        bytes_per_second + max_frame_size * fps_rate,
+        microseconds_per_frame,
+        int(bytes_per_second + max_frame_size * fps),
         0,
         0x10,
         num_frames,
@@ -111,8 +114,8 @@ def _write_avi(output_path, jpeg_frames, audio_data, fps, width, height):
         0,
         0,
         0,
-        1,
-        fps_rate,
+        scale,
+        rate,
         0,
         num_frames,
         max_frame_size,
@@ -294,11 +297,14 @@ def _convert_video(scene, item, project_dir):
                 channel=1,
                 frame_start=1,
             )
+            
+            exact_last_frame = first_frame + len(jpeg_frames) * step - 1
+
             temp_strip.frame_final_start = first_frame
-            temp_strip.frame_final_duration = last_frame - first_frame + 1
+            temp_strip.frame_final_duration = exact_last_frame - first_frame + 1
 
             temp_scene.frame_start = first_frame
-            temp_scene.frame_end = last_frame
+            temp_scene.frame_end = exact_last_frame
             temp_scene.render.fps = max(1, int(round(orig_fps_val)))
             temp_scene.render.fps_base = temp_scene.render.fps / orig_fps_val
 
