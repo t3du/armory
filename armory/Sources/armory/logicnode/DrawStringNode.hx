@@ -68,39 +68,17 @@ class DrawStringNode extends LogicNode {
 			case 'TextBottom': verA = TextBottom;
 		}
 
-		var posX: Float = inputs[5].get();
-		var posY: Float = inputs[6].get();
-
-		RenderToTexture.g.rotate(angle, posX, posY);
-
-		RenderToTexture.g.fontSize = inputs[3].get();
-		RenderToTexture.g.font = font;
-
-		var borderSize: Float = inputs[9].get();
-
-		if (borderSize > 0) {
-			final bcv = inputs[8].get();
-			RenderToTexture.g.color = Color.fromFloats(bcv.x, bcv.y, bcv.z, bcv.w);
-
-			while (borderSize > 0) {
-				var ringSteps = Std.int(Math.max(8, Math.ceil(borderSize * 4)));
-				if (ringSteps > 24) ringSteps = 24;
-				var ringAngle = (2 * Math.PI) / ringSteps;
-				for (i in 0...ringSteps) {
-					var ox = Math.cos(i * ringAngle) * borderSize;
-					var oy = Math.sin(i * ringAngle) * borderSize;
-					RenderToTexture.g.drawAlignedString(string, posX + ox, posY + oy, horA, verA);
-				}
-				borderSize -= 1.5;
-			}
-		}
+		RenderToTexture.g.rotate(angle, inputs[5].get(), inputs[6].get());
 
 		final colorVec = inputs[4].get();
 		RenderToTexture.g.color = Color.fromFloats(colorVec.x, colorVec.y, colorVec.z, colorVec.w);
 
-		RenderToTexture.g.drawAlignedString(string, posX, posY, horA, verA);
+		RenderToTexture.g.fontSize = inputs[3].get();
+		RenderToTexture.g.font = font;
 
-		RenderToTexture.g.rotate(-angle, posX, posY);
+		RenderToTexture.g.drawAlignedString(string, inputs[5].get(), inputs[6].get(), horA, verA);
+
+		RenderToTexture.g.rotate(-angle, inputs[5].get(), inputs[6].get());
 
 		runOutput(0);
 	}

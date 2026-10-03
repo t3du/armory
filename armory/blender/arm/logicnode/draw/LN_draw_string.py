@@ -15,8 +15,6 @@ class DrawStringNode(ArmLogicTreeNode):
     @input X/Y: Position of the string, in pixels from the top left corner.
     @input Angle: Rotation angle in radians. Rectangle will be rotated cloclwiswe
         at the anchor point.
-    @input Border Color: Color of the border outline. Default is black.
-    @input Border Size: Border outline thickness in pixels. Default is 0 (no border).
 
     @output Out: Activated after the string has been drawn.
     @output Width: String Width.
@@ -27,7 +25,7 @@ class DrawStringNode(ArmLogicTreeNode):
     bl_idname = 'LNDrawStringNode'
     bl_label = 'Draw String'
     arm_section = 'draw'
-    arm_version = 4
+    arm_version = 3
 
     property1: HaxeEnumProperty(
     'property1',
@@ -52,8 +50,6 @@ class DrawStringNode(ArmLogicTreeNode):
         self.add_input('ArmFloatSocket', 'X')
         self.add_input('ArmFloatSocket', 'Y')
         self.add_input('ArmFloatSocket', 'Angle')
-        self.add_input('ArmColorSocket', 'Border Color', default_value=[0.0, 0.0, 0.0, 1.0])
-        self.add_input('ArmFloatSocket', 'Border Size', default_value=0.0)
 
         self.add_output('ArmNodeSocketAction', 'Out')
         self.add_output('ArmFloatSocket', 'Width')
@@ -64,7 +60,7 @@ class DrawStringNode(ArmLogicTreeNode):
         layout.prop(self, 'property2')
 
     def get_replacement_node(self, node_tree: bpy.types.NodeTree):
-        if self.arm_version not in (0, 1, 2, 3):
+        if self.arm_version not in (0, 1, 2):
             raise LookupError()
             
         return NodeReplacement.Identity(self)
