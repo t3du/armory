@@ -316,6 +316,8 @@ project.addSources('Sources');
             p = sdk_path + '/armory/Assets/font_default.ttf'
             p = p.replace('//', '/')
             khafile.write(add_assets(p.replace('\\', '/'), use_data_dir=use_data_dir, rel_path=do_relpath_sdk))
+            khafile.write(add_shaders(sdk_path + '/armory/Shaders/draw_string/draw_string_outline_h.frag.glsl', rel_path=do_relpath_sdk))
+            khafile.write(add_shaders(sdk_path + '/armory/Shaders/draw_string/draw_string_outline_v.frag.glsl', rel_path=do_relpath_sdk))
             assets.add_khafile_def('arm_ui')
 
         if export_network:

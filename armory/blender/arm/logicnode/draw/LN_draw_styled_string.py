@@ -1,7 +1,7 @@
 from arm.logicnode.arm_nodes import *
 
 
-class DrawTexturedStringNode(ArmLogicTreeNode):
+class DrawStyledStringNode(ArmLogicTreeNode):
     """Draws a string filled with an image texture.
 
     @input Draw: Activate to draw the string on this frame. The input must
@@ -18,6 +18,7 @@ class DrawTexturedStringNode(ArmLogicTreeNode):
         at the anchor point.
     @input Tile Texture: If true, tiles/repeats the texture across the string. If false, stretches the texture to the text bounds.
     @input Tile Scale: Scaling factor for the texture pattern (default 1.0).
+    @input Offset X/Y: Texture offset in pixels, useful for animating the texture.
     @input Border Color: Color of the border outline. Default is black.
     @input Border Size: Border outline thickness in pixels. Default is 0 (no border).
 
@@ -27,8 +28,8 @@ class DrawTexturedStringNode(ArmLogicTreeNode):
 
     @see [`kha.graphics2.Graphics.drawString()`](http://kha.tech/api/kha/graphics2/Graphics.html#drawString).
     """
-    bl_idname = 'LNDrawTexturedStringNode'
-    bl_label = 'Draw Textured String'
+    bl_idname = 'LNDrawStyledStringNode'
+    bl_label = 'Draw Styled String'
     arm_section = 'draw'
     arm_version = 1
 
@@ -58,6 +59,8 @@ class DrawTexturedStringNode(ArmLogicTreeNode):
         self.add_input('ArmFloatSocket', 'Angle')
         self.add_input('ArmBoolSocket', 'Tile Texture', default_value=False)
         self.add_input('ArmFloatSocket', 'Tile Scale', default_value=1.0)
+        self.add_input('ArmFloatSocket', 'Offset X', default_value=0.0)
+        self.add_input('ArmFloatSocket', 'Offset Y', default_value=0.0)
         self.add_input('ArmColorSocket', 'Border Color', default_value=[0.0, 0.0, 0.0, 1.0])
         self.add_input('ArmFloatSocket', 'Border Size', default_value=0.0)
 
