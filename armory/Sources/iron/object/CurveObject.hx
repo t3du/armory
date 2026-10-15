@@ -9,6 +9,7 @@ import iron.data.Data;
 import iron.data.MeshData;
 import iron.data.MaterialData;
 import haxe.ds.Vector;
+import kha.graphics4.Graphics;
 import kha.arrays.Float32Array;
 import kha.arrays.Uint32Array;
 import kha.arrays.Int16Array;
@@ -266,14 +267,11 @@ class CurveObject extends Object {
 		return length;
 	}
 
-	var renderCb: kha.graphics4.Graphics->Int->Int->Void = null;
+	var renderCb: Graphics->Int->Int->Void = null;
 
 	public function draw() {
 		if (renderCb != null) RenderDraw.removeOnRender(renderCb);
 		renderCb = RenderDraw.notifyOnRender(function(draw: RenderDraw) {
-			draw.color = Color.fromFloats(this.data.color[0], this.data.color[1], this.data.color[2], this.data.color[3]);
-			draw.strength = this.data.strength;
-
 			var worldMat = this.transform.world;
 			
 			for (s in 0...splinesLength) {
@@ -291,7 +289,7 @@ class CurveObject extends Object {
 					p1.applymat4(worldMat);
 					p2.applymat4(worldMat);
 
-					draw.linev(p1, p2);
+					draw.linev(p1, p2, Color.fromFloats(this.data.color[0], this.data.color[1], this.data.color[2], this.data.color[3]), this.data.strength);
 				}
 			}
 		});
