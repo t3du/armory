@@ -9,6 +9,7 @@ import iron.object.MeshObject;
 import zui.Zui;
 import zui.Id;
 using armory.object.TransformExtension;
+import armory.trait.internal.RenderDraw;
 #if arm_shadowmap_atlas
 import armory.renderpath.Inc.ShadowMapTile;
 import armory.renderpath.Inc.ShadowMapAtlas;
@@ -162,21 +163,23 @@ class DebugConsole extends Trait {
 		if (!debugDrawSet) {
 			debugDrawSet = true;
 			if (renderCb != null) RenderDraw.removeOnRender(renderCb);
-			renderCb = armory.trait.internal.RenderDraw.notifyOnRender(function(draw: armory.trait.internal.RenderDraw) {
-				if (selectedObject != null)
-					switch (Type.getClass(selectedObject)) {
-						case iron.object.SpeakerObject:
-							draw.speaker(selectedObject.transform);
-						case iron.object.CameraObject:
-							draw.camera(selectedObject.transform);
-						case iron.object.LightObject:
-							draw.light(selectedObject.transform);
-						case iron.object.Object:
-							if (@:privateAccess selectedObject.isEmpty) draw.empty(selectedObject.transform);
-							else draw.bounds(selectedObject.transform);
-						default:
-							draw.bounds(selectedObject.transform);
-					}
+			renderCb = RenderDraw.notifyOnRender(function(draw: RenderDraw) {
+			draw.color = 0xff00ff00;
+			draw.strength = 0.05;
+			if (selectedObject != null)
+				switch (Type.getClass(selectedObject)) {
+					case iron.object.SpeakerObject:
+						draw.speaker(selectedObject.transform);
+					case iron.object.CameraObject:
+						draw.camera(selectedObject.transform);
+					case iron.object.LightObject:
+						draw.light(selectedObject.transform);
+					case iron.object.Object:
+						if (@:privateAccess selectedObject.isEmpty) draw.empty(selectedObject.transform);
+						else draw.bounds(selectedObject.transform);
+					default:
+						draw.bounds(selectedObject.transform);
+				}
 			});
 		}
 	}
