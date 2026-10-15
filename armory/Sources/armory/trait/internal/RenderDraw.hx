@@ -11,6 +11,10 @@ import kha.graphics4.CompareMode;
 import kha.graphics4.CullMode;
 import kha.graphics4.BlendingFactor;
 import kha.graphics4.Graphics;
+import kha.arrays.Float32Array;
+import kha.arrays.Uint32Array;
+import kha.Shaders;
+import kha.Color;
 import iron.math.Vec4;
 import iron.math.Mat4;
 import iron.object.Transform;
@@ -24,7 +28,7 @@ class RenderDraw {
 
 	static var inst: RenderDraw = null;
 
-	public var color: kha.Color = 0xff00ff00;
+	public var color: Color = 0xff00ff00;
 	public var strength = 0.05;
 
 	var vertexBuffer: VertexBuffer;
@@ -34,8 +38,8 @@ class RenderDraw {
 	var vp: Mat4;
 	var vpID: ConstantLocation;
 
-	var vbData: kha.arrays.Float32Array;
-	var ibData: kha.arrays.Uint32Array;
+	var vbData: Float32Array;
+	var ibData: Uint32Array;
 
 	static inline var maxLines = 300;
 	static inline var maxVertices = maxLines * 4;
@@ -51,11 +55,11 @@ class RenderDraw {
 		pipeline = new PipelineState();
 		pipeline.inputLayout = [structure];
 		#if arm_deferred
-		pipeline.fragmentShader = kha.Shaders.render_line_deferred_frag;
+		pipeline.fragmentShader = Shaders.render_line_deferred_frag;
 		#else
-		pipeline.fragmentShader = kha.Shaders.render_line_frag;
+		pipeline.fragmentShader = Shaders.render_line_frag;
 		#end
-		pipeline.vertexShader = kha.Shaders.render_line_vert;
+		pipeline.vertexShader = Shaders.render_line_vert;
 
 		pipeline.blendSource = BlendingFactor.SourceAlpha;
 		pipeline.blendDestination = BlendingFactor.InverseSourceAlpha;
@@ -483,8 +487,8 @@ class RenderDraw {
 		linev(v1, v2);
 	}
 
-	public inline function linev(v1: Vec4, v2: Vec4) {
-		line(v1.x, v1.y, v1.z, v2.x, v2.y, v2.z);
+	public inline function linev(v1: Vec4, v2: Vec4, ?col: Null<Color>, ?str: Null<Float>) {
+		line(v1.x, v1.y, v1.z, v2.x, v2.y, v2.z, col, str);
 	}
 
 	static var v1c = new Vec4();
@@ -497,9 +501,12 @@ class RenderDraw {
 	static var corner3 = new Vec4();
 	static var corner4 = new Vec4();
 
-	public function line(x1: Float, y1: Float, z1: Float, x2: Float, y2: Float, z2: Float) {
+	public function line(x1: Float, y1: Float, z1: Float, x2: Float, y2: Float, z2: Float, ?col: Null<Color>, ?str: Null<Float>) {
 		if (vbData == null) return;
 		if (lines >= maxLines) { end(); begin(); }
+
+		var finalColor = col != null ? col : color;
+		var finalStrength = str != null ? str : strength;
 
 		var camera = Scene.active.camera;
 		cameraPos.setFrom(camera.transform.getWorldPosition());
@@ -518,8 +525,8 @@ class RenderDraw {
 		perp.crossvecs(viewVec, lineVec);
 		perp.normalize();
 
-		var s1 = strength * dist1 * 0.01;
-		var s2 = strength * dist2 * 0.01;
+		var s1 = finalStrength * dist1 * 0.01;
+		var s2 = finalStrength * dist2 * 0.01;
 
 		var bias = 0.005; 
 		var bX = viewVec.x * bias;
@@ -532,13 +539,13 @@ class RenderDraw {
 		corner4.set(x2 + perp.x * s2 + bX, y2 + perp.y * s2 + bY, z2 + perp.z * s2 + bZ);
 
 		var i = lines * 28;
-		addVbData(i, [corner1.x, corner1.y, corner1.z, color.R, color.G, color.B, color.A]);
+		addVbData(i, [corner1.x, corner1.y, corner1.z, finalColor.R, finalColor.G, finalColor.B, finalColor.A]);
 		i += 7;
-		addVbData(i, [corner2.x, corner2.y, corner2.z, color.R, color.G, color.B, color.A]);
+		addVbData(i, [corner2.x, corner2.y, corner2.z, finalColor.R, finalColor.G, finalColor.B, finalColor.A]);
 		i += 7;
-		addVbData(i, [corner3.x, corner3.y, corner3.z, color.R, color.G, color.B, color.A]);
+		addVbData(i, [corner3.x, corner3.y, corner3.z, finalColor.R, finalColor.G, finalColor.B, finalColor.A]);
 		i += 7;
-		addVbData(i, [corner4.x, corner4.y, corner4.z, color.R, color.G, color.B, color.A]);
+		addVbData(i, [corner4.x, corner4.y, corner4.z, finalColor.R, finalColor.G, finalColor.B, finalColor.A]);
 
 		i = lines * 6;
 		ibData[i] = lines * 4;
