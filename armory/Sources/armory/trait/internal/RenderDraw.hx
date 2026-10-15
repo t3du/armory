@@ -10,8 +10,14 @@ import kha.graphics4.ConstantLocation;
 import kha.graphics4.CompareMode;
 import kha.graphics4.CullMode;
 import kha.graphics4.BlendingFactor;
+import kha.graphics4.Graphics;
 import iron.math.Vec4;
 import iron.math.Mat4;
+import iron.object.Transform;
+import iron.object.MeshObject;
+import iron.RenderPath;
+import iron.Scene;
+import haxe.ds.StringMap;
 using armory.object.TransformExtension;
 
 class RenderDraw {
@@ -67,25 +73,25 @@ class RenderDraw {
 		indexBuffer = new IndexBuffer(maxIndices, Usage.DynamicUsage);
 	}
 
-	static var g: kha.graphics4.Graphics;
+	static var g: Graphics;
 
-	public static function notifyOnRender(f: RenderDraw->Void): kha.graphics4.Graphics->Int->Int->Void {
+	public static function notifyOnRender(f: RenderDraw->Void): Graphics->Int->Int->Void {
 		if (inst == null) inst = new RenderDraw();
-		var cb = function(g4: kha.graphics4.Graphics, i: Int, len: Int) {
+		var cb = function(g4: Graphics, i: Int, len: Int) {
 			g = g4;
 			if (i == 0) inst.begin();
 			f(inst);
 			if (i == len - 1) inst.end();
 		};
-		iron.RenderPath.notifyOnContext("mesh", cb);
+		RenderPath.notifyOnContext("mesh", cb);
 		return cb;
 	}
 
-	public static function removeOnRender(cb: kha.graphics4.Graphics->Int->Int->Void) {
-		iron.RenderPath.removeNotifyOnContext("mesh", cb);
+	public static function removeOnRender(cb: Graphics->Int->Int->Void) {
+		RenderPath.removeNotifyOnContext("mesh", cb);
 	}
 
-	public function empty(transform: iron.object.Transform) {
+	public function empty(transform: Transform) {
 		var scl = transform.scale;
 		var loc = transform.getWorldPosition();
 		var right = transform.world.right();
@@ -105,7 +111,7 @@ class RenderDraw {
 		linev(p5, p6);
 	}
 
-	public function light(transform: iron.object.Transform) {
+	public function light(transform: Transform) {
 		var segments = 12;
 		var r = 0.3;
 		var h = 2.0;
@@ -153,7 +159,7 @@ class RenderDraw {
 		}
 	}
 
-	public function camera(transform: iron.object.Transform) {
+	public function camera(transform: Transform) {
 		var scl = transform.scale;
 		var d = 2.0 * scl.z;
 		var w = 0.8 * scl.x;
@@ -206,7 +212,7 @@ class RenderDraw {
 		linev(c2, topPeak);
 	}
 
-	public function speaker(transform: iron.object.Transform) {
+	public function speaker(transform: Transform) {
 		var segments = 8;
 		var r1 = 0.4;
 		var r2 = 0.2;
@@ -276,13 +282,13 @@ class RenderDraw {
 		linev(prevMid, firstMid);
 		linev(prevTop, firstTop);
 	}
-	static var wv1 = new iron.math.Vec4();
-	static var wv2 = new iron.math.Vec4();
-	static var wv3 = new iron.math.Vec4();
-	static var we1 = new iron.math.Vec4();
-	static var we2 = new iron.math.Vec4();
-	static var wn = new iron.math.Vec4();
-	public function wireframe(mesh: iron.object.MeshObject) {
+	static var wv1 = new Vec4();
+	static var wv2 = new Vec4();
+	static var wv3 = new Vec4();
+	static var we1 = new Vec4();
+	static var we2 = new Vec4();
+	static var wn = new Vec4();
+	public function wireframe(mesh: MeshObject) {
 		if (mesh == null || mesh.data == null) return;
 
 		var geom = mesh.data.geom;
@@ -291,7 +297,7 @@ class RenderDraw {
 		var world = mesh.transform.world;
 		var scl = mesh.data.scalePos / 32767;
 
-		var edgeMap = new haxe.ds.StringMap<iron.math.Vec4>();
+		var edgeMap = new StringMap<Vec4>();
 
 		for (indexArray in indices) {
 			var i = 0;
@@ -341,7 +347,7 @@ class RenderDraw {
 		}
 	}
 
-	public function outline(mesh: iron.object.MeshObject) {
+	public function outline(mesh: MeshObject) {
 		if (mesh == null || mesh.data == null) return;
 
 		var geom = mesh.data.geom;
@@ -350,11 +356,11 @@ class RenderDraw {
 		var world = mesh.transform.world;
 		var scl = mesh.data.scalePos / 32767;
 
-		var camera = iron.Scene.active.camera;
+		var camera = Scene.active.camera;
 		cameraPos.setFrom(camera.transform.getWorldPosition());
 
 		var faceIsFront = new Array<Bool>();
-		var edgeToFace = new haxe.ds.StringMap<Int>();
+		var edgeToFace = new StringMap<Int>();
 		var edgesToDraw = new Array<Int>();
 
 		for (matIndex in 0...indices.length) {
@@ -424,7 +430,7 @@ class RenderDraw {
 	static var vx = new Vec4();
 	static var vy = new Vec4();
 	static var vz = new Vec4();
-	public function bounds(transform: iron.object.Transform) {
+	public function bounds(transform: Transform) {
 		objPosition = transform.getWorldPosition();
 		var dx = transform.dim.x / 2;
 		var dy = transform.dim.y / 2;
@@ -481,21 +487,21 @@ class RenderDraw {
 		line(v1.x, v1.y, v1.z, v2.x, v2.y, v2.z);
 	}
 
-	static var v1c = new iron.math.Vec4();
-	static var cameraPos = new iron.math.Vec4();
-	static var lineVec = new iron.math.Vec4();
-	static var viewVec = new iron.math.Vec4();
-	static var perp = new iron.math.Vec4();
-	static var corner1 = new iron.math.Vec4();
-	static var corner2 = new iron.math.Vec4();
-	static var corner3 = new iron.math.Vec4();
-	static var corner4 = new iron.math.Vec4();
+	static var v1c = new Vec4();
+	static var cameraPos = new Vec4();
+	static var lineVec = new Vec4();
+	static var viewVec = new Vec4();
+	static var perp = new Vec4();
+	static var corner1 = new Vec4();
+	static var corner2 = new Vec4();
+	static var corner3 = new Vec4();
+	static var corner4 = new Vec4();
 
 	public function line(x1: Float, y1: Float, z1: Float, x2: Float, y2: Float, z2: Float) {
 		if (vbData == null) return;
 		if (lines >= maxLines) { end(); begin(); }
 
-		var camera = iron.Scene.active.camera;
+		var camera = Scene.active.camera;
 		cameraPos.setFrom(camera.transform.getWorldPosition());
 
 		v1c.set(x1, y1, z1, 1.0).applymat4(camera.VP);
@@ -558,7 +564,7 @@ class RenderDraw {
 		g.setVertexBuffer(vertexBuffer);
 		g.setIndexBuffer(indexBuffer);
 		g.setPipeline(pipeline);
-		var camera = iron.Scene.active.camera;
+		var camera = Scene.active.camera;
 		vp.setFrom(camera.V);
 		vp.multmat(camera.P);
 		g.setMatrix(vpID, vp.self);
