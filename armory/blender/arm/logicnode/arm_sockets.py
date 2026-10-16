@@ -563,7 +563,7 @@ class ArmVectorSocket(ArmCustomSocket):
     def draw(self, context, layout, node, text):
         if not self.is_output and not self.is_linked:
             col = layout.column(align=True)
-            col.label(text=self.name + ":")
+            col.label(text=self.name)
             col.prop(self, 'default_value_raw', text='')
         else:
             layout.label(text=self.name)
