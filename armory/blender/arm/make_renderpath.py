@@ -52,6 +52,9 @@ def add_world_defs():
     if rpdat.rp_renderer == 'Deferred':
         assets.add_khafile_def('arm_deferred')
         wrd.world_defs += '_Deferred'
+        if '_EmissionShaded' not in wrd.world_defs:
+            wrd.world_defs += '_EmissionShaded'
+            assets.add_khafile_def('rp_gbuffer_emission')
 
     # Shadows
     if rpdat.rp_shadows:
