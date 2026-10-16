@@ -293,7 +293,7 @@ def init_properties():
     bpy.types.World.arm_stream_scene = BoolProperty(name="Stream Scene", description="Stream scene content", default=False, update=assets.invalidate_compiler_cache)
     bpy.types.World.arm_lod_gen_levels = IntProperty(name="Levels", description="Number of levels to generate", default=3, min=1)
     bpy.types.World.arm_lod_gen_ratio = FloatProperty(name="Decimate Ratio", description="Decimate ratio", default=0.8)
-    bpy.types.World.arm_cache_build = BoolProperty(name="Cache Build", description="Cache build files to speed up compilation", default=True)
+    bpy.types.World.arm_cache_build = BoolProperty(name="Cache Build", description="Cache build files to speed up compilation", default=False)
     bpy.types.World.arm_assert_level = EnumProperty(
         items=[
             ('Warning', 'Warning', 'Warning level, warnings don\'t throw an ArmAssertException'),
