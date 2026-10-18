@@ -293,62 +293,103 @@ class RenderDraw {
 	static var we1 = new Vec4();
 	static var we2 = new Vec4();
 	static var wn = new Vec4();
-	public function wireframe(mesh: MeshObject) {
-		if (mesh == null || mesh.data == null) return;
+	public function wireframe(mesh: MeshObject, ?col: Null<Color>, ?str: Null<Float>) {
+		if (mesh == null || mesh.data == null || mesh.data.geom == null) return;
 
 		var geom = mesh.data.geom;
+		if (geom.positions == null || geom.indices == null) return;
+
 		var pos = geom.positions.values;
 		var indices = geom.indices;
 		var world = mesh.transform.world;
 		var scl = mesh.data.scalePos / 32767;
 
-		var edgeMap = new StringMap<Vec4>();
-
-		for (indexArray in indices) {
-			var i = 0;
-			while (i < indexArray.length) {
-				var i1 = indexArray[i];
-				var i2 = indexArray[i + 1];
-				var i3 = indexArray[i + 2];
-
-				wv1.set(pos[i1 * 4], pos[i1 * 4 + 1], pos[i1 * 4 + 2]);
-				wv2.set(pos[i2 * 4], pos[i2 * 4 + 1], pos[i2 * 4 + 2]);
-				wv3.set(pos[i3 * 4], pos[i3 * 4 + 1], pos[i3 * 4 + 2]);
-				
-				we1.set(wv2.x - wv1.x, wv2.y - wv1.y, wv2.z - wv1.z);
-				we2.set(wv3.x - wv1.x, wv3.y - wv1.y, wv3.z - wv1.z);
-				
-				wn.crossvecs(we1, we2);
-				wn.normalize();
-
-				var edgeIndices = [[i1, i2], [i2, i3], [i3, i1]];
-				for (edge in edgeIndices) {
-					var a = edge[0];
-					var b = edge[1];
-					var key = a < b ? a + "_" + b : b + "_" + a;
-					
-					if (edgeMap.exists(key)) {
-						if (wn.dot(edgeMap.get(key)) < 0.99) {
-							wv1.set(pos[a * 4] * scl, pos[a * 4 + 1] * scl, pos[a * 4 + 2] * scl).applymat4(world);
-							wv2.set(pos[b * 4] * scl, pos[b * 4 + 1] * scl, pos[b * 4 + 2] * scl).applymat4(world);
-							linev(wv1, wv2);
-						}
-						edgeMap.remove(key);
-					} else {
-						edgeMap.set(key, wn.clone());
-					}
-				}
-				i += 3;
+		var ind: Array<Int> = [];
+		for (i in 0...indices.length) {
+			var indexArray = indices[i];
+			for (j in 0...indexArray.length) {
+				ind.push(indexArray[j]);
 			}
 		}
 
-		for (key in edgeMap.keys()) {
-			var v = key.split("_");
-			var a = Std.parseInt(v[0]);
-			var b = Std.parseInt(v[1]);
-			wv1.set(pos[a * 4] * scl, pos[a * 4 + 1] * scl, pos[a * 4 + 2] * scl).applymat4(world);
-			wv2.set(pos[b * 4] * scl, pos[b * 4 + 1] * scl, pos[b * 4 + 2] * scl).applymat4(world);
-			linev(wv1, wv2);
+		var numTriangles = Std.int(ind.length / 3);
+		if (numTriangles == 0) return;
+
+		var face = 0;
+		var faceIndex: Array<Int> = [];
+
+		for (i in 0...numTriangles - 1) {
+			var ar = ind.slice(i * 3, i * 3 + 3).concat(ind.slice((i + 1) * 3, (i + 1) * 3 + 3));
+			var unique: Array<Int> = [];
+			for (item in ar) {
+				if (unique.indexOf(item) == -1) unique.push(item);
+			}
+			faceIndex.push(face);
+			if (unique.length == ar.length) {
+				face += 1;
+			}
+		}
+		faceIndex.push(face);
+
+		var faceIndexF: Array<Int> = [];
+		for (f in faceIndex) {
+			for (i in 0...3) {
+				faceIndexF.push(f);
+			}
+		}
+
+		var numVerts = Std.int(pos.length / 4);
+
+		var firstIndexOfVert = new haxe.ds.Vector<Int>(numVerts);
+		for (i in 0...numVerts) firstIndexOfVert[i] = -1;
+		for (j in 0...ind.length) {
+			var v = ind[j];
+			if (v < numVerts && firstIndexOfVert[v] == -1) {
+				firstIndexOfVert[v] = j;
+			}
+		}
+
+		var faceInd: Array<Int> = [];
+		for (i in 0...numVerts) {
+			var first = firstIndexOfVert[i];
+			faceInd.push(first >= 0 ? faceIndexF[first] : -1);
+		}
+
+		var distinct: Array<Int> = [];
+		var faceStart = new haxe.ds.IntMap<Int>();
+		var faceCount = new haxe.ds.IntMap<Int>();
+
+		for (i in 0...faceInd.length) {
+			var f = faceInd[i];
+			if (f < 0) continue;
+			if (!faceStart.exists(f)) {
+				distinct.push(f);
+				faceStart.set(f, i);
+				faceCount.set(f, 1);
+			} else {
+				faceCount.set(f, faceCount.get(f) + 1);
+			}
+		}
+
+		var edgeMap = new haxe.ds.StringMap<Bool>();
+
+		for (f in distinct) {
+			var start = faceStart.get(f);
+			var count = faceCount.get(f);
+			if (count < 2) continue;
+
+			for (idx in start...(start + count)) {
+				var nextIdx = (idx < start + count - 1) ? idx + 1 : start;
+				if (idx >= numVerts || nextIdx >= numVerts) continue;
+
+				var key = idx < nextIdx ? idx + "_" + nextIdx : nextIdx + "_" + idx;
+				if (!edgeMap.exists(key)) {
+					edgeMap.set(key, true);
+					wv1.set(pos[idx * 4] * scl, pos[idx * 4 + 1] * scl, pos[idx * 4 + 2] * scl).applymat4(world);
+					wv2.set(pos[nextIdx * 4] * scl, pos[nextIdx * 4 + 1] * scl, pos[nextIdx * 4 + 2] * scl).applymat4(world);
+					linev(wv1, wv2, col, str);
+				}
+			}
 		}
 	}
 
