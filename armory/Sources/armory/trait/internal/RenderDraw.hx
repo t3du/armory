@@ -647,7 +647,7 @@ class RenderDraw {
 		}
 	}
 
-	public function text(str: String, col: Color, type: Int, thick: Float, align: Vec4, pos: Vec4, rot: Quat, scale: Float = 1.0): { width: Float, height: Float } {
+	public function text(str: String, col: Color, type: Int, strength: Float, align: Vec4, pos: Vec4, rot: Quat, scale: Float = 1.0): { width: Float, height: Float } {
 		var matrix = Mat4.identity();
 		matrix.compose(pos, rot, new Vec4(scale, scale, scale));
 		
@@ -673,7 +673,7 @@ class RenderDraw {
 			for (l in charData.lines) {
 				v1.set(l[0] + offsetX, l[1] + offsetY, l[2] + offsetZ, 1.0).applymat4(matrix);
 				v2.set(l[3] + offsetX, l[4] + offsetY, l[5] + offsetZ, 1.0).applymat4(matrix);
-				linev(v1, v2, col, thick);
+				linev(v1, v2, col, strength);
 			}
 			offsetX += charData.width + 0.15;
 		}
@@ -681,7 +681,7 @@ class RenderDraw {
 		/*
 		var p1 = new Vec4(pos.x - 0.1, pos.y, pos.z);
 		var p2 = new Vec4(pos.x + 0.1, pos.y, pos.z);
-		linev(p1, p2, Color.Black, thick * 2.0);
+		linev(p1, p2, Color.Black, strength * 2.0);
 		*/
 
 		return { width: totalWidth, height: maxHeight };

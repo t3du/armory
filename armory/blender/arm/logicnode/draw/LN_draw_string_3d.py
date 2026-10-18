@@ -19,7 +19,7 @@ class DrawString3DNode(ArmLogicTreeNode):
         self.add_input('ArmStringSocket', 'String')
         self.add_input('ArmColorSocket', 'Color', default_value=[1.0, 1.0, 1.0, 1.0])
         self.add_input('ArmIntSocket', '0/1/2: BorderLine/Filled/SingleLine')
-        self.add_input('ArmFloatSocket', 'Thickness', default_value=0.1)
+        self.add_input('ArmFloatSocket', 'Strength', default_value=0.1)
         self.add_input('ArmVectorSocket', 'Align', default_value=[0.5, 0.5, 0.0])
         self.add_input('ArmVectorSocket', 'Position')
         self.add_input('ArmRotationSocket', 'Rotation')
