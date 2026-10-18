@@ -23,6 +23,8 @@ import iron.object.MeshObject;
 import iron.RenderPath;
 import iron.Scene;
 import haxe.ds.StringMap;
+import haxe.ds.Vector;
+import haxe.ds.IntMap;
 using armory.object.TransformExtension;
 
 class RenderDraw {
@@ -340,7 +342,7 @@ class RenderDraw {
 
 		var numVerts = Std.int(pos.length / 4);
 
-		var firstIndexOfVert = new haxe.ds.Vector<Int>(numVerts);
+		var firstIndexOfVert = new Vector<Int>(numVerts);
 		for (i in 0...numVerts) firstIndexOfVert[i] = -1;
 		for (j in 0...ind.length) {
 			var v = ind[j];
@@ -356,8 +358,8 @@ class RenderDraw {
 		}
 
 		var distinct: Array<Int> = [];
-		var faceStart = new haxe.ds.IntMap<Int>();
-		var faceCount = new haxe.ds.IntMap<Int>();
+		var faceStart = new IntMap<Int>();
+		var faceCount = new IntMap<Int>();
 
 		for (i in 0...faceInd.length) {
 			var f = faceInd[i];
@@ -371,7 +373,7 @@ class RenderDraw {
 			}
 		}
 
-		var edgeMap = new haxe.ds.StringMap<Bool>();
+		var edgeMap = new StringMap<Bool>();
 
 		for (f in distinct) {
 			var start = faceStart.get(f);
@@ -393,26 +395,32 @@ class RenderDraw {
 		}
 	}
 
-	public function outline(mesh: MeshObject) {
-		if (mesh == null || mesh.data == null) return;
+	public function outline(mesh: MeshObject, ?col: Null<Color>, ?str: Null<Float>) {
+		if (mesh == null || mesh.data == null || mesh.data.geom == null) return;
 
 		var geom = mesh.data.geom;
+		if (geom.positions == null || geom.indices == null) return;
+
+		var camera = Scene.active.camera;
+		if (camera == null) return;
+
 		var pos = geom.positions.values;
 		var indices = geom.indices;
 		var world = mesh.transform.world;
 		var scl = mesh.data.scalePos / 32767;
 
-		var camera = Scene.active.camera;
 		cameraPos.setFrom(camera.transform.getWorldPosition());
+		var isOrtho = camera.data != null && camera.data.raw != null && camera.data.raw.ortho != null;
+		var orthoLook = isOrtho ? camera.transform.world.look() : null;
 
 		var faceIsFront = new Array<Bool>();
 		var edgeToFace = new StringMap<Int>();
 		var edgesToDraw = new Array<Int>();
+		var faceIdx = 0;
 
 		for (matIndex in 0...indices.length) {
 			var indexArray = indices[matIndex];
 			var i = 0;
-			var faceIdx = 0;
 
 			while (i < indexArray.length) {
 				var i1 = indexArray[i];
@@ -422,33 +430,46 @@ class RenderDraw {
 				wv1.set(pos[i1 * 4] * scl, pos[i1 * 4 + 1] * scl, pos[i1 * 4 + 2] * scl).applymat4(world);
 				wv2.set(pos[i2 * 4] * scl, pos[i2 * 4 + 1] * scl, pos[i2 * 4 + 2] * scl).applymat4(world);
 				wv3.set(pos[i3 * 4] * scl, pos[i3 * 4 + 1] * scl, pos[i3 * 4 + 2] * scl).applymat4(world);
-				
+
 				we1.set(wv2.x - wv1.x, wv2.y - wv1.y, wv2.z - wv1.z);
 				we2.set(wv3.x - wv1.x, wv3.y - wv1.y, wv3.z - wv1.z);
 				wn.crossvecs(we1, we2);
 
-				viewVec.set(cameraPos.x - wv1.x, cameraPos.y - wv1.y, cameraPos.z - wv1.z);
-				
+				if (isOrtho) {
+					viewVec.set(-orthoLook.x, -orthoLook.y, -orthoLook.z);
+				} else {
+					var cx = (wv1.x + wv2.x + wv3.x) / 3.0;
+					var cy = (wv1.y + wv2.y + wv3.y) / 3.0;
+					var cz = (wv1.z + wv2.z + wv3.z) / 3.0;
+					viewVec.set(cameraPos.x - cx, cameraPos.y - cy, cameraPos.z - cz);
+				}
+
 				var isFront = wn.dot(viewVec) > 0;
 				faceIsFront.push(isFront);
 
-				var eIdx = [[i1, i2], [i2, i3], [i3, i1]];
-				for (e in eIdx) {
-					var v1x = Math.round(pos[e[0]*4] * 100);
-					var v1y = Math.round(pos[e[0]*4+1] * 100);
-					var v1z = Math.round(pos[e[0]*4+2] * 100);
-					var v2x = Math.round(pos[e[1]*4] * 100);
-					var v2y = Math.round(pos[e[1]*4+1] * 100);
-					var v2z = Math.round(pos[e[1]*4+2] * 100);
-					
-					var key = v1x < v2x ? v1x+"_"+v1y+"_"+v1z+"_"+v2x+"_"+v2y+"_"+v2z : v2x+"_"+v2y+"_"+v2z+"_"+v1x+"_"+v1y+"_"+v1z;
+				for (e in 0...3) {
+					var e0 = (e == 0) ? i1 : ((e == 1) ? i2 : i3);
+					var e1 = (e == 0) ? i2 : ((e == 1) ? i3 : i1);
+
+					var v1x = pos[e0 * 4];
+					var v1y = pos[e0 * 4 + 1];
+					var v1z = pos[e0 * 4 + 2];
+					var v2x = pos[e1 * 4];
+					var v2y = pos[e1 * 4 + 1];
+					var v2z = pos[e1 * 4 + 2];
+
+					if (v1x == v2x && v1y == v2y && v1z == v2z) continue;
+
+					var v1First = (v1x < v2x) || (v1x == v2x && (v1y < v2y || (v1y == v2y && v1z < v2z)));
+					var key = v1First ? (v1x + "_" + v1y + "_" + v1z + "_" + v2x + "_" + v2y + "_" + v2z)
+					                  : (v2x + "_" + v2y + "_" + v2z + "_" + v1x + "_" + v1y + "_" + v1z);
 
 					if (edgeToFace.exists(key)) {
 						var otherFaceIdx = edgeToFace.get(key);
 
 						if (faceIsFront[otherFaceIdx] != isFront) {
-							edgesToDraw.push(e[0]);
-							edgesToDraw.push(e[1]);
+							edgesToDraw.push(e0);
+							edgesToDraw.push(e1);
 						}
 						edgeToFace.remove(key);
 					} else {
@@ -467,7 +488,7 @@ class RenderDraw {
 			var b = edgesToDraw[j + 1];
 			wv1.set(pos[a * 4] * scl, pos[a * 4 + 1] * scl, pos[a * 4 + 2] * scl).applymat4(world);
 			wv2.set(pos[b * 4] * scl, pos[b * 4 + 1] * scl, pos[b * 4 + 2] * scl).applymat4(world);
-			linev(wv1, wv2);
+			linev(wv1, wv2, col, str);
 			j += 2;
 		}
 	}
