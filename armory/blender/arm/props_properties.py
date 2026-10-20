@@ -162,28 +162,10 @@ def draw_properties(layout, obj):
             btn_arr.operator("arm_array.add_item", icon='ADD', text="")
             btn_arr.operator("arm_array.remove_item", icon='REMOVE', text="")
 
-class ARM_PT_ObjectPropsPanel(bpy.types.Panel):
-    bl_idname = "ARM_PT_ObjectCustomPropsPanel"
-    bl_label = "Armory Props"
-    bl_space_type = "PROPERTIES"
-    bl_region_type = "WINDOW"
-    bl_context = "object"
-    def draw(self, context):
-        draw_properties(self.layout, context.object)
-
-class ARM_PT_ScenePropsPanel(bpy.types.Panel):
-    bl_idname = "ARM_PT_SceneCustomPropsPanel"
-    bl_label = "Armory Props"
-    bl_space_type = "PROPERTIES"
-    bl_region_type = "WINDOW"
-    bl_context = "scene"
-    def draw(self, context):
-        draw_properties(self.layout, context.scene)
-
 __REG_CLASSES = (
     ArmArrayItem, ArmPropertyListItem, ARM_UL_PropertyList, ARM_UL_ArrayItemList,
     ArmPropertyListNewItem, ArmPropertyListDeleteItem, ArmPropertyListMoveItem,
-    ArmArrayAddItem, ArmArrayRemoveItem, ARM_PT_ObjectPropsPanel, ARM_PT_ScenePropsPanel,
+    ArmArrayAddItem, ArmArrayRemoveItem,
 )
 
 def register():
