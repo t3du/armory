@@ -7,10 +7,10 @@ import kha.graphics4.PipelineState;
 import kha.graphics4.BlendingFactor;
 import kha.graphics4.TextureFormat;
 import kha.graphics4.DepthStencilFormat;
+import kha.graphics2.truetype.StbTruetype;
 import kha.graphics4.Graphics2 as G4G2;
-import kha.graphics2.VerTextAlignment;
-import kha.graphics2.HorTextAlignment;
 import armory.renderpath.RenderToTexture;
+import armory.trait.internal.FontProcessor;
 import iron.math.Vec4;
 
 #if arm_ui
@@ -22,19 +22,15 @@ using zui.GraphicsExtension;
 class DrawStyledStringNode extends LogicNode {
 	var font: Font;
 	var lastFontName = "";
+	var outlineFont: FontProcessor;
+	var lastOutlineFontName = "";
 	var img: kha.Image;
 	var lastImgName = "";
 	var string: String = "";
 	var rt: Null<kha.Image> = null;
-	var maskTarget: Null<kha.Image> = null;
-	var horizontalTarget: Null<kha.Image> = null;
-	var outlineTarget: Null<kha.Image> = null;
-	var outlineWidth = 0;
-	var outlineHeight = 0;
-
+	var measuredTextWidth: Float = 0.0;
+	var measuredTextHeight: Float = 0.0;
 	static var maskPipeline: Null<PipelineState> = null;
-	static var outlineHorizontalPipeline: Null<PipelineState> = null;
-	static var outlineVerticalPipeline: Null<PipelineState> = null;
 
 	public var property1: String;
 	public var property2: String;
@@ -47,9 +43,6 @@ class DrawStyledStringNode extends LogicNode {
 				rt.unload();
 				rt = null;
 			}
-			if (maskTarget != null) maskTarget.unload();
-			if (horizontalTarget != null) horizontalTarget.unload();
-			if (outlineTarget != null) outlineTarget.unload();
 		});
 		#end
 	}
@@ -102,16 +95,18 @@ class DrawStyledStringNode extends LogicNode {
 			#end
 		}
 
-		if (fontName != lastFontName) {
+		var isOpenType = StringTools.endsWith(fontName.toLowerCase(), ".otf");
+		if (isOpenType) {
+			if (fontName != lastFontName) {
+				lastFontName = fontName;
+				font = null;
+			}
+		} else if (fontName != lastFontName) {
 			lastFontName = fontName;
+			font = null;
 			iron.data.Data.getFont(fontName, (f: Font) -> {
-				font = f;
+				if (fontName == lastFontName) font = f;
 			});
-		}
-
-		if (font == null) {
-			runOutput(0);
-			return;
 		}
 
 		var fontSize: Int = inputs[4].get();
@@ -125,9 +120,25 @@ class DrawStyledStringNode extends LogicNode {
 		var offsetY: Float = inputs[12].get();
 		var borderColorVec: Vec4 = inputs[13].get();
 		var borderSize: Float = inputs[14].get();
+		if ((isOpenType || borderSize > 0) && fontName != lastOutlineFontName) {
+			lastOutlineFontName = fontName;
+			outlineFont = null;
+			FontProcessor.load(fontName, (processor: FontProcessor) -> {
+				if (fontName == lastOutlineFontName) outlineFont = processor;
+			});
+		}
 
-		var textWidth = font.width(fontSize, string);
-		var textHeight = font.height(fontSize);
+		if (isOpenType ? outlineFont == null : font == null) {
+			runOutput(0);
+			return;
+		}
+
+		var fontScale = isOpenType ? StbTruetype.stbtt_ScaleForPixelHeight(outlineFont.info, fontSize) : 0.0;
+		var textWidth = isOpenType ? getOutlineTextWidth(string, fontScale) : font.width(fontSize, string);
+		var textHeight = isOpenType ? fontSize : font.height(fontSize);
+		var baseline = isOpenType ? StbTruetype.stbtt_GetFontVMetrics(outlineFont.info).ascent * fontScale : font.baseline(fontSize);
+		measuredTextWidth = textWidth;
+		measuredTextHeight = textHeight;
 		if (textWidth <= 0 || textHeight <= 0) {
 			runOutput(0);
 			return;
@@ -149,22 +160,24 @@ class DrawStyledStringNode extends LogicNode {
 
 		if (img == null) {
 			RenderToTexture.g.rotate(angle, posX, posY);
-			RenderToTexture.g.font = font;
-			RenderToTexture.g.fontSize = fontSize;
-
-			if (borderSize > 0 && borderColorVec != null) drawOutline(string, fontSize, textWidth, textHeight, posX + xoffset, posY + yoffset, borderSize, borderColorVec, angle, posX, posY);
+			if (!isOpenType) {
+				RenderToTexture.g.font = font;
+				RenderToTexture.g.fontSize = fontSize;
+			}
+			if (borderSize > 0 && borderColorVec != null) drawOutline(string, fontSize, posX + xoffset, posY + yoffset, baseline, borderSize, borderColorVec);
 
 			if (colorVec != null) {
 				RenderToTexture.g.color = Color.fromFloats(colorVec.x, colorVec.y, colorVec.z, colorVec.w);
 			}
-			RenderToTexture.g.drawString(string, posX + xoffset, posY + yoffset);
+			if (isOpenType) drawOutlineFill(RenderToTexture.g, string, fontScale, posX + xoffset, posY + yoffset + baseline);
+			else RenderToTexture.g.drawString(string, posX + xoffset, posY + yoffset);
 			RenderToTexture.g.rotate(-angle, posX, posY);
 
 			runOutput(0);
 			return;
 		}
 
-		borderSize = Math.min(Math.max(borderSize, 0), 64);
+		borderSize = Math.max(borderSize, 0);
 		var pad = borderSize > 0 ? Std.int(Math.ceil(borderSize)) + 1 : 4;
 		var w = Std.int(Math.ceil(textWidth)) + pad * 2;
 		var h = Std.int(Math.ceil(textHeight)) + pad * 2;
@@ -184,10 +197,13 @@ class DrawStyledStringNode extends LogicNode {
 		mainG.end();
 
 		rt.g2.begin(true, Color.fromBytes(0, 0, 0, 0));
-		rt.g2.font = font;
-		rt.g2.fontSize = fontSize;
 		rt.g2.color = Color.White;
-		rt.g2.drawString(string, pad, pad);
+		if (isOpenType) drawOutlineFill(rt.g2, string, fontScale, pad, pad + baseline);
+		else {
+			rt.g2.font = font;
+			rt.g2.fontSize = fontSize;
+			rt.g2.drawString(string, pad, pad);
+		}
 
 		rt.g2.pipeline = getMaskPipeline();
 		if (colorVec != null) {
@@ -226,8 +242,7 @@ class DrawStyledStringNode extends LogicNode {
 
 		mainG.rotate(angle, posX, posY);
 
-		if (borderSize > 0 && borderColorVec != null) drawOutline(string, fontSize, textWidth, textHeight, posX + xoffset, posY + yoffset, borderSize, borderColorVec, angle, posX, posY);
-
+		if (borderSize > 0 && borderColorVec != null) drawOutline(string, fontSize, posX + xoffset, posY + yoffset, baseline, borderSize, borderColorVec);
 		mainG.color = Color.White;
 		mainG.drawScaledSubImage(rt, 0, 0, w, h, posX + xoffset - pad, posY + yoffset - pad, w, h);
 
@@ -236,82 +251,63 @@ class DrawStyledStringNode extends LogicNode {
 		runOutput(0);
 	}
 
-	function drawOutline(str: String, fontSize: Int, textWidth: Float, textHeight: Float, x: Float, y: Float, borderSize: Float, borderColor: Vec4, angle: Float, anchorX: Float, anchorY: Float) {
-		borderSize = Math.min(Math.max(borderSize, 0), 64);
-		if (borderSize <= 0) return;
-		var pad = Std.int(Math.ceil(borderSize)) + 1;
-		var w = Std.int(Math.ceil(textWidth)) + pad * 2;
-		var h = Std.int(Math.ceil(textHeight)) + pad * 2;
-		var lowW = Std.int(Math.ceil(w / 2));
-		var lowH = Std.int(Math.ceil(h / 2));
-		if (maskTarget == null || w != maskTarget.width || h != maskTarget.height || lowW != outlineWidth || lowH != outlineHeight) {
-			if (maskTarget != null) maskTarget.unload();
-			if (horizontalTarget != null) horizontalTarget.unload();
-			if (outlineTarget != null) outlineTarget.unload();
-			maskTarget = kha.Image.createRenderTarget(w, h, TextureFormat.RGBA32, DepthStencilFormat.NoDepthAndStencil);
-			horizontalTarget = kha.Image.createRenderTarget(lowW, lowH, TextureFormat.RGBA32, DepthStencilFormat.NoDepthAndStencil);
-			outlineTarget = kha.Image.createRenderTarget(lowW, lowH, TextureFormat.RGBA32, DepthStencilFormat.NoDepthAndStencil);
-			outlineWidth = lowW;
-			outlineHeight = lowH;
+	function getOutlineTextWidth(str: String, scale: Float): Float {
+		var width = 0.0;
+		for (i in 0...str.length) {
+			var code = str.charCodeAt(i);
+			if (code != 10) width += outlineFont.getAdvanceWidth(code) * scale;
 		}
-		var mainG = RenderToTexture.g;
-		mainG.end();
-		maskTarget.g2.begin(true, Color.fromBytes(0, 0, 0, 0));
-		maskTarget.g2.font = font;
-		maskTarget.g2.fontSize = fontSize;
-		maskTarget.g2.color = Color.White;
-		maskTarget.g2.drawString(str, pad, pad);
-		maskTarget.g2.end();
-		horizontalTarget.g2.begin(true, Color.fromBytes(0, 0, 0, 0));
-		horizontalTarget.g2.pipeline = getOutlineHorizontalPipeline();
-		horizontalTarget.g2.color = Color.fromFloats(borderSize / 64, (w / lowW) / 4, (h / lowH) / 4, 1);
-		horizontalTarget.g2.drawScaledImage(maskTarget, 0, 0, lowW, lowH);
-		horizontalTarget.g2.pipeline = null;
-		horizontalTarget.g2.end();
-		outlineTarget.g2.begin(true, Color.fromBytes(0, 0, 0, 0));
-		outlineTarget.g2.pipeline = getOutlineVerticalPipeline();
-		outlineTarget.g2.color = Color.fromFloats(borderSize / 64, (w / lowW) / 4, (h / lowH) / 4, 1);
-		outlineTarget.g2.drawScaledImage(horizontalTarget, 0, 0, lowW, lowH);
-		outlineTarget.g2.pipeline = null;
-		outlineTarget.g2.end();
-		mainG.begin(false);
-		mainG.rotate(angle, anchorX, anchorY);
-		var previousImageScaleQuality = mainG.imageScaleQuality;
-		mainG.imageScaleQuality = kha.graphics2.ImageScaleQuality.High;
-		mainG.color = Color.fromFloats(borderColor.x, borderColor.y, borderColor.z, borderColor.w);
-		mainG.drawScaledImage(outlineTarget, x - pad, y - pad, w, h);
-		mainG.imageScaleQuality = previousImageScaleQuality;
-		mainG.rotate(-angle, anchorX, anchorY);
+		return width;
 	}
 
-	static function getOutlineHorizontalPipeline(): PipelineState {
-		if (outlineHorizontalPipeline == null) {
-			var pipeline = new PipelineState();
-			pipeline.inputLayout = [G4G2.createImageVertexStructure()];
-			pipeline.vertexShader = kha.Shaders.painter_image_vert;
-			pipeline.fragmentShader = kha.Shaders.draw_string_outline_h_frag;
-			pipeline.blendSource = BlendOne; pipeline.blendDestination = BlendZero;
-			pipeline.alphaBlendSource = BlendOne; pipeline.alphaBlendDestination = BlendZero;
-			pipeline.compile(); outlineHorizontalPipeline = pipeline;
+	function drawOutlineFill(draw: kha.graphics2.Graphics, str: String, scale: Float, x: Float, baseline: Float) {
+		var cursorX = 0.0;
+		for (i in 0...str.length) {
+			var code = str.charCodeAt(i);
+			if (code == 10) continue;
+			var contours = outlineFont.getGlyphContours(code, 8);
+			var triangles = outlineFont.triangulate(contours, false);
+			var j = 0;
+			while (j + 5 < triangles.length) {
+				draw.fillTriangle(x + (cursorX + triangles[j]) * scale, baseline - triangles[j + 1] * scale,
+					x + (cursorX + triangles[j + 2]) * scale, baseline - triangles[j + 3] * scale,
+					x + (cursorX + triangles[j + 4]) * scale, baseline - triangles[j + 5] * scale);
+				j += 6;
+			}
+			cursorX += outlineFont.getAdvanceWidth(code);
 		}
-		return outlineHorizontalPipeline;
 	}
 
-	static function getOutlineVerticalPipeline(): PipelineState {
-		if (outlineVerticalPipeline == null) {
-			var pipeline = new PipelineState();
-			pipeline.inputLayout = [G4G2.createImageVertexStructure()];
-			pipeline.vertexShader = kha.Shaders.painter_image_vert;
-			pipeline.fragmentShader = kha.Shaders.draw_string_outline_v_frag;
-			pipeline.blendSource = BlendOne; pipeline.blendDestination = BlendZero;
-			pipeline.alphaBlendSource = BlendOne; pipeline.alphaBlendDestination = BlendZero;
-			pipeline.compile(); outlineVerticalPipeline = pipeline;
+	function drawOutline(str: String, fontSize: Int, x: Float, y: Float, fontBaseline: Float, borderSize: Float, borderColor: Vec4) {
+		if (outlineFont == null || borderSize <= 0) return;
+		var scale = StbTruetype.stbtt_ScaleForPixelHeight(outlineFont.info, fontSize);
+		var baseline = y + fontBaseline;
+		var cursorX = 0.0;
+		var lineWidth = borderSize * 2;
+		var draw = RenderToTexture.g;
+		var previousColor = draw.color;
+		draw.color = Color.fromFloats(borderColor.x, borderColor.y, borderColor.z, borderColor.w);
+		for (i in 0...str.length) {
+			var code = str.charCodeAt(i);
+			if (code == 10) continue;
+			var contours = outlineFont.getGlyphContours(code, 8);
+			for (contour in contours) for (j in 0...contour.length - 1) {
+				var a = contour[j];
+				var b = contour[j + 1];
+				var ax = x + (cursorX + a.x) * scale;
+				var ay = baseline - a.y * scale;
+				var bx = x + (cursorX + b.x) * scale;
+				var by = baseline - b.y * scale;
+				draw.drawLine(ax, ay, bx, by, lineWidth);
+				draw.fillCircle(ax, ay, borderSize);
+			}
+			cursorX += outlineFont.getAdvanceWidth(code);
 		}
-		return outlineVerticalPipeline;
+		draw.color = previousColor;
 	}
 
 	override function get(from: Int): Dynamic {
-		return from == 1 ? RenderToTexture.g.font.width(RenderToTexture.g.fontSize, string) : RenderToTexture.g.font.height(RenderToTexture.g.fontSize);
+		return from == 1 ? measuredTextWidth : measuredTextHeight;
 	}
 	#end
 }
