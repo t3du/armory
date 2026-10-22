@@ -2,7 +2,7 @@ from arm.logicnode.arm_nodes import *
 
 class PromptNode(ArmLogicTreeNode):
     """Open a prompt with the give string value an returns either the user value
-    or the default string if specified (works only for web browsers).
+    or the default string if specified.
 
     @input String: message to display.
     @input Default: default string value in case there is no user input.

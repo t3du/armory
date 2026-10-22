@@ -2,7 +2,7 @@ from arm.logicnode.arm_nodes import *
 
 class ConfirmNode(ArmLogicTreeNode):
     """Open a window alert with the give string value and returns true or false 
-    according to the user answer (works only for web browsers).
+    according to the user answer.
 
     @input String: message to display.
 

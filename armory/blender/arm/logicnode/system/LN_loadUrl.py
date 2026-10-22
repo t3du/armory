@@ -1,7 +1,7 @@
 from arm.logicnode.arm_nodes import *
 
 class LoadUrlNode(ArmLogicTreeNode):
-    """Load the given URL in a new or existing tab (works only for web browsers).
+    """Load the given URL in a new or existing tab.
 
     @input URL: use a complete url or partial for a subpage.
     @input New: open a new window or redirect existing one.
