@@ -9,12 +9,22 @@ class PromptNode extends LogicNode {
 	}
 
 	override function run(from: Int) {
-		#if kha_html5
-		input = js.Browser.window.prompt(inputs[1].get(), inputs[2].get());
-		
-		runOutput(0);
+		var msg: String = inputs[1].get();
+		var def: String = inputs[2].get();
+
+		#if kha_krom
+		var save = Krom.getFilesLocation() + "/prompt.txt";
+		var psCommand = "powershell -command \"Add-Type -AssemblyName Microsoft.VisualBasic; $res = [Microsoft.VisualBasic.Interaction]::InputBox('" + msg + "', '" + Main.projectName + "', '" + def + "'); [System.IO.File]::WriteAllText('" + save + "', $res)\"";
+		Krom.sysCommand(psCommand);
+		var bytes = Krom.loadBlob("prompt.txt");
+		if (bytes != null) {
+			input = haxe.io.Bytes.ofData(bytes).toString();
+		}
+		#elseif kha_html5
+		input = js.Browser.window.prompt(msg, def);
 		#end
 
+		runOutput(0);
 	}
 
 	override function get(from: Int): Dynamic {
