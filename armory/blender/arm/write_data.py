@@ -87,6 +87,17 @@ let project = new Project('""" + arm.utils.safesrc(wrd.arm_project_name + '-' + 
 project.addSources('Sources');
 """)
 
+        uses_peer_node = any(
+            node.arm_section == 'peer'
+            for node_group in bpy.data.node_groups
+            if node_group.bl_idname in ('ArmLogicTreeType', 'ArmGroupTree')
+            for node in node_group.nodes
+        )
+        if uses_peer_node and state.target == 'html5':
+            peerjs_path = sdk_path + '/lib/peerjs/peerjs.min.js'
+            peerjs_path = peerjs_path.replace('\\', '/').replace('//', '/')
+            khafile.write(add_assets(peerjs_path, rel_path=do_relpath_sdk, noprocessing=True))
+
         # Auto-add assets located in Bundled directory
         if os.path.exists('Bundled'):
             for file in glob.glob("Bundled/**", recursive=True):
