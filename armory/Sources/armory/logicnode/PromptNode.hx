@@ -25,7 +25,7 @@ class PromptNode extends LogicNode {
 
 		if (input != null){
 			if (input == '') input = def;
-			runOutput(0);
+			if (input != '') runOutput(0); else runOutput(1);
 		} else 
 			runOutput(1);
 	}
