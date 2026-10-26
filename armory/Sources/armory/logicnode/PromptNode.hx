@@ -17,14 +17,17 @@ class PromptNode extends LogicNode {
 		var psCommand = "powershell -command \"Add-Type -AssemblyName Microsoft.VisualBasic; $res = [Microsoft.VisualBasic.Interaction]::InputBox('" + msg + "', '" + Main.projectName + "', '" + def + "'); [System.IO.File]::WriteAllText('" + save + "', $res)\"";
 		Krom.sysCommand(psCommand);
 		var bytes = Krom.loadBlob("prompt.txt");
-		if (bytes != null) {
+		if (bytes != null)
 			input = haxe.io.Bytes.ofData(bytes).toString();
-		}
 		#elseif kha_html5
 		input = js.Browser.window.prompt(msg, def);
 		#end
 
-		runOutput(0);
+		if (input != null){
+			if (input == '') input = def;
+			runOutput(0);
+		} else 
+			runOutput(1);
 	}
 
 	override function get(from: Int): Dynamic {

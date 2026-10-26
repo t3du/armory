@@ -18,5 +18,6 @@ class PromptNode(ArmLogicTreeNode):
         self.add_input('ArmStringSocket', 'String')
         self.add_input('ArmStringSocket', 'Default')
 
-        self.add_output('ArmNodeSocketAction', 'Out')
+        self.add_output('ArmNodeSocketAction', 'True')
+        self.add_output('ArmNodeSocketAction', 'False')
         self.add_output('ArmStringSocket', 'String')
