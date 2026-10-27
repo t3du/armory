@@ -376,9 +376,13 @@ class ARM_PT_DataPropsPanel(bpy.types.Panel):
         wrd = bpy.data.worlds['Arm']
         if obj.type == 'CAMERA':
             layout.prop(obj.data, 'arm_frustum_culling')
-        elif obj.type == 'MESH' or obj.type == 'FONT' or obj.type == 'META':
+        elif obj.type == 'MESH' or obj.type == 'META':
             layout.prop(obj.data, 'arm_dynamic_usage')
             layout.operator("arm.invalidate_cache")
+        elif obj.type == 'FONT':
+            layout.prop(obj.data, 'arm_text_fill')
+            layout.prop(obj.data, 'arm_text_outline_strength')
+            layout.prop(obj.data, 'arm_text_outline_color')
         elif obj.type == 'CURVE':
             layout.prop(obj.data, 'arm_draw_strength')
             layout.prop(obj.data, 'arm_draw_color')

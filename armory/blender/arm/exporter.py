@@ -14,6 +14,7 @@ https://creativecommons.org/licenses/by-sa/3.0/deed.en_US
 from enum import Enum, unique
 import math
 import os
+import shutil
 import time
 from typing import Any, Dict, List, Tuple, Union, Optional
 
@@ -55,6 +56,7 @@ class NodeType(Enum):
     DECAL = 6
     PROBE = 7
     CURVE = 8
+    TEXT = 9
 
     @classmethod
     def get_bobject_type(cls, bobject: bpy.types.Object) -> "NodeType":
@@ -63,7 +65,9 @@ class NodeType(Enum):
         if bobject.type == "MESH":
             if bobject.data.polygons: #or bobject.data.edges or bobject.data.vertices:
                 return cls.MESH
-        elif bobject.type in ('FONT', 'META'):
+        elif bobject.type == 'FONT':
+            return cls.TEXT
+        elif bobject.type == 'META':
             return cls.MESH
         elif bobject.type == "LIGHT":
             return cls.LIGHT
@@ -80,7 +84,7 @@ class NodeType(Enum):
 
 STRUCT_IDENTIFIER = ("object", "bone_object", "mesh_object",
                      "light_object", "camera_object", "speaker_object",
-                     "decal_object", "probe_object", "curve_object")
+                     "decal_object", "probe_object", "curve_object", "text_object")
 
 # Internal target names for single FCurve data paths
 FCURVE_TARGET_NAMES = {
@@ -160,6 +164,7 @@ class ArmoryExporter:
         self.bone_tracks = []
 
         self.curve_array = {}
+        self.text_array = {}
 
         ArmoryExporter.preprocess()
 
@@ -1000,6 +1005,20 @@ class ArmoryExporter:
                     # Decal flag
                     if mat is not None and mat.arm_decal:
                         out_object['type'] = 'decal_object'
+
+            elif object_type is NodeType.TEXT:
+                if objref not in self.text_array:
+                    self.text_array[objref] = {"structName": objname, "objectTable": [bobject]}
+                else:
+                    self.text_array[objref]["objectTable"].append(bobject)
+                out_object['data_ref'] = arm.utils.safestr(self.text_array[objref]["structName"])
+                out_object['material_refs'] = []
+                for i in range(len(bobject.material_slots)):
+                    mat = self.slot_to_material(bobject, bobject.material_slots[i])
+                    self.export_material_ref(bobject, mat, i, out_object)
+                if len(out_object['material_refs']) == 0:
+                    self.use_default_material(bobject, out_object)
+                out_object['dimensions'] = [bobject.dimensions[0], bobject.dimensions[1], bobject.dimensions[2]]
 
 
             # Export the transform. If object is animated, then animation tracks are exported here
@@ -1992,6 +2011,56 @@ Make sure the mesh only has tris/quads.""")
         
         self.output['curve_datas'].append(out_curve)
 
+    def export_text(self, object_ref):
+        table = object_ref[1]["objectTable"]
+        bobject = table[0]
+        text_id = arm.utils.safestr(object_ref[1]["structName"])
+        text_data = bobject.data
+        font = text_data.font
+        font_filepath = bpy.path.abspath(font.filepath) if font.filepath else ""
+        font_extension = os.path.splitext(font_filepath)[1].lower()
+        font_file = "font_default.ttf"
+
+        if font_extension in ('.ttf', '.otf'):
+            font_filename = os.path.basename(font_filepath)
+            bundled_dir = os.path.join(arm.utils.get_fp(), 'Bundled')
+            bundled_path = os.path.join(bundled_dir, font_filename)
+            os.makedirs(bundled_dir, exist_ok=True)
+            packed_font = getattr(font, 'packed_file', None)
+            if packed_font is not None:
+                with open(bundled_path, 'wb') as font_file_handle:
+                    font_file_handle.write(bytes(packed_font.data))
+            elif os.path.isfile(font_filepath):
+                if os.path.normcase(os.path.abspath(font_filepath)) != os.path.normcase(os.path.abspath(bundled_path)):
+                    shutil.copy2(font_filepath, bundled_path)
+            else:
+                log.warn(f'Text object "{bobject.name}" font file was not found: {font_filepath}')
+                font_extension = ""
+            if font_extension:
+                font_file = font_filename
+                assets.add(os.path.relpath(bundled_path, arm.utils.get_fp()).replace('\\', '/'))
+        else:
+            log.warn(f'Text object "{bobject.name}" uses a font format that Armory text rendering does not support: {font.filepath}')
+
+        if font_file == "font_default.ttf":
+            sdk_font = os.path.join(arm.utils.get_sdk_path(), 'armory', 'Assets', font_file)
+            if os.path.isfile(sdk_font):
+                assets.add(sdk_font)
+
+        out_text = {
+            'name': text_id,
+            'object': bobject.name,
+            'body': text_data.body,
+            'font_file': font_file,
+            'resolution_u': text_data.resolution_u,
+            'extrude': text_data.extrude,
+            'size': text_data.size,
+            'fill': text_data.arm_text_fill,
+            'outline_strength': text_data.arm_text_outline_strength,
+            'outline_color': [text_data.arm_text_outline_color[0], text_data.arm_text_outline_color[1], text_data.arm_text_outline_color[2], text_data.arm_text_outline_color[3]]
+        }
+        self.output['text_datas'].append(out_text)
+
 
     def export_light(self, object_ref):
         """Exports a single light object."""
@@ -2636,6 +2705,7 @@ Make sure the mesh only has tris/quads.""")
             self.output['camera_datas'] = []
             self.output['speaker_datas'] = []
             self.output['curve_datas'] = []
+            self.output['text_datas'] = []
 
             for light_ref in self.light_array.items():
                 self.export_light(light_ref)
@@ -2658,6 +2728,9 @@ Make sure the mesh only has tris/quads.""")
 
             for curve_ref in self.curve_array.items():
                 self.export_curve(curve_ref)
+
+            for text_ref in self.text_array.items():
+                self.export_text(text_ref)
 
         self.output['mesh_datas'] = []
         for mesh_ref in self.mesh_array.items():

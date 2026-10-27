@@ -43,6 +43,7 @@ typedef TSceneFormat = {
 	@:optional public var terrain_ref: String;
 	@:optional public var properties: Array<TProperty>;
 	@:optional public var curve_datas: Array<TCurveData>;
+	@:optional public var text_datas: Array<TTextData>;
 }
 
 #if js
@@ -660,4 +661,21 @@ typedef TCurveData = {
 	@:optional public var material_refs: Array<String>;
 	@:optional public var shape_keys: Array<TShapeKey>;
 
+}
+
+#if js
+typedef TTextData = {
+#else
+@:structInit class TTextData {
+#end
+	public var name: String;
+	public var object: String;
+	public var body: String;
+	public var font_file: String;
+	public var resolution_u: Int;
+	public var extrude: FastFloat;
+	public var size: FastFloat;
+	public var fill: Bool;
+	public var outline_strength: FastFloat;
+	public var outline_color: Float32Array;
 }

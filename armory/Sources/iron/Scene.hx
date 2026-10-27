@@ -15,6 +15,7 @@ import iron.object.DecalObject;
 import iron.object.ProbeObject;
 import iron.object.Tilesheet;
 import iron.object.CurveObject;
+import iron.object.TextObject;
 import iron.data.CameraData;
 import iron.data.MeshData;
 import iron.data.LightData;
@@ -363,6 +364,12 @@ class Scene {
 		return object;
 	}
 
+	public function addTextObject(data: TTextData, materials: Vector<MaterialData>, parent: Object = null, materialRefs: Array<String> = null): TextObject {
+		var object = new TextObject(data, materials, materialRefs);
+		parent != null ? object.setParent(parent) : object.setParent(root);
+		return object;
+	}
+
 	public function addLightObject(data: LightData, parent: Object = null): LightObject {
 		var object = new LightObject(data);
 		parent != null ? object.setParent(parent) : object.setParent(root);
@@ -602,6 +609,10 @@ class Scene {
 		}
 		else if (o.type == "curve_object") {
 			var object = addCurveObject(Data.getCurveRawByName(format.curve_datas, o.data_ref), parent);
+			returnObject(object, o, done);
+		}
+		else if (o.type == "text_object") {
+			var object = addTextObject(Data.getTextRawByName(format.text_datas, o.data_ref), null, parent, o.material_refs);
 			returnObject(object, o, done);
 		}
 

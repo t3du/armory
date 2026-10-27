@@ -40,6 +40,7 @@ def init_categories():
     arm_nodes.add_category('World', icon='WORLD', section="data")
     arm_nodes.add_category('Object', icon='OBJECT_DATA', section="data")
     arm_nodes.add_category('Curve', icon='IPO_EASE_IN_OUT', section="data")
+    arm_nodes.add_category('Text', icon='OUTLINER_OB_FONT', section="data")
     arm_nodes.add_category('Scene', icon='SCENE_DATA', section="data")
     arm_nodes.add_category('Trait', icon='NODETREE', section="data")
     arm_nodes.add_category('Network', icon='WORLD', section="data")
