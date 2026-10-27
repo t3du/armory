@@ -723,7 +723,7 @@ def build_success():
     sdk_path = arm.utils.get_sdk_path()
     target_name = arm.utils.get_kha_target(state.target)
 
-    files_path = os.path.join(arm.utils.get_fp_build(), 'debug' if state.is_play else '', target_name)
+    files_path = os.path.join(arm.utils.get_fp_build(), '' if state.is_publish else 'debug', target_name)
 
     if target_name in ('html5', 'krom') and wrd.arm_minify_js:
         # Minify JS
