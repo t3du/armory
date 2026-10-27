@@ -744,7 +744,7 @@ class Gamepad extends VirtualInput {
 			stick.x = value;
 			stick.movementX = stick.x - stick.lastX;
 		}
-		else if (axis == 1 || axis == 3) { // Y
+		else if (axis == 1 || axis == 3 || axis == 5) { // Y
 			stick.lastY = stick.y;
 			stick.y = value;
 			stick.movementY = stick.y - stick.lastY;
