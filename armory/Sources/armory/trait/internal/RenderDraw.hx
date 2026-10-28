@@ -15,6 +15,7 @@ import kha.arrays.Float32Array;
 import kha.arrays.Uint32Array;
 import kha.Shaders;
 import kha.Color;
+import kha.graphics2.truetype.StbTruetype;
 import iron.math.Vec4;
 import iron.math.Mat4;
 import iron.math.Quat;
@@ -22,6 +23,7 @@ import iron.object.Transform;
 import iron.object.MeshObject;
 import iron.RenderPath;
 import iron.Scene;
+import armory.trait.internal.FontProcessor;
 import haxe.ds.StringMap;
 import haxe.ds.Vector;
 import haxe.ds.IntMap;
@@ -30,6 +32,8 @@ using armory.object.TransformExtension;
 class RenderDraw {
 
 	static var inst: RenderDraw = null;
+	static var styledFonts = new StringMap<FontProcessor>();
+	static var styledFontLoading = new StringMap<Bool>();
 
 	public var color: Color = 0xff00ff00;
 	public var strength = 0.05;
@@ -48,6 +52,13 @@ class RenderDraw {
 	static inline var maxVertices = maxLines * 4;
 	static inline var maxIndices = maxLines * 6;
 	var lines = 0;
+	var styledPipeline: PipelineState;
+	var styledVertexBuffer: VertexBuffer;
+	var styledIndexBuffer: IndexBuffer;
+	var styledVp: Mat4;
+	var styledVpID: ConstantLocation;
+	static inline var maxStyledTriangles = 20000;
+	static inline var styledFontUnitScale: Float = 0.001;
 
 	function new() {
 		inst = this;
@@ -554,6 +565,10 @@ class RenderDraw {
 		line(v1.x, v1.y, v1.z, v2.x, v2.y, v2.z, col, str);
 	}
 
+	public inline function linevWorldWidth(v1: Vec4, v2: Vec4, col: Color, width: Float) {
+		line(v1.x, v1.y, v1.z, v2.x, v2.y, v2.z, col, width, true);
+	}
+
 	static var v1c = new Vec4();
 	static var cameraPos = new Vec4();
 	static var lineVec = new Vec4();
@@ -564,7 +579,7 @@ class RenderDraw {
 	static var corner3 = new Vec4();
 	static var corner4 = new Vec4();
 
-	public function line(x1: Float, y1: Float, z1: Float, x2: Float, y2: Float, z2: Float, ?col: Null<Color>, ?str: Null<Float>) {
+	public function line(x1: Float, y1: Float, z1: Float, x2: Float, y2: Float, z2: Float, ?col: Null<Color>, ?str: Null<Float>, worldSpaceWidth: Bool = false) {
 		if (vbData == null) return;
 		if (lines >= maxLines) { end(); begin(); }
 
@@ -588,8 +603,8 @@ class RenderDraw {
 		perp.crossvecs(viewVec, lineVec);
 		perp.normalize();
 
-		var s1 = finalStrength * dist1 * 0.01;
-		var s2 = finalStrength * dist2 * 0.01;
+		var s1 = worldSpaceWidth ? finalStrength * 0.5 : finalStrength * dist1 * 0.01;
+		var s2 = worldSpaceWidth ? finalStrength * 0.5 : finalStrength * dist2 * 0.01;
 
 		var bias = 0.005; 
 		var bX = viewVec.x * bias;
@@ -647,7 +662,7 @@ class RenderDraw {
 		}
 	}
 
-	public function text(str: String, col: Color, type: Int, strength: Float, align: Vec4, pos: Vec4, rot: Quat, scale: Float = 1.0): { width: Float, height: Float } {
+	public function text(str: String, col: Color, type: Int, strength: Float, align: Vec4, pos: Vec4, rot: Quat, scale: Float): { width: Float, height: Float } {
 		var matrix = Mat4.identity();
 		matrix.compose(pos, rot, new Vec4(scale, scale, scale));
 		
@@ -685,6 +700,183 @@ class RenderDraw {
 		*/
 
 		return { width: totalWidth, height: maxHeight };
+	}
+
+	public function styledText(str: String, col: Color, outlineStrength: Float, align: Vec4, pos: Vec4, rot: Quat, scale: Float, fontFile: String, fill: Bool, extrude, extrudeColor: Color, outlineColor: Color, curveSteps: Int, strength: Float): { width: Float, height: Float } {
+		if (!styledFonts.exists(fontFile)) {
+			if (!styledFontLoading.exists(fontFile)) {
+				styledFontLoading.set(fontFile, true);
+				FontProcessor.load(fontFile, function(processor: FontProcessor) {
+					styledFontLoading.remove(fontFile);
+					if (processor != null) styledFonts.set(fontFile, processor);
+				});
+			}
+			return { width: 0, height: 0 };
+		}
+		var processor = styledFonts.get(fontFile);
+		var metrics = StbTruetype.stbtt_GetFontVMetrics(processor.info);
+		var height = metrics.ascent - metrics.descent;
+		var totalWidth = 0.0;
+		for (i in 0...str.length) totalWidth += processor.getAdvanceWidth(str.charCodeAt(i));
+		var offsetX = -totalWidth * align.x;
+		var offsetY = -height * align.y;
+		var offsetZ = -height * align.z;
+		var matrix = Mat4.identity();
+		matrix.compose(pos, rot, new Vec4(scale, scale, scale));
+		var caps: Array<Float> = [];
+		var sides: Array<Float> = [];
+		var cursorX = 0.0;
+		for (i in 0...str.length) {
+			var code = str.charCodeAt(i);
+			if (code == 10) continue;
+			var contours = processor.getGlyphContours(code, curveSteps);
+			if (contours.length > 0) {
+				if (fill) {
+					appendStyledTriangles(caps, processor, contours, cursorX, 0.001, false, matrix, styledFontUnitScale, offsetX, offsetY, offsetZ);
+					if (extrude > 0) appendStyledTriangles(caps, processor, contours, cursorX, -extrude, true, matrix, styledFontUnitScale, offsetX, offsetY, offsetZ);
+				}
+				if (extrude > 0) appendStyledSides(sides, contours, cursorX, matrix, styledFontUnitScale, extrude, offsetX, offsetY, offsetZ);
+			}
+			cursorX += processor.getAdvanceWidth(code);
+		}
+		if (g != null && vbData != null && Scene.active != null && Scene.active.camera != null) {
+			if (fill) renderStyledTriangles(caps, col);
+			if (extrude > 0) renderStyledTriangles(sides, extrudeColor);
+		}
+		var lineStrength = fill ? outlineStrength : strength;
+		var outlineWorldWidth = lineStrength * 0.2 * height * styledFontUnitScale * Math.abs(scale);
+		if (lineStrength > 0 && vbData != null && Scene.active != null && Scene.active.camera != null) drawStyledOutline(processor, str, curveSteps, matrix, styledFontUnitScale, extrude, outlineColor, outlineWorldWidth, offsetX, offsetY, offsetZ);
+		return { width: totalWidth * styledFontUnitScale * scale, height: height * styledFontUnitScale * scale };
+	}
+
+	function createStyledPipeline() {
+		if (styledPipeline != null) return;
+		var structure = new VertexStructure();
+		structure.add("pos", VertexData.Float3);
+		structure.add("col", VertexData.Float4);
+		styledPipeline = new PipelineState();
+		styledPipeline.inputLayout = [structure];
+		#if arm_deferred
+		styledPipeline.fragmentShader = Shaders.render_line_deferred_frag;
+		#else
+		styledPipeline.fragmentShader = Shaders.render_line_frag;
+		#end
+		styledPipeline.vertexShader = Shaders.render_line_vert;
+		styledPipeline.blendSource = BlendingFactor.SourceAlpha;
+		styledPipeline.blendDestination = BlendingFactor.InverseSourceAlpha;
+		styledPipeline.alphaBlendSource = BlendingFactor.SourceAlpha;
+		styledPipeline.alphaBlendDestination = BlendingFactor.InverseSourceAlpha;
+		styledPipeline.depthWrite = true;
+		styledPipeline.depthMode = CompareMode.Less;
+		styledPipeline.cullMode = CullMode.None;
+		styledPipeline.compile();
+		styledVpID = styledPipeline.getConstantLocation("ViewProjection");
+		styledVp = Mat4.identity();
+		styledVertexBuffer = new VertexBuffer(maxStyledTriangles * 3, structure, Usage.DynamicUsage);
+		styledIndexBuffer = new IndexBuffer(maxStyledTriangles * 3, Usage.DynamicUsage);
+	}
+
+	function appendStyledTriangles(target: Array<Float>, processor: FontProcessor, contours: Array<Array<Vec4>>, cursorX: Float, z: Float, reverse: Bool, matrix: Mat4, worldScale: Float, offsetX: Float, offsetY: Float, offsetZ: Float) {
+		var points = processor.triangulate(contours, reverse);
+		var i = 0;
+		while (i + 5 < points.length && target.length < maxStyledTriangles * 9) {
+			appendStyledPoint(target, cursorX + points[i], points[i + 1], z, matrix, worldScale, offsetX, offsetY, offsetZ);
+			appendStyledPoint(target, cursorX + points[i + 2], points[i + 3], z, matrix, worldScale, offsetX, offsetY, offsetZ);
+			appendStyledPoint(target, cursorX + points[i + 4], points[i + 5], z, matrix, worldScale, offsetX, offsetY, offsetZ);
+			i += 6;
+		}
+	}
+
+	function appendStyledSides(target: Array<Float>, contours: Array<Array<Vec4>>, cursorX: Float, matrix: Mat4, worldScale: Float, extrude: Float, offsetX: Float, offsetY: Float, offsetZ: Float) {
+		for (contour in contours) for (i in 0...contour.length - 1) {
+			if (target.length >= maxStyledTriangles * 9) return;
+			var a = contour[i];
+			var b = contour[i + 1];
+			appendStyledPoint(target, cursorX + a.x, a.y, 0.001, matrix, worldScale, offsetX, offsetY, offsetZ);
+			appendStyledPoint(target, cursorX + b.x, b.y, 0.001, matrix, worldScale, offsetX, offsetY, offsetZ);
+			appendStyledPoint(target, cursorX + b.x, b.y, -extrude, matrix, worldScale, offsetX, offsetY, offsetZ);
+			appendStyledPoint(target, cursorX + a.x, a.y, 0.001, matrix, worldScale, offsetX, offsetY, offsetZ);
+			appendStyledPoint(target, cursorX + b.x, b.y, -extrude, matrix, worldScale, offsetX, offsetY, offsetZ);
+			appendStyledPoint(target, cursorX + a.x, a.y, -extrude, matrix, worldScale, offsetX, offsetY, offsetZ);
+		}
+	}
+
+	inline function appendStyledPoint(target: Array<Float>, x: Float, y: Float, z: Float, matrix: Mat4, worldScale: Float, offsetX: Float, offsetY: Float, offsetZ: Float) {
+		var point = new Vec4((x + offsetX) * worldScale, (y + offsetY) * worldScale, z + offsetZ * worldScale, 1).applymat4(matrix);
+		target.push(point.x);
+		target.push(point.y);
+		target.push(point.z);
+	}
+
+	function renderStyledTriangles(vertices: Array<Float>, color: Color) {
+		if (vertices.length < 9) return;
+		createStyledPipeline();
+		var triangleCount = Std.int(vertices.length / 9);
+		if (triangleCount > maxStyledTriangles) triangleCount = maxStyledTriangles;
+		var vb = styledVertexBuffer.lock();
+		var ib = styledIndexBuffer.lock();
+		for (vertex in 0...triangleCount * 3) {
+			var source = vertex * 3;
+			var destination = vertex * 7;
+			vb.set(destination, vertices[source]);
+			vb.set(destination + 1, vertices[source + 1]);
+			vb.set(destination + 2, vertices[source + 2]);
+			vb.set(destination + 3, color.R);
+			vb.set(destination + 4, color.G);
+			vb.set(destination + 5, color.B);
+			vb.set(destination + 6, color.A);
+			ib[vertex] = vertex;
+		}
+		styledVertexBuffer.unlock();
+		styledIndexBuffer.unlock();
+		g.setPipeline(styledPipeline);
+		styledVp.setFrom(Scene.active.camera.V);
+		styledVp.multmat(Scene.active.camera.P);
+		g.setMatrix(styledVpID, styledVp.self);
+		g.setVertexBuffer(styledVertexBuffer);
+		g.setIndexBuffer(styledIndexBuffer);
+		g.drawIndexedVertices(0, triangleCount * 3);
+	}
+
+	function drawStyledOutline(processor: FontProcessor, str: String, curveSteps: Int, matrix: Mat4, worldScale: Float, extrude: Float, color: Color, lineWidth: Float, offsetX: Float, offsetY: Float, offsetZ: Float) {
+		var cursorX = 0.0;
+		for (i in 0...str.length) {
+			var code = str.charCodeAt(i);
+			if (code == 10) continue;
+			var contours = processor.getGlyphContours(code, curveSteps);
+			for (contour in contours) {
+				var segmentCount = contour.length - 1;
+				var front: Array<Vec4> = [];
+				var back: Array<Vec4> = [];
+				for (j in 0...segmentCount) {
+					var a = contour[j];
+					var b = contour[j + 1];
+					var p1 = new Vec4((cursorX + a.x + offsetX) * worldScale, (a.y + offsetY) * worldScale, 0.001 + offsetZ * worldScale, 1).applymat4(matrix);
+					var p2 = new Vec4((cursorX + b.x + offsetX) * worldScale, (b.y + offsetY) * worldScale, 0.001 + offsetZ * worldScale, 1).applymat4(matrix);
+					var b1 = new Vec4((cursorX + a.x + offsetX) * worldScale, (a.y + offsetY) * worldScale, -extrude + offsetZ * worldScale, 1).applymat4(matrix);
+					var b2 = new Vec4((cursorX + b.x + offsetX) * worldScale, (b.y + offsetY) * worldScale, -extrude + offsetZ * worldScale, 1).applymat4(matrix);
+					front.push(p1);
+					back.push(b1);
+					linevWorldWidth(p1, p2, color, lineWidth);
+					if (extrude > 0) linevWorldWidth(b1, b2, color, lineWidth);
+				}
+				if (extrude > 0) for (j in 0...segmentCount) {
+					var previous = (j + segmentCount - 1) % segmentCount;
+					var before = contour[previous];
+					var point = contour[j];
+					var after = contour[j + 1];
+					var inX = point.x - before.x;
+					var inY = point.y - before.y;
+					var outX = after.x - point.x;
+					var outY = after.y - point.y;
+					var inLength = Math.sqrt(inX * inX + inY * inY);
+					var outLength = Math.sqrt(outX * outX + outY * outY);
+					var turnCos = inLength > 0 && outLength > 0 ? (inX * outX + inY * outY) / (inLength * outLength) : 1.0;
+					if (turnCos < 0.6428) linevWorldWidth(front[j], back[j], color, lineWidth);
+				}
+			}
+			cursorX += processor.getAdvanceWidth(code);
+		}
 	}
 
 	function getCharLines(type: Int, c: String): { width: Float, height: Float, lines: Array<Array<Float>> } {
