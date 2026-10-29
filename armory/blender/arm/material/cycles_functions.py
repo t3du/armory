@@ -2449,7 +2449,7 @@ float tex_wave_f(const vec3 p, const int type, const int d, const int profile, c
 """
 
 str_tex_gabor = """
-uint hash_uint3(uint kx, uint ky, uint kz) {
+uint g_hash_uint3(uint kx, uint ky, uint kz) {
     uint a, b, c;
     a = b = c = 0xdeadbeefu + (3u << 2u) + 13u;
     c += kz;
@@ -2465,7 +2465,7 @@ uint hash_uint3(uint kx, uint ky, uint kz) {
     return c;
 }
 
-uint hash_uint4(uint kx, uint ky, uint kz, uint kw) {
+uint g_hash_uint4(uint kx, uint ky, uint kz, uint kw) {
     uint a, b, c;
     a = b = c = 0xdeadbeefu + (4u << 2u) + 13u;
     a += kx; b += ky; c += kz;
@@ -2486,24 +2486,24 @@ uint hash_uint4(uint kx, uint ky, uint kz, uint kw) {
     return c;
 }
 
-float hash_vec3_to_float(vec3 k) {
-    return float(hash_uint3(floatBitsToUint(k.x), floatBitsToUint(k.y), floatBitsToUint(k.z))) / float(0xFFFFFFFFu);
+float g_hash_vec3_to_float(vec3 k) {
+    return float(g_hash_uint3(floatBitsToUint(k.x), floatBitsToUint(k.y), floatBitsToUint(k.z))) / float(0xFFFFFFFFu);
 }
 
-float hash_vec4_to_float(vec4 k) {
-    return float(hash_uint4(floatBitsToUint(k.x), floatBitsToUint(k.y), floatBitsToUint(k.z), floatBitsToUint(k.w))) / float(0xFFFFFFFFu);
+float g_hash_vec4_to_float(vec4 k) {
+    return float(g_hash_uint4(floatBitsToUint(k.x), floatBitsToUint(k.y), floatBitsToUint(k.z), floatBitsToUint(k.w))) / float(0xFFFFFFFFu);
 }
 
-vec2 hash_vec3_to_vec2(vec3 k) {
-    return vec2(hash_vec3_to_float(k.xyz), hash_vec3_to_float(k.zxy));
+vec2 g_hash_vec3_to_vec2(vec3 k) {
+    return vec2(g_hash_vec3_to_float(k.xyz), g_hash_vec3_to_float(k.zxy));
 }
 
-vec2 hash_vec4_to_vec2(vec4 k) {
-    return vec2(hash_vec4_to_float(k.xyzw), hash_vec4_to_float(k.zxwy));
+vec2 g_hash_vec4_to_vec2(vec4 k) {
+    return vec2(g_hash_vec4_to_float(k.xyzw), g_hash_vec4_to_float(k.zxwy));
 }
 
-vec3 hash_vec4_to_vec3(vec4 k) {
-    return vec3(hash_vec4_to_float(k.xyzw), hash_vec4_to_float(k.zxwy), hash_vec4_to_float(k.wzyx));
+vec3 g_hash_vec4_to_vec3(vec4 k) {
+    return vec3(g_hash_vec4_to_float(k.xyzw), g_hash_vec4_to_float(k.zxwy), g_hash_vec4_to_float(k.wzyx));
 }
 
 vec2 compute_2d_gabor_kernel(vec2 position, float frequency, float orientation) {
@@ -2525,12 +2525,12 @@ vec2 compute_2d_gabor_noise_cell(vec2 cell, vec2 position, float frequency, floa
         vec3 seed_for_orientation = vec3(cell, float(i * 3));
         vec3 seed_for_kernel_center = vec3(cell, float(i * 3 + 1));
         vec3 seed_for_weight = vec3(cell, float(i * 3 + 2));
-        float random_orientation = (hash_vec3_to_float(seed_for_orientation) - 0.5) * 3.14159265359;
+        float random_orientation = (g_hash_vec3_to_float(seed_for_orientation) - 0.5) * 3.14159265359;
         float orientation = base_orientation + random_orientation * isotropy;
-        vec2 kernel_center = hash_vec3_to_vec2(seed_for_kernel_center);
+        vec2 kernel_center = g_hash_vec3_to_vec2(seed_for_kernel_center);
         vec2 position_in_kernel_space = position - kernel_center;
         if (dot(position_in_kernel_space, position_in_kernel_space) >= 1.0) continue;
-        float weight = hash_vec3_to_float(seed_for_weight) < 0.5 ? -1.0 : 1.0;
+        float weight = g_hash_vec3_to_float(seed_for_weight) < 0.5 ? -1.0 : 1.0;
         noise += weight * compute_2d_gabor_kernel(position_in_kernel_space, frequency, orientation);
     }
     return noise;
@@ -2566,7 +2566,7 @@ vec3 compute_3d_orientation(vec3 orientation, float isotropy, vec4 seed) {
     if (isotropy == 0.0) return orientation;
     float inclination = acos(clamp(orientation.z, -1.0, 1.0));
     float azimuth = sign(orientation.y) * acos(orientation.x / length(orientation.xy));
-    vec2 random_angles = hash_vec4_to_vec2(seed) * 3.14159265359;
+    vec2 random_angles = g_hash_vec4_to_vec2(seed) * 3.14159265359;
     inclination += random_angles.x * isotropy;
     azimuth += random_angles.y * isotropy;
     return vec3(sin(inclination) * cos(azimuth), sin(inclination) * sin(azimuth), cos(inclination));
@@ -2579,10 +2579,10 @@ vec2 compute_3d_gabor_noise_cell(vec3 cell, vec3 position, float frequency, floa
         vec4 seed_for_kernel_center = vec4(cell, float(i * 3 + 1));
         vec4 seed_for_weight = vec4(cell, float(i * 3 + 2));
         vec3 orientation = compute_3d_orientation(base_orientation, isotropy, seed_for_orientation);
-        vec3 kernel_center = hash_vec4_to_vec3(seed_for_kernel_center);
+        vec3 kernel_center = g_hash_vec4_to_vec3(seed_for_kernel_center);
         vec3 position_in_kernel_space = position - kernel_center;
         if (dot(position_in_kernel_space, position_in_kernel_space) >= 1.0) continue;
-        float weight = hash_vec4_to_float(seed_for_weight) < 0.5 ? -1.0 : 1.0;
+        float weight = g_hash_vec4_to_float(seed_for_weight) < 0.5 ? -1.0 : 1.0;
         noise += weight * compute_3d_gabor_kernel(position_in_kernel_space, frequency, orientation);
     }
     return noise;
