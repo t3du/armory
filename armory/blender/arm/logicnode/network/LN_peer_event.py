@@ -2,7 +2,7 @@ from arm.logicnode.arm_nodes import *
 
 
 class PeerEventNode(ArmLogicTreeNode):
-    """Listens for events on a PeerJS connection."""
+    """Listens for events on a PeerJS peer."""
 
     bl_idname = 'LNPeerEventNode'
     bl_label = 'Peer Event'
