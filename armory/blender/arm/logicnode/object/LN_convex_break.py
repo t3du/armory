@@ -32,7 +32,7 @@ class ConvexBreakNode(ArmLogicTreeNode):
         self.add_output('ArmNodeSocketAction', 'Out')
         self.add_output('ArmNodeSocketAction', 'True')
         self.add_output('ArmNodeSocketAction', 'False')
-        self.add_output('ArmNodeSocketArray', 'Array')
+        self.add_output('ArmNodeSocketArray', 'Objects')
         self.update_sockets(context)
 
     def draw_buttons(self, context, layout):
