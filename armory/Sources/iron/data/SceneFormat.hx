@@ -62,6 +62,16 @@ typedef TMeshData = {
 	@:optional public var scale_pos: Null<FastFloat>; // Unpack pos from (-1,1) coords
 	@:optional public var scale_tex: Null<FastFloat>; // Unpack tex from (-1,1) coords
 	@:optional public var morph_target: TMorphTarget;
+	@:optional public var vertex_groups: Array<TMeshVertexGroup>;
+}
+
+#if js
+typedef TMeshVertexGroup = {
+#else
+@:structInit class TMeshVertexGroup {
+#end
+	public var name: String;
+	public var indices: Array<Int>;
 }
 
 #if js
