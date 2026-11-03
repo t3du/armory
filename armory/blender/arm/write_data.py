@@ -88,7 +88,7 @@ project.addSources('Sources');
 """)
 
         uses_peer_node = any(
-            node.arm_section == 'peer'
+            getattr(node, 'arm_section', None) in ('peer', 'call')
             for node_group in bpy.data.node_groups
             if node_group.bl_idname in ('ArmLogicTreeType', 'ArmGroupTree')
             for node in node_group.nodes

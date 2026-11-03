@@ -5,6 +5,10 @@ class PeerNetwork {
 	public static var connections:Map<String, Dynamic> = new Map();
 	public static var peerConnections:Map<String, Array<Dynamic>> = new Map();
 	public static var peerConnectionInfo:Map<String, Map<String, Array<PeerConnectionInfo>>> = new Map();
+	public static var calls:Map<String, Dynamic> = new Map();
+	public static var peerCalls:Map<String, Array<Dynamic>> = new Map();
+	public static var peerCallInfo:Map<String, Map<String, Array<PeerCallInfo>>> = new Map();
+	static var callStreams:Map<String, Dynamic> = new Map();
 	static var peerDataListeners:Map<String, Array<Dynamic->Dynamic->Void>> = new Map();
 	static var peerDataBindings:Array<PeerDataBinding> = [];
 
@@ -54,6 +58,242 @@ class PeerNetwork {
 		peerId.on("connection", function(connection:Dynamic) {
 			trackConnection(peerId.id, connection);
 		});
+		peerId.on("call", function(call:Dynamic) {
+			trackCall(peerId.id, call);
+		});
+	}
+
+	public static function peerCall(peerIdFrom:String, peerIdTo:String, videoSource:Int, audio:Bool, metadata:Dynamic, onReady:String->Void, onError:Dynamic->Void):Void {
+		var peer = peers.get(peerIdFrom);
+		if (peer == null) {
+			onError("PeerNetwork: Peer ID From is not available.");
+			return;
+		}
+		if (peerIdTo == null || peerIdTo == "") {
+			onError("PeerNetwork: Peer ID To is required.");
+			return;
+		}
+		if (peerIdFrom == peerIdTo) {
+			onError("PeerNetwork: A peer cannot call itself.");
+			return;
+		}
+		if (!audio && videoSource == 0) {
+			onError("PeerNetwork: Enable audio or select a video source to start a call.");
+			return;
+		}
+		requestCallMedia(videoSource, audio, false, function(stream:Dynamic) {
+			var call:Dynamic;
+			try {
+				call = peer.call(peerIdTo, stream, {metadata: metadata});
+			}
+			catch (error:Dynamic) {
+				stopMediaStream(stream);
+				onError(error);
+				return;
+			}
+			if (call == null) {
+				stopMediaStream(stream);
+				onError("PeerNetwork: PeerJS did not create a media call.");
+				return;
+			}
+			trackCall(peerIdFrom, call);
+			callStreams.set(call.connectionId, stream);
+			call.emit("localStream", stream);
+			call.on("error", function(error:Dynamic) onError(error));
+			if (onReady != null) onReady(call.connectionId);
+		}, onError);
+	}
+
+	public static function peerCallAnswer(callId:String, videoSource:Int, audio:Bool, onReady:Void->Void, onError:Dynamic->Void):Void {
+		var call = calls.get(callId);
+		if (call == null) {
+			onError("PeerNetwork: Call ID is not available.");
+			return;
+		}
+		requestCallMedia(videoSource, audio, true, function(stream:Dynamic) {
+			if (calls.get(callId) != call) {
+				stopMediaStream(stream);
+				onError("PeerNetwork: Call closed before it could be answered.");
+				return;
+			}
+			try {
+				call.on("error", function(error:Dynamic) onError(error));
+				call.answer(stream);
+				if (stream != null) {
+					callStreams.set(callId, stream);
+					call.emit("localStream", stream);
+				}
+				updatePeerCallInfoOpen(callId, call.open);
+				if (onReady != null) onReady();
+			}
+			catch (error:Dynamic) {
+				stopMediaStream(stream);
+				onError(error);
+			}
+		}, onError);
+	}
+
+	public static function peerCallClose(callId:String, onError:Dynamic->Void):Bool {
+		var call = calls.get(callId);
+		if (call == null) {
+			onError("PeerNetwork: Call ID is not available.");
+			return false;
+		}
+		try {
+			call.close();
+			if (calls.get(callId) == call) {
+				calls.remove(callId);
+				stopMediaStream(callStreams.get(callId));
+				callStreams.remove(callId);
+			}
+			updatePeerCallInfoOpen(callId, call.open);
+			return true;
+		}
+		catch (error:Dynamic) {
+			onError(error);
+			return false;
+		}
+	}
+
+	static function requestCallMedia(videoSource:Int, audio:Bool, allowEmpty:Bool, onReady:Dynamic->Void, onError:Dynamic->Void):Void {
+		if (videoSource < 0 || videoSource > 2) {
+			onError("PeerNetwork: Video input must be 0 (none), 1 (camera), or 2 (screen).");
+			return;
+		}
+		if (videoSource == 0 && !audio) {
+			if (allowEmpty) onReady(null);
+			else onError("PeerNetwork: Enable audio or select a video source to start a call.");
+			return;
+		}
+		var mediaDevices:Dynamic = js.Syntax.code("navigator.mediaDevices");
+		if (mediaDevices == null) {
+			onError("PeerNetwork: Browser media capture is not available.");
+			return;
+		}
+		if (videoSource == 2) {
+			var screenPromise:Dynamic;
+			try {
+				screenPromise = mediaDevices.getDisplayMedia({video: true, audio: false});
+			}
+			catch (error:Dynamic) {
+				onError(error);
+				return;
+			}
+			screenPromise.then(function(screenStream:Dynamic) {
+				if (!audio) {
+					onReady(screenStream);
+					return;
+				}
+				var audioPromise:Dynamic;
+				try {
+					audioPromise = mediaDevices.getUserMedia({audio: true, video: false});
+				}
+				catch (error:Dynamic) {
+					stopMediaStream(screenStream);
+					onError(error);
+					return;
+				}
+				audioPromise.then(function(audioStream:Dynamic) {
+					try {
+						var combined:Dynamic = js.Syntax.code("new MediaStream()");
+						var screenTracks:Dynamic = screenStream.getTracks();
+						for (i in 0...screenTracks.length) combined.addTrack(screenTracks[i]);
+						var audioTracks:Dynamic = audioStream.getAudioTracks();
+						for (i in 0...audioTracks.length) combined.addTrack(audioTracks[i]);
+						onReady(combined);
+					}
+					catch (error:Dynamic) {
+						stopMediaStream(screenStream);
+						stopMediaStream(audioStream);
+						onError(error);
+					}
+				}, function(error:Dynamic) {
+					stopMediaStream(screenStream);
+					onError(error);
+				});
+			}, onError);
+			return;
+		}
+
+		var constraints:Dynamic = {
+			audio: audio,
+			video: videoSource == 1
+		};
+		var promise:Dynamic;
+		try {
+			promise = mediaDevices.getUserMedia(constraints);
+		}
+		catch (error:Dynamic) {
+			onError(error);
+			return;
+		}
+		promise.then(onReady, onError);
+	}
+
+	static function stopMediaStream(stream:Dynamic):Void {
+		if (stream == null) return;
+		var tracks:Dynamic = stream.getTracks();
+		for (i in 0...tracks.length) tracks[i].stop();
+	}
+
+	public static function getCall(callId:String):Dynamic {
+		return calls.get(callId);
+	}
+
+	static function trackCall(localPeerId:String, call:Dynamic):Void {
+		var callId:String = call.connectionId;
+		calls.set(callId, call);
+		var callsForPeer = peerCalls.get(localPeerId);
+		if (callsForPeer == null) {
+			callsForPeer = [];
+			peerCalls.set(localPeerId, callsForPeer);
+		}
+		callsForPeer.push(call);
+
+		var callsByRemotePeer = peerCallInfo.get(localPeerId);
+		if (callsByRemotePeer == null) {
+			callsByRemotePeer = new Map();
+			peerCallInfo.set(localPeerId, callsByRemotePeer);
+		}
+		var callsWithRemotePeer = callsByRemotePeer.get(call.peer);
+		if (callsWithRemotePeer == null) {
+			callsWithRemotePeer = [];
+			callsByRemotePeer.set(call.peer, callsWithRemotePeer);
+		}
+		var info:PeerCallInfo = {
+			callId: callId,
+			metadata: call.metadata,
+			open: call.open
+		};
+		callsWithRemotePeer.push(info);
+		call.on("stream", function(_stream:Dynamic) {
+			updatePeerCallInfoOpen(callId, call.open);
+		});
+		call.on("iceStateChanged", function(state:String) {
+			if (state == "connected" || state == "completed") updatePeerCallInfoOpen(callId, true);
+			else if (state == "closed") updatePeerCallInfoOpen(callId, false);
+		});
+		call.on("close", function() {
+			updatePeerCallInfoOpen(callId, false);
+			if (calls.get(callId) == call) calls.remove(callId);
+			stopMediaStream(callStreams.get(callId));
+			callStreams.remove(callId);
+		});
+	}
+
+	static function updatePeerCallInfoOpen(callId:String, open:Bool):Void {
+		for (localPeerId in peerCallInfo.keys()) {
+			var callsByRemotePeer = peerCallInfo.get(localPeerId);
+			for (remotePeerId in callsByRemotePeer.keys()) {
+				for (info in callsByRemotePeer.get(remotePeerId)) {
+					if (info.callId == callId) {
+						var call = calls.get(callId);
+						info.open = call != null ? call.open : open;
+						return;
+					}
+				}
+			}
+		}
 	}
 
 	public static function peerConnect(peerIdFrom:String, peerIdTo:String, label:String, connectionId:String, metadata:Dynamic, onOpen:String->Void, onError:Dynamic->Void):Void {
@@ -109,7 +349,7 @@ class PeerNetwork {
 		});
 	}
 
-	public static function peerSend(connectionId:String, data:Dynamic, onError:Dynamic->Void):Bool {
+	public static function connectionSend(connectionId:String, data:Dynamic, onError:Dynamic->Void):Bool {
 		var connection = connections.get(connectionId);
 		if (connection == null) {
 			onError("PeerNetwork: Connection ID is not available.");
@@ -276,6 +516,12 @@ private typedef PeerDataBinding = {
 typedef PeerConnectionInfo = {
 	var connectionId:String;
 	var label:String;
+	var metadata:Dynamic;
+	var open:Bool;
+}
+
+typedef PeerCallInfo = {
+	var callId:String;
 	var metadata:Dynamic;
 	var open:Bool;
 }
