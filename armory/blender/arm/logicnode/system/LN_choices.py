@@ -23,4 +23,7 @@ class ChoicesNode(ArmLogicTreeNode):
 
         self.add_output('ArmNodeSocketAction', 'True')
         self.add_output('ArmNodeSocketAction', 'False')
-        self.add_output('ArmStringSocket', 'String')
+        self.add_output('ArmStringSocket', 'Choice')
+        self.add_output('ArmIntSocket', 'Index')
+
+

@@ -3,7 +3,8 @@ package armory.logicnode;
 
 class ChoicesNode extends LogicNode {
 
-	var selected:String = "";
+	var options:Array<String>;
+	var selected:String;
 
 	public function new(tree: LogicTree) {
 		super(tree);
@@ -12,8 +13,7 @@ class ChoicesNode extends LogicNode {
 	override function run(from: Int) {
 
 		var msg:String = inputs[1].get();
-		var options:Array<String> = inputs[2].get();
-
+		options = inputs[2].get();
 		selected = "";
 
 		#if kha_krom
@@ -123,6 +123,6 @@ class ChoicesNode extends LogicNode {
 	}
 
 	override function get(from:Int):Dynamic {
-		return selected;
+		return from == 2 ? selected : options.indexOf(selected);
 	}
 }
