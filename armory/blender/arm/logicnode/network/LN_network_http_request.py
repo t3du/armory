@@ -40,6 +40,7 @@ class NetworkHttpRequestNode(ArmLogicTreeNode):
 
     bl_idname = 'LNNetworkHttpRequestNode'
     bl_label = 'Http Request'
+    arm_section = 'request'
     arm_version = 2
 
     default_inputs_count = 5

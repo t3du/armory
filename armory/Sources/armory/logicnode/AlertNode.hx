@@ -7,9 +7,12 @@ class AlertNode extends LogicNode {
 	}
 
 	override function run(from: Int) {
+		var msg: String = inputs[1].get();
 
-		#if kha_html5
-		js.Browser.window.alert(inputs[1].get());
+		#if kha_krom
+		Krom.sysCommand("powershell -command \"Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.MessageBox]::Show('" + msg + "', '" + Main.projectName + "')\"");
+		#elseif kha_html5
+		js.Browser.window.alert(msg);
 		#end
 
 		runOutput(0);

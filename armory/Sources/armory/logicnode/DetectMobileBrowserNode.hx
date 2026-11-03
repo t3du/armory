@@ -1,8 +1,4 @@
-// This node does not work with Krom. "Browser compilation only" node.
-
 package armory.logicnode;
-
-import kha.System;
 
 class DetectMobileBrowserNode extends LogicNode {
 
@@ -11,13 +7,10 @@ class DetectMobileBrowserNode extends LogicNode {
 	}
 
 	override function get(from: Int): Dynamic {
-		if (from == 0) {
-			#if kha_html5
-			return kha.SystemImpl.mobile;
-			#else
-			return false;
-			#end
-		} 
-		return null;
+		#if kha_html5
+		return kha.SystemImpl.mobile;
+		#else
+		return false;
+		#end
 	}
 }
