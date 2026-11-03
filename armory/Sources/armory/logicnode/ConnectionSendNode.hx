@@ -2,7 +2,7 @@ package armory.logicnode;
 
 import armory.network.PeerNetwork;
 
-class PeerSendNode extends LogicNode {
+class ConnectionSendNode extends LogicNode {
 	var error:Dynamic;
 
 	public function new(tree:LogicTree) {
@@ -13,7 +13,7 @@ class PeerSendNode extends LogicNode {
 		error = null;
 		var connectionId:String = inputs[1].get();
 		var data:Dynamic = inputs[2].get();
-		if (PeerNetwork.peerSend(connectionId, data, function(error:Dynamic) {
+		if (PeerNetwork.connectionSend(connectionId, data, function(error:Dynamic) {
 			this.error = error;
 			runOutput(1);
 		})) runOutput(0);

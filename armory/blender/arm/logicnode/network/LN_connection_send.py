@@ -1,11 +1,11 @@
 from arm.logicnode.arm_nodes import *
 
 
-class PeerSendNode(ArmLogicTreeNode):
+class ConnectionSendNode(ArmLogicTreeNode):
     """Sends data to a connected peer."""
 
-    bl_idname = 'LNPeerSendNode'
-    bl_label = 'Peer Send'
+    bl_idname = 'LNConnectionSendNode'
+    bl_label = 'Connection Send'
     arm_section = 'peer'
 
     def arm_init(self, context):
