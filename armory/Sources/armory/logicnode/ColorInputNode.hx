@@ -47,7 +47,7 @@ class ColorInputNode extends LogicNode {
 			r + "," + g + "," + b + "); " +
 
 			"if ($d.ShowDialog() -eq " +
-			"[System.Windows.Forms.DialogResult]::Ok) { " +
+			"[System.Windows.Forms.DialogResult]::OK) { " +
 
 			"$c = $d.Color; " +
 
