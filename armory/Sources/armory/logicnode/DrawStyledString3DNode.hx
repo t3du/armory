@@ -18,12 +18,13 @@ class DrawStyledString3DNode extends LogicNode {
 
 	override function run(from: Int) {
 		if (from == 0) {
-			if (renderCb == null) renderCb = RenderDraw.notifyOnRender(draw);
-		}
-		else if (renderCb != null) {
-			RenderDraw.removeOnRender(renderCb);
-			renderCb = null;
-		}
+			if (renderCb == null) 
+				renderCb = RenderDraw.notifyOnRender(draw);
+		} else 
+			if (renderCb != null) {
+				RenderDraw.removeOnRender(renderCb);
+				renderCb = null;
+			}
 		runOutput(0);
 	}
 

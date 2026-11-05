@@ -15,10 +15,10 @@ class DrawObjectDisplayNode extends LogicNode {
 	}
 
 	override function run(from: Int) {
-		if (from == 0)
+		if (from == 0){
 			if (renderCb == null)
 				renderCb = RenderDraw.notifyOnRender(draw);
-		else
+		} else
 			if (renderCb != null) {
 				RenderDraw.removeOnRender(renderCb);
 				renderCb = null;
