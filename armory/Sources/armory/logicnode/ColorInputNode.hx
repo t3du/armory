@@ -125,7 +125,7 @@ class ColorInputNode extends LogicNode {
 		buttons.style.marginTop = "20px";
 
 		var ok = js.Browser.document.createElement("button");
-		ok.textContent = "OK";
+		ok.textContent = "Ok";
 
 		var cancel = js.Browser.document.createElement("button");
 		cancel.textContent = "Cancel";
