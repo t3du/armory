@@ -379,6 +379,22 @@ class PeerNetwork {
 		return !failed;
 	}
 
+	public static function connectionClose(connectionId:String, onError:Dynamic->Void):Bool {
+		var connection = connections.get(connectionId);
+		if (connection == null) {
+			onError("PeerNetwork: Connection ID is not available.");
+			return false;
+		}
+		try {
+			connection.close();
+			return true;
+		}
+		catch (error:Dynamic) {
+			onError(error);
+			return false;
+		}
+	}
+
 	public static function getConnection(connectionId:String):Dynamic {
 		return connections.get(connectionId);
 	}
