@@ -11,7 +11,10 @@ class ArrayLoopNode extends LogicNode {
 
 	override function run(from: Int) {
 		var ar: Array<Dynamic> = inputs[1].get();
-		assert(Error, ar != null, 'Array should not be null');
+		if (ar == null){
+			runOutput(3);
+			return;
+		}
 
 		index = -1;
 		for (val in ar) {

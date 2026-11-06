@@ -13,7 +13,9 @@ class MapLoopNode extends LogicNode {
 	override function run(from: Int) {
 
 		var map: Map<Dynamic,Dynamic> = inputs[1].get();
-		if (map == null) return;
+		if (map == null) {
+			runOutput(3);
+			return;
 		//var keys:Array<Dynamic> = Reflect.fields(map);
 		for (k in map.keys()) {
 			key = k;
