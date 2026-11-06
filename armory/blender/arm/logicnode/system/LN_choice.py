@@ -1,8 +1,8 @@
 
 from arm.logicnode.arm_nodes import *
 
-class ChoicesNode(ArmLogicTreeNode):
-    """Display a selection window with multiple choices.
+class ChoiceNode(ArmLogicTreeNode):
+    """Display a selection window to choose one choice.
 
     @input In: execution input.
     @input String: message to display.
@@ -12,8 +12,8 @@ class ChoicesNode(ArmLogicTreeNode):
     @output False: dialog was cancelled.
     @output String: selected choice.
     """
-    bl_idname = 'LNChoicesNode'
-    bl_label = 'Choices'
+    bl_idname = 'LNChoiceNode'
+    bl_label = 'Choice'
     arm_version = 1
 
     def arm_init(self, context):
@@ -25,5 +25,3 @@ class ChoicesNode(ArmLogicTreeNode):
         self.add_output('ArmNodeSocketAction', 'False')
         self.add_output('ArmStringSocket', 'Choice')
         self.add_output('ArmIntSocket', 'Index')
-
-
