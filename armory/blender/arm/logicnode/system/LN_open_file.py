@@ -12,4 +12,4 @@ class OpenFileNode(ArmLogicTreeNode):
 
         self.add_output('ArmNodeSocketAction', 'Out')
         self.add_output('ArmStringSocket', 'Name')
-        self.add_output('ArmDynamicSocket', 'File')
+        self.add_output('ArmDynamicSocket', 'Data')
