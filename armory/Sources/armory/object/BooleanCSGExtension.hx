@@ -504,7 +504,7 @@ class BooleanCSGExtension {
 			var vb = new CSGVertex(readWorldPoint(values, stride, indexB, matrix), null, readUV(uvValues, uvStride, indexB, uvScale));
 			var vc = new CSGVertex(readWorldPoint(values, stride, indexC, matrix), null, readUV(uvValues, uvStride, indexC, uvScale));
 			var normal = vb.pos.minus(va.pos).cross(vc.pos.minus(va.pos));
-			if (normal.length() < 1e-10) throw 'Mesh "${mesh.name}" contains a degenerate triangle.';
+			if (normal.length() < 1e-10) trace('Mesh "${mesh.name}" contains a degenerate triangle.');
 			polygons.push(new CSGPolygon([va, vb, vc], triangle.material));
 		}
 		return polygons;
