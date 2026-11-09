@@ -19,12 +19,23 @@ class RandomObjectNode extends LogicNode {
 
 	override function run(from: Int) {
 
-		var numPoints: Int = inputs[4].get();
+		var seed: Int = inputs[4].get();
+
+		var rngState: Int = seed != 0
+			? Std.int(Math.abs(seed))
+			: Std.int(Math.random() * 1000000) + 1;
+
+		inline function random(): Float {
+			rngState = (rngState * 1664525 + 1013904223) & 0x7fffffff;
+			return rngState / 2147483647.0;
+		}
+
+		var numPoints: Int = inputs[5].get();
 		if (numPoints < 4) numPoints = 4;
 
-		var mirrorX: Bool = inputs[5].get();
-		var mirrorY: Bool = inputs[6].get();
-		var mirrorZ: Bool = inputs[7].get();
+		var mirrorX: Bool = inputs[6].get();
+		var mirrorY: Bool = inputs[7].get();
+		var mirrorZ: Bool = inputs[8].get();
 
 		var md: MeshData = null;
 
@@ -37,39 +48,41 @@ class RandomObjectNode extends LogicNode {
 		var radiusY: Float = scale.y;
 		var radiusZ: Float = scale.z;
 
+		trace(mirrorX, mirrorY, mirrorZ);
+
 		while (md == null){
 			var points: Array<Vec4> = [];
 
 			for (i in 0...numPoints) {
-			    var x = (Math.random() - 0.5) * radiusX;
-			    var y = (Math.random() - 0.5) * radiusY;
-			    var z = (Math.random() - 0.5) * radiusZ;
+				var x = (random() - 0.5) * radiusX;
+				var y = (random() - 0.5) * radiusY;
+				var z = (random() - 0.5) * radiusZ;
 
-			    points.push(new Vec4(x, y, z));
+				points.push(new Vec4(x, y, z));
 
-			    if (mirrorX)
-			        points.push(new Vec4(-x, y, z));
+				if (mirrorX)
+					points.push(new Vec4(-x, y, z));
 
-			    if (mirrorY)
-			        points.push(new Vec4(x, -y, z));
-			    
-			    if (mirrorZ)
-			        points.push(new Vec4(x, y, -z));
+				if (mirrorY)
+					points.push(new Vec4(x, -y, z));
+				
+				if (mirrorZ)
+					points.push(new Vec4(x, y, -z));
 
-			    if (mirrorX && mirrorY)
-			        points.push(new Vec4(-x, -y, z));
-			    
-			    if (mirrorX && mirrorZ)
-			        points.push(new Vec4(-x, y, -z));
-			    
-			    if (mirrorY && mirrorZ)
-			        points.push(new Vec4(x, -y, -z));
+				if (mirrorX && mirrorY)
+					points.push(new Vec4(-x, -y, z));
+				
+				if (mirrorX && mirrorZ)
+					points.push(new Vec4(-x, y, -z));
+				
+				if (mirrorY && mirrorZ)
+					points.push(new Vec4(x, -y, -z));
 
-			    if (mirrorX && mirrorY && mirrorZ)
-			        points.push(new Vec4(-x, -y, -z));
+				if (mirrorX && mirrorY && mirrorZ)
+					points.push(new Vec4(-x, -y, -z));
 			}
  
-		md = MeshDataExtension.makeMeshData(points, inputs[8].get(), inputs[9].get());
+		md = MeshDataExtension.makeMeshData(points, inputs[9].get(), inputs[10].get());
 
 		}	
 
@@ -92,11 +105,11 @@ class RandomObjectNode extends LogicNode {
 		dims[2] = md.geom.aabb.z;
 
 		object.raw = { 
-		    type: "mesh_object", 
-		    name: object.name, 
-		    data_ref: object.name, 
-		    transform: { values: v },
-		    dimensions: dims
+			type: "mesh_object", 
+			name: object.name, 
+			data_ref: object.name, 
+			transform: { values: v },
+			dimensions: dims
 		};
 
 		object.setParent(Scene.active.root);
