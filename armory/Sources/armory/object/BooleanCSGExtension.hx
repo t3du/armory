@@ -631,18 +631,16 @@ class BooleanCSGExtension {
 		var uvScale = 1.0;
 		for (uv in uvs) uvScale = Math.max(uvScale, Math.abs(uv));
 		var packedPositions = new Int16Array(vertexCount * 4);
-		var packedNormals = new Int16Array(vertexCount * 4);
+		var packedNormals = new Int16Array(vertexCount * 2);
 		var packedTangents = new Int16Array(vertexCount * 4);
 		var packedUvs = new Int16Array(vertexCount * 2);
 		for (i in 0...vertexCount) {
 			packedPositions[i * 4] = toShort(positions[i * 3] / scale);
 			packedPositions[i * 4 + 1] = toShort(positions[i * 3 + 1] / scale);
 			packedPositions[i * 4 + 2] = toShort(positions[i * 3 + 2] / scale);
-			packedPositions[i * 4 + 3] = 32767;
-			packedNormals[i * 4] = toShort(normals[i * 3]);
-			packedNormals[i * 4 + 1] = toShort(normals[i * 3 + 1]);
-			packedNormals[i * 4 + 2] = toShort(normals[i * 3 + 2]);
-			packedNormals[i * 4 + 3] = 0;
+			packedPositions[i * 4 + 3] = toShort(normals[i * 3 + 2]);
+			packedNormals[i * 2] = toShort(normals[i * 3]);
+			packedNormals[i * 2 + 1] = toShort(normals[i * 3 + 1]);
 			var normal = new CSGVector(normals[i * 3], normals[i * 3 + 1], normals[i * 3 + 2]);
 			var tangent = Math.abs(normal.x) < 0.9
 				? normal.cross(new CSGVector(1, 0, 0)).unit()
@@ -654,7 +652,6 @@ class BooleanCSGExtension {
 			packedUvs[i * 2] = toShort(uvs[i * 2] / uvScale);
 			packedUvs[i * 2 + 1] = toShort(uvs[i * 2 + 1] / uvScale);
 		}
-
 		var indexArrays = new Array<TIndexArray>();
 		for (material in grouped.keys()) {
 			if (material < 0 || material >= materials.length) throw 'CSG result refers to missing material slot $material.';
@@ -665,7 +662,7 @@ class BooleanCSGExtension {
 		}
 		var vertexArrays: Array<TVertexArray> = [
 			{ attrib: "pos", values: packedPositions, data: "short4norm" },
-			{ attrib: "nor", values: packedNormals, data: "short4norm" },
+			{ attrib: "nor", values: packedNormals, data: "short2norm" },
 			{ attrib: "tex", values: packedUvs, data: "short2norm" },
 			{ attrib: "tang", values: packedTangents, data: "short4norm" }
 		];
