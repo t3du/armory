@@ -48,8 +48,6 @@ class RandomObjectNode extends LogicNode {
 		var radiusY: Float = scale.y;
 		var radiusZ: Float = scale.z;
 
-		trace(mirrorX, mirrorY, mirrorZ);
-
 		while (md == null){
 			var points: Array<Vec4> = [];
 
