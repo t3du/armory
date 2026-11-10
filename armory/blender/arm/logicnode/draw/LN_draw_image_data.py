@@ -37,5 +37,7 @@ class DrawImageNode(ArmLogicTreeNode):
         self.add_input('ArmFloatSocket', 'Width')
         self.add_input('ArmFloatSocket', 'Height')
         self.add_input('ArmFloatSocket', 'Angle')
+        self.add_input('ArmIntSocket', 'Shape (0=Normal, 1=Rounded, 2=Circle)', default_value=0)
+        self.add_input('ArmFloatSocket', 'Radius', default_value=20.0)
 
         self.add_output('ArmNodeSocketAction', 'Out')
