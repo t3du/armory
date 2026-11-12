@@ -21,7 +21,7 @@ class MergedMouseNode extends LogicNode {
 
 	function update() {
 		#if arm_debug
-			if (!property2 && DebugConsole.isDebugConsoleHovered && property0 != "moved") return;
+			if (!property2 && DebugConsole.isDebugConsoleHovered && property0 != "moved" && property0 != "wheel") return;
 		#end
 
 		var mouse = iron.system.Input.getMouse();
@@ -35,6 +35,8 @@ class MergedMouseNode extends LogicNode {
 			b = mouse.released(property1);
 		case "moved":
 			b = mouse.moved;
+		case "wheel":
+			b = mouse.wheelDelta != 0;
 		}
 		if (b) {
 			if (property0 == "started" || property0 == "released") {
@@ -48,7 +50,7 @@ class MergedMouseNode extends LogicNode {
 
 	override function get(from: Int): Dynamic {
 		#if arm_debug
-			if (!property2 && DebugConsole.isDebugConsoleHovered && property0 != "moved") return false;
+			if (!property2 && DebugConsole.isDebugConsoleHovered && property0 != "moved" && property0 != "wheel") return false;
 		#end
 
 		var mouse = iron.system.Input.getMouse();
@@ -61,6 +63,8 @@ class MergedMouseNode extends LogicNode {
 			return mouse.released(property1);
 		case "moved":
 			return mouse.moved;
+		case "wheel":
+			return mouse.wheelDelta != 0;
 		}
 		return false;
 	}

@@ -58,6 +58,7 @@ class MouseNode(ArmLogicTreeNode):
             layout.prop(self, 'property2')
 
     def draw_label(self) -> str:
+            return f'{self.bl_label}: {self.property0}'
         return f'{self.bl_label}: {self.property1}'
 
     def get_replacement_node(self, node_tree: bpy.types.NodeTree):
