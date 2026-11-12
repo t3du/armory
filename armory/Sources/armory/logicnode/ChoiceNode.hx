@@ -25,8 +25,9 @@ class ChoiceNode extends LogicNode {
 		var optionList = "";
 
 		for (option in options) {
-			var escaped = option.split("'").join("''");
-			optionList += "'" + escaped + "',";
+		    var optionStr = Std.string(option);
+		    var escaped = optionStr.split("'").join("''");
+		    optionList += "'" + escaped + "',";
 		}
 
 		if (optionList.length > 0)
