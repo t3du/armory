@@ -9,14 +9,14 @@ class MouseNode(ArmLogicTreeNode):
     arm_version = 3
 
     def update(self):
-        if self.property0 != 'moved':
+        if self.property0 not in ('moved', 'wheel'):
             self.label = f'{self.bl_label}: {self.property0} {self.property1}'
         else:
             self.label = f'{self.bl_label}: {self.property0}'
 
 
     def upd(self, context):
-        if self.property0 != 'moved':
+        if self.property0 not in ('moved', 'wheel'):
             self.label = f'{self.bl_label}: {self.property0} {self.property1}'
         else:
             self.label = f'{self.bl_label}: {self.property0}'
@@ -27,7 +27,8 @@ class MouseNode(ArmLogicTreeNode):
         items = [('started', 'Started', 'The mouse button begins to be pressed'),
                  ('down', 'Down', 'The mouse button is pressed'),
                  ('released', 'Released', 'The mouse button stops being pressed'),
-                 ('moved', 'Moved', 'Moved')],
+                 ('moved', 'Moved', 'Moved'),
+                 ('wheel', 'Wheel', 'Mouse wheel')],
         name='', default='started', update=upd)
     property1: HaxeEnumProperty(
         'property1',
@@ -53,11 +54,14 @@ class MouseNode(ArmLogicTreeNode):
     def draw_buttons(self, context, layout):
         layout.prop(self, 'property0')
 
-        if self.property0 != 'moved':
+        if self.property0 not in ('moved', 'wheel'):
             layout.prop(self, 'property1')
+
+        if self.property0 != 'moved':
             layout.prop(self, 'property2')
 
     def draw_label(self) -> str:
+        if self.property0 in ('moved', 'wheel'):
             return f'{self.bl_label}: {self.property0}'
         return f'{self.bl_label}: {self.property1}'
 
