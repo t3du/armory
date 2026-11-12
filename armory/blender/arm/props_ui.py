@@ -3055,8 +3055,8 @@ def draw_custom_node_menu(self, context):
             layout = self.layout
             layout.separator()
             layout.operator("arm.open_node_documentation", text="Show documentation for this node", icon='HELP')
-            layout.operator("arm.open_node_haxe_source", text="Open .hx source in the browser", icon_value=ui_icons.get_id("haxe"))
-            layout.operator("arm.open_node_python_source", text="Open .py source in the browser", icon='FILE_SCRIPT')
+            layout.operator("arm.open_node_haxe_source", text="Open .hx source in the explorer", icon_value=ui_icons.get_id("haxe"))
+            layout.operator("arm.open_node_python_source", text="Open .py source in the explorer", icon='FILE_SCRIPT')
 
     elif context.space_data.tree_type == 'ShaderNodeTree':
         if context.active_node.bl_idname in ('ShaderNodeRGB', 'ShaderNodeValue', 'ShaderNodeTexImage'):

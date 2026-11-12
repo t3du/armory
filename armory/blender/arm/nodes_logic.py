@@ -1,5 +1,6 @@
 from typing import Any, Callable
 import webbrowser
+import os
 
 import bl_operators
 import bpy
@@ -285,7 +286,8 @@ class ArmOpenNodeHaxeSource(bpy.types.Operator):
                     version = arm.utils.get_last_commit()
                     if version == '':
                         version = 'main'
-                    webbrowser.open(f'https://github.com/armory3d/armory/blob/{version}/armory/Sources/armory/logicnode/{name}.hx')
+                    #webbrowser.open(f'https://github.com/armory3d/armory/blob/{version}/armory/Sources/armory/logicnode/{name}.hx')
+                    bpy.ops.wm.path_open(filepath=os.path.abspath(os.path.join(os.path.dirname(arm.__file__), '..', '..', 'Sources', 'armory', 'logicnode', f'{name}.hx')))
         return{'FINISHED'}
 
 
@@ -303,7 +305,8 @@ class ArmOpenNodePythonSource(bpy.types.Operator):
                     if version == '':
                         version = 'main'
                     rel_path = node.__module__.replace('.', '/')
-                    webbrowser.open(f'https://github.com/armory3d/armory/blob/{version}/armory/blender/{rel_path}.py')
+                    #webbrowser.open(f'https://github.com/armory3d/armory/blob/{version}/armory/blender/{rel_path}.py')
+                    bpy.ops.wm.path_open(filepath=os.path.abspath(os.path.join(os.path.dirname(arm.__file__), '..', '..', 'blender', rel_path + '.py')))
         return{'FINISHED'}
 
 
