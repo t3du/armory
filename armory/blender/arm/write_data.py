@@ -529,11 +529,11 @@ class Main {
         if rpdat.rp_shadows:
             if rpdat.rp_shadowmap_cascades != '1':
                 f.write("""
-            iron.object.LightObject.cascadeCount = """ + str(rpdat.rp_shadowmap_cascades) + """;
-            iron.object.LightObject.cascadeSplitFactor = """ + str(rpdat.arm_shadowmap_split) + """;""")
+        iron.object.LightObject.cascadeCount = """ + str(rpdat.rp_shadowmap_cascades) + """;
+        iron.object.LightObject.cascadeSplitFactor = """ + str(rpdat.arm_shadowmap_split) + """;""")
             if rpdat.arm_shadowmap_bounds != 1.0:
                 f.write("""
-            iron.object.LightObject.cascadeBounds = """ + str(rpdat.arm_shadowmap_bounds) + """;""")
+        iron.object.LightObject.cascadeBounds = """ + str(rpdat.arm_shadowmap_bounds) + """;""")
 
         asset_references = list(set(assets.assets))
 
@@ -551,7 +551,8 @@ class Main {
         scenes_list = [f"'{scene.name}'" for scene in bpy.data.scenes if getattr(scene, 'arm_export', True)]
         scenes_array = "[" + ", ".join(scenes_list) + "]"
 
-        f.write("armory.system.Starter.scenes = " + scenes_array + ";")
+        f.write("""
+        armory.system.Starter.scenes = """ + scenes_array + """;""")
 
         if wrd.arm_ui == 'Enabled':
             if wrd.arm_canvas_img_scaling_quality == 'low':
