@@ -12,10 +12,8 @@ class PeerNetworkNode extends LogicNode {
 			case 0: PeerNetwork.peers;
 			case 1: PeerNetwork.connections;
 			case 2: PeerNetwork.peerConnections;
-			case 3: PeerNetwork.peerConnectionInfo;
-			case 4: PeerNetwork.calls;
-			case 5: PeerNetwork.peerCalls;
-			case 6: PeerNetwork.peerCallInfo;
+			case 3: PeerNetwork.calls;
+			case 4: PeerNetwork.peerCalls;
 			default: null;
 		}
 	}

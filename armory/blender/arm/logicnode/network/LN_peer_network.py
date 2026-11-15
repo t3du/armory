@@ -12,7 +12,5 @@ class PeerNetworkNode(ArmLogicTreeNode):
         self.add_output('ArmDynamicSocket', 'Peers')
         self.add_output('ArmDynamicSocket', 'Connections')
         self.add_output('ArmDynamicSocket', 'Peer Connections')
-        self.add_output('ArmDynamicSocket', 'Peer Connection Info')
         self.add_output('ArmDynamicSocket', 'Calls')
         self.add_output('ArmDynamicSocket', 'Peer Calls')
-        self.add_output('ArmDynamicSocket', 'Peer Call Info')
