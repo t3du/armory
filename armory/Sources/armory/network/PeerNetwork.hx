@@ -47,7 +47,7 @@ class PeerNetwork {
 			if (!opened) onError("PeerNetwork: Peer closed before opening.");
 		};
 		peerId.on("error", peerErrorListener);
-		peerId.on("open", function(Id:String) {
+		peerId.once("open", function(Id:String) {
 			opened = true;
 			peerId.removeListener("error", peerErrorListener);
 			peerId.removeListener("close", peerCloseListener);
@@ -133,10 +133,10 @@ class PeerNetwork {
 		}, onError);
 	}
 
-	public static function peerCallClose(callId:String, onError:Dynamic->Void):Bool {
+	public static function peerCallClose(callId:String):Bool {
 		var call = calls.get(callId);
 		if (call == null) {
-			onError("PeerNetwork: Call ID is not available.");
+			trace("PeerNetwork: Call ID is not available.");
 			return false;
 		}
 		try {
@@ -150,7 +150,7 @@ class PeerNetwork {
 			return true;
 		}
 		catch (error:Dynamic) {
-			onError(error);
+			trace("PeerNetwork: Could not close call: " + Std.string(error));
 			return false;
 		}
 	}
@@ -302,51 +302,88 @@ class PeerNetwork {
 			onError("PeerNetwork: Peer ID From is not available.");
 			return;
 		}
-		var connection:Dynamic;
+		var connection:Dynamic = null;
 		var settled = false;
+		var timeout:haxe.Timer = null;
 		var peerErrorListener:Dynamic->Void = null;
-		peerErrorListener = function(error:Dynamic) {
-			var message = Std.string(Reflect.field(error, "message"));
-			if (!settled && Reflect.field(error, "type") == "peer-unavailable" && message.indexOf(peerIdTo) >= 0) {
-				settled = true;
-				peer.removeListener("error", peerErrorListener);
-				onError(error);
+		var connectionOpenListener:Void->Void = null;
+		var connectionErrorListener:Dynamic->Void = null;
+		var connectionCloseListener:Void->Void = null;
+		var peerConnectionStateListener:Dynamic->Void = null;
+
+		var removePendingListeners = function() {
+			peer.removeListener("error", peerErrorListener);
+			if (connection != null) {
+				connection.removeListener("open", connectionOpenListener);
+				connection.removeListener("error", connectionErrorListener);
+				connection.removeListener("close", connectionCloseListener);
+				var peerConnection = connection.peerConnection;
+				if (peerConnection != null) {
+					peerConnection.removeEventListener("connectionstatechange", peerConnectionStateListener);
+				}
+			}
+			if (timeout != null) timeout.stop();
+		};
+		var closePendingConnection = function() {
+			if (connection == null) return;
+			try {
+				connection.close();
+			}
+			catch (error:Dynamic) {
+				trace("PeerNetwork: Could not close pending connection: " + Std.string(error));
 			}
 		};
+		var fail = function(error:Dynamic) {
+			if (settled) return;
+			settled = true;
+			removePendingListeners();
+			closePendingConnection();
+			onError(error);
+		};
+		peerErrorListener = function(error:Dynamic) fail(error);
+		connectionOpenListener = function() {
+			if (settled) return;
+			settled = true;
+			removePendingListeners();
+			if (onOpen != null) onOpen(connection.connectionId);
+		};
+		connectionErrorListener = function(error:Dynamic) fail(error);
+		connectionCloseListener = function() fail("PeerNetwork: Connection closed before opening.");
+		peerConnectionStateListener = function(_event:Dynamic) {
+			var peerConnection = connection.peerConnection;
+			if (peerConnection != null && peerConnection.connectionState == "failed") {
+				fail("PeerNetwork: WebRTC peer connection failed (ICE state: " + Std.string(peerConnection.iceConnectionState) + ").");
+			}
+		};
+
+		peer.on("error", peerErrorListener);
+		timeout = haxe.Timer.delay(function() {
+			fail("PeerNetwork: Timed out waiting for the data connection to open.");
+		}, 15000);
 		try {
-			peer.on("error", peerErrorListener);
 			connection = peer.connect(peerIdTo, {label: label, connectionId: connectionId, metadata: metadata});
 		}
 		catch (error:Dynamic) {
-			peer.removeListener("error", peerErrorListener);
-			onError(error);
+			fail(error);
 			return;
 		}
 		if (connection == null) {
-			peer.removeListener("error", peerErrorListener);
-			onError("PeerNetwork: PeerJS did not create a connection.");
+			fail("PeerNetwork: PeerJS did not create a connection.");
+			return;
+		}
+		if (settled) {
+			closePendingConnection();
 			return;
 		}
 		trackConnection(peerIdFrom, connection);
-		connection.on("open", function() {
-			if (settled) return;
-			settled = true;
-			peer.removeListener("error", peerErrorListener);
-			if (onOpen != null) onOpen(connection.connectionId);
-		});
-		connection.on("error", function(error:Dynamic) {
-			if (settled) return;
-			settled = true;
-			peer.removeListener("error", peerErrorListener);
-			onError(error);
-		});
-		connection.on("close", function() {
-			peer.removeListener("error", peerErrorListener);
-			if (!settled) {
-				settled = true;
-				onError("PeerNetwork: Connection closed before opening.");
-			}
-		});
+		connection.on("open", connectionOpenListener);
+		connection.on("error", connectionErrorListener);
+		connection.on("close", connectionCloseListener);
+		var peerConnection = connection.peerConnection;
+		if (peerConnection != null) {
+			peerConnection.addEventListener("connectionstatechange", peerConnectionStateListener);
+		}
+		if (connection.open) connectionOpenListener();
 	}
 
 	public static function connectionSend(connectionId:String, data:Dynamic, onError:Dynamic->Void):Bool {
@@ -379,10 +416,10 @@ class PeerNetwork {
 		return !failed;
 	}
 
-	public static function connectionClose(connectionId:String, onError:Dynamic->Void):Bool {
+	public static function connectionClose(connectionId:String):Bool {
 		var connection = connections.get(connectionId);
 		if (connection == null) {
-			onError("PeerNetwork: Connection ID is not available.");
+			trace("PeerNetwork: Connection ID is not available.");
 			return false;
 		}
 		try {
@@ -390,7 +427,7 @@ class PeerNetwork {
 			return true;
 		}
 		catch (error:Dynamic) {
-			onError(error);
+			trace("PeerNetwork: Could not close connection: " + Std.string(error));
 			return false;
 		}
 	}
@@ -412,12 +449,15 @@ class PeerNetwork {
 		peer.disconnect();
 	}
 
-	public static function peerReconnect(peerId:String):Void {
+	public static function peerReconnect(peerId:String, onReady:Void->Void):Void {
 		var peer = getPeer(peerId);
 		if (peer == null) {
 			trace("PeerNetwork: Peer ID is not available.");
 			return;
 		}
+		peer.once("open", function(_id:String) {
+			if (onReady != null) onReady();
+		});
 		peer.reconnect();
 	}
 

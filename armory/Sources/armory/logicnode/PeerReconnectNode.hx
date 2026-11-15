@@ -8,7 +8,8 @@ class PeerReconnectNode extends LogicNode {
 	}
 
 	override function run(from:Int):Void {
-		PeerNetwork.peerReconnect(inputs[1].get());
-		runOutput(0);
+		PeerNetwork.peerReconnect(inputs[1].get(), function() {
+			runOutput(0);
+		});
 	}
 }

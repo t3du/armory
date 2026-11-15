@@ -13,5 +13,3 @@ class ConnectionCloseNode(ArmLogicTreeNode):
         self.add_input('ArmStringSocket', 'Connection ID')
 
         self.add_output('ArmNodeSocketAction', 'Out')
-        self.add_output('ArmNodeSocketAction', 'On Error')
-        self.add_output('ArmDynamicSocket', 'Error')
