@@ -98,4 +98,97 @@ class Spectral {
 			finalAlpha
 		);
 	}
+
+	static function rgbToHsv(r:Float, g:Float, b:Float):Array<Float> {
+		var max = Math.max(r, Math.max(g, b));
+		var min = Math.min(r, Math.min(g, b));
+		var d = max - min;
+
+		var h = 0.0;
+		var s = max == 0.0 ? 0.0 : d / max;
+
+		if (d != 0.0) {
+			if (max == r) h = 60.0 * (((g - b) / d) % 6.0);
+			else if (max == g) h = 60.0 * ((b - r) / d + 2.0);
+			else h = 60.0 * ((r - g) / d + 4.0);
+		}
+
+		if (h < 0.0) h += 360.0;
+
+		return [h, s, max];
+	}
+
+	static function hsvToRgb(h:Float, s:Float, v:Float):Array<Float> {
+		h = ((h % 360.0) + 360.0) % 360.0;
+
+		var c = v * s;
+		var x = c * (1.0 - Math.abs((h / 60.0) % 2.0 - 1.0));
+		var m = v - c;
+
+		var r = 0.0;
+		var g = 0.0;
+		var b = 0.0;
+
+		if (h < 60.0) {
+			r = c; g = x;
+		} else if (h < 120.0) {
+			r = x; g = c;
+		} else if (h < 180.0) {
+			g = c; b = x;
+		} else if (h < 240.0) {
+			g = x; b = c;
+		} else if (h < 300.0) {
+			r = x; b = c;
+		} else {
+			r = c; b = x;
+		}
+
+		return [r + m, g + m, b + m];
+	}
+
+	static function interpolateHue(h:Float, source:Array<Float>, target:Array<Float>):Float {
+		h = ((h % 360.0) + 360.0) % 360.0;
+
+		for (i in 0...(source.length - 1)) {
+			if (h >= source[i] && h <= source[i + 1]) {
+				var t = (h - source[i]) / (source[i + 1] - source[i]);
+				return target[i] + t * (target[i + 1] - target[i]);
+			}
+		}
+
+		return target[target.length - 1];
+	}
+
+	static function rgbHueToRyb(h:Float):Float {
+		return interpolateHue(
+			h,
+			[0.0, 30.0, 60.0, 120.0, 180.0, 240.0, 270.0, 360.0],
+			[0.0, 60.0, 120.0, 180.0, 210.0, 240.0, 300.0, 360.0]
+		);
+	}
+
+	static function rybHueToRgb(h:Float):Float {
+		return interpolateHue(
+			h,
+			[0.0, 60.0, 120.0, 180.0, 240.0, 300.0, 360.0],
+			[0.0, 30.0, 60.0, 120.0, 240.0, 270.0, 360.0]
+		);
+	}
+
+	public static function complementaryRGB(color:Vec4):Vec4 {
+		var hsv = rgbToHsv(color.x, color.y, color.z);
+		var rgb = hsvToRgb(hsv[0] + 180.0, hsv[1], hsv[2]);
+
+		return new Vec4(rgb[0], rgb[1], rgb[2], color.w);
+	}
+
+	public static function complementaryRYB(color:Vec4):Vec4 {
+		var hsv = rgbToHsv(color.x, color.y, color.z);
+		var rybHue = rgbHueToRyb(hsv[0]);
+		var rgbHue = rybHueToRgb(rybHue + 180.0);
+		var rgb = hsvToRgb(rgbHue, hsv[1], hsv[2]);
+
+		return new Vec4(rgb[0], rgb[1], rgb[2], color.w);
+	}
+
 }
