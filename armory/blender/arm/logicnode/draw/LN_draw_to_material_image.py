@@ -16,7 +16,7 @@ class DrawToMaterialImageNode(ArmLogicTreeNode):
 
     @input Clear Image: Clear the image before drawing to it
 
-    @output Out: Action output to be connected to other Draw Nodes
+    @output Draw: Action output to be connected to other Draw Nodes
 
     @output Width: Width of the image
 
@@ -34,6 +34,6 @@ class DrawToMaterialImageNode(ArmLogicTreeNode):
         self.add_input('ArmStringSocket', 'Node')
         self.add_input('ArmBoolSocket', 'Clear Image')
 
-        self.add_output('ArmNodeSocketAction', 'Out')
+        self.add_output('ArmNodeSocketAction', 'Draw')
         self.add_output('ArmIntSocket', 'Width')
         self.add_output('ArmIntSocket', 'Height')
