@@ -38,7 +38,7 @@ class BlendRenderTargetNode extends LogicNode {
 				pipe.alphaBlendOperation = Add;
 
 			case "Erase":
-				// Erases destination where source is drawn (cuts holes / negative mask)
+				// Erases destination where source is drawn
 				pipe.blendSource = BlendZero;
 				pipe.blendDestination = InverseSourceAlpha;
 				pipe.blendOperation = Add;
@@ -47,7 +47,7 @@ class BlendRenderTargetNode extends LogicNode {
 				pipe.alphaBlendOperation = Add;
 
 			case "Additive":
-				// Adds source color to destination (glow, lights, lasers)
+				// Adds source color to destination
 				pipe.blendSource = SourceAlpha;
 				pipe.blendDestination = BlendOne;
 				pipe.blendOperation = Add;
