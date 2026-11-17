@@ -51,8 +51,11 @@ class DrawToImageNode extends LogicNode {
 			}
 		}
 
-		var imgwriter = new iron.format.bmp.Writer(bo);
-		imgwriter.write(iron.format.bmp.Tools.buildFromARGB(tw, th, rgb));
+		//var imgwriter = new iron.format.bmp.Writer(bo);
+		//imgwriter.write(iron.format.bmp.Tools.buildFromARGB(tw, th, rgb));
+		
+		var writer = new iron.format.jpg.Writer(bo);
+		writer.write({width: tw, height: th, quality: 100, pixels: rgb});
 
 		#if kha_krom
 		Krom.fileSaveBytes(Krom.getFilesLocation() + "/" + file, bo.getBytes().getData());
