@@ -12,39 +12,35 @@ class SetMaterialTextureFilterNode extends LogicNode {
 	override function run(from: Int) {
 		var object: MeshObject = inputs[1].get();
 		var mat: MaterialData = inputs[2].get();
-		var slot: Int = inputs[3].get();
-		var name: String = inputs[4].get();
-		var filter: Int = inputs[5].get();
+		var name: String = inputs[3].get();
+		var filter: Int = inputs[4].get();
 
-		if (object == null){ runOutput(0); return; }
-		if (slot >= object.materials.length){ runOutput(0); return; }
+		if (object == null || mat == null){ runOutput(0); return; }
 
-		var mo = cast(object, iron.object.MeshObject);
-
-		for (i => node in mo.materials[slot].contexts[0].raw.bind_textures)
+		for (i => node in mat.contexts[0].raw.bind_textures)
 			if (node.name == name){
-				var moImgt = mo.materials[slot].contexts[0].raw.bind_textures[i];
+				var imgt = mat.contexts[0].raw.bind_textures[i];
 				switch(filter){
 					case 0: //Linear
-						moImgt.min_filter = null;
-						moImgt.mag_filter = null;
-						moImgt.mipmap_filter = null;
-						moImgt.generate_mipmaps = null;
+						imgt.min_filter = null;
+						imgt.mag_filter = null;
+						imgt.mipmap_filter = null;
+						imgt.generate_mipmaps = null;
 					case 1: //Closest
-						moImgt.min_filter = 'point';
-						moImgt.mag_filter = 'point';
-						moImgt.mipmap_filter = null;
-						moImgt.generate_mipmaps = null;
+						imgt.min_filter = 'point';
+						imgt.mag_filter = 'point';
+						imgt.mipmap_filter = null;
+						imgt.generate_mipmaps = null;
 					case 2: //Cubic
-						moImgt.min_filter = null;
-						moImgt.mag_filter = null;
-						moImgt.mipmap_filter = 'linear';
-						moImgt.generate_mipmaps = true;
+						imgt.min_filter = null;
+						imgt.mag_filter = null;
+						imgt.mipmap_filter = 'linear';
+						imgt.generate_mipmaps = true;
 					case 3: //Smart
-						moImgt.min_filter = 'anisotropic';
-						moImgt.mag_filter = null;
-						moImgt.mipmap_filter = 'linear';
-						moImgt.generate_mipmaps = true;
+						imgt.min_filter = 'anisotropic';
+						imgt.mag_filter = null;
+						imgt.mipmap_filter = 'linear';
+						imgt.generate_mipmaps = true;
 				}
 
 				break;

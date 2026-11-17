@@ -653,7 +653,17 @@ def texture_store(node, tex, tex_name, to_linear=False, tex_link=None, default_v
     if is_arm_mat_param is None:
         mat_bind_texture(tex)
     state.con.add_elem('tex', 'short2norm')
-    curshader.add_uniform('sampler2D {0}'.format(tex_name), link=tex_link, default_value=default_value, is_arm_mat_param=is_arm_mat_param)
+    curshader.add_uniform(
+        'sampler2D {0}'.format(tex_name),
+        link=tex_link,
+        tex_addr_u=tex.get('u_addressing') if is_arm_mat_param is not None else None,
+        tex_addr_v=tex.get('v_addressing') if is_arm_mat_param is not None else None,
+        tex_filter_min=tex.get('min_filter') if is_arm_mat_param is not None else None,
+        tex_filter_mag=tex.get('mag_filter') if is_arm_mat_param is not None else None,
+        tex_mipmap_filter=tex.get('mipmap_filter') if is_arm_mat_param is not None else None,
+        default_value=default_value,
+        is_arm_mat_param=is_arm_mat_param,
+    )
     triplanar = node.projection == 'BOX'
     spherical = node.projection == 'SPHERE'
     tube = node.projection == 'TUBE'
