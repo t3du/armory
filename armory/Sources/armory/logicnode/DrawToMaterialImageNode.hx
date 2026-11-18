@@ -34,10 +34,11 @@ class DrawToMaterialImageNode extends LogicNode {
 	override function get(from: Int): Dynamic {
 		if(img == null) return null;
 
-		switch(from){
-			case 1: return img.width;
-			case 2: return img.height;
-			default: return null;
+		return switch(from){
+			case 1: img;
+			case 2: img.width;
+			case 3: img.height;
+			default: null;
 		}
 	}
 }

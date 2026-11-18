@@ -35,5 +35,6 @@ class DrawToMaterialImageNode(ArmLogicTreeNode):
         self.add_input('ArmBoolSocket', 'Clear Image')
 
         self.add_output('ArmNodeSocketAction', 'Draw')
+        self.add_output('ArmDynamicSocket', 'Render Target')
         self.add_output('ArmIntSocket', 'Width')
         self.add_output('ArmIntSocket', 'Height')

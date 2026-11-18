@@ -11,8 +11,9 @@ class GetImageColorNode extends LogicNode {
 
 	public function new(tree: LogicTree) {
 		super(tree);
-		renderTarget = Image.createRenderTarget(iron.App.w(), iron.App.h(), kha.graphics4.TextureFormat.RGBA32,
-			kha.graphics4.DepthStencilFormat.NoDepthAndStencil);
+		if (property0 != 'Render Target') 
+			renderTarget = Image.createRenderTarget(iron.App.w(), iron.App.h(), kha.graphics4.TextureFormat.RGBA32,
+				kha.graphics4.DepthStencilFormat.NoDepthAndStencil);
 	}
 
 	override function get(from: Int): Dynamic {
@@ -20,7 +21,7 @@ class GetImageColorNode extends LogicNode {
 		var i: Int;
 		var j: Int;
 
-		if (property0 == 'Image'){
+		if (Lambda.has(['Image', 'Render Target'], property0)){
 			i = inputs[1].get();
 			j = inputs[2].get();
 		} else {
@@ -33,44 +34,48 @@ class GetImageColorNode extends LogicNode {
 		if (property0 != 'Image')
 			if (i > renderTarget.width || j > renderTarget.height) return null;
 
-		renderTarget.g2.begin(true, Color.Transparent);
+		if (property0 != 'Render Target'){
+			renderTarget.g2.begin(true, Color.Transparent);
 
-		renderTarget.g2.color = Color.White;
+			renderTarget.g2.color = Color.White;
 
-		if (property0 == 'Render' || property0 == 'Render&Render2D'){
-			if (armory.renderpath.RenderPathCreator.finalTarget != null){
-				var img: Image = iron.RenderPath.active.renderTargets.get("buf").image;
-				renderTarget.g2.drawScaledImage(img, 0, 0, iron.App.w(), iron.App.h());
+			if (property0 == 'Render' || property0 == 'Render&Render2D'){
+				if (armory.renderpath.RenderPathCreator.finalTarget != null){
+					var img: Image = iron.RenderPath.active.renderTargets.get("buf").image;
+					renderTarget.g2.drawScaledImage(img, 0, 0, iron.App.w(), iron.App.h());
+				}
 			}
-		}
 
-		if (Image.renderTargetsInvertedY()){
-			renderTarget.g2.scale(1, -1);
-			renderTarget.g2.translate(0, renderTarget.height);
-		}
+			if (Image.renderTargetsInvertedY()){
+				renderTarget.g2.scale(1, -1);
+				renderTarget.g2.translate(0, renderTarget.height);
+			}
 
-		if (property0 == 'Image'){
-			var img: Image;
-			iron.data.Data.getImage(inputs[0].get(), (image: Image) -> {
-				img = image;
-			});
-			if (img == null || i > img.width || j > img.height){
-				renderTarget.g2.end();
-				return null;
-			} else
-				renderTarget.g2.drawScaledImage(img, 0, 0, img.width, img.height);
-		}
+			if (property0 == 'Image'){
+				var img: Image;
+				iron.data.Data.getImage(inputs[0].get(), (image: Image) -> {
+					img = image;
+				});
+				if (img == null || i > img.width || j > img.height){
+					renderTarget.g2.end();
+					return null;
+				} else
+					renderTarget.g2.drawScaledImage(img, 0, 0, img.width, img.height);
+			}
 
-		if (property0.indexOf('2D') > 0)
-			for (f in @:privateAccess iron.App.traitRenders2D)
-				f(renderTarget.g2);
+			if (property0.indexOf('2D') > 0)
+				for (f in @:privateAccess iron.App.traitRenders2D)
+					f(renderTarget.g2);
 
-		if (Image.renderTargetsInvertedY()){
-			renderTarget.g2.scale(1, -1);
-			renderTarget.g2.translate(0, renderTarget.height);
-		}
+			if (Image.renderTargetsInvertedY()){
+				renderTarget.g2.scale(1, -1);
+				renderTarget.g2.translate(0, renderTarget.height);
+			}
 
-		renderTarget.g2.end();
+			renderTarget.g2.end();
+
+		} else
+			renderTarget = inputs[0].get();
 
 		var pixels = renderTarget.getPixels();
 

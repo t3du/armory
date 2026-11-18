@@ -24,6 +24,8 @@ class GetImageColorNode(ArmLogicTreeNode):
             self.inputs.remove(self.inputs[-1])
         if self.property0 == 'Image':
             self.add_input('ArmStringSocket', 'Image')
+        elif self.property0 == 'Render Target':
+            self.add_input('ArmDynamicSocket', 'Render Target')
         self.add_input('ArmIntSocket', 'X')
         self.add_input('ArmIntSocket', 'Y')
 
@@ -32,13 +34,15 @@ class GetImageColorNode(ArmLogicTreeNode):
     items = [('Image', 'Image', 'Image'),
              ('Render2D', 'Render2D', 'Render2D'),
              ('Render', 'Render', 'Render'),
-             ('Render&Render2D', 'Render&Render2D', 'Render&Render2D')],
+             ('Render&Render2D', 'Render&Render2D', 'Render&Render2D'),
+             ('Render Target', 'Render Target', 'Render Target')],
     name='', default='Image', update=remove_extra_inputs)
 
     def arm_init(self, context):
         self.add_input('ArmStringSocket', 'Image')
         self.add_input('ArmIntSocket', 'X')
         self.add_input('ArmIntSocket', 'Y')
+
         self.add_output('ArmColorSocket', 'Color')
 
     def draw_buttons(self, context, layout):
