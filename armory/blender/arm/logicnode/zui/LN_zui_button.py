@@ -13,6 +13,7 @@ class ZuiButtonNode(ArmLogicTreeNode):
         self.add_input('ArmStringSocket', 'Text', default_value='Button')
         self.add_input('ArmIntSocket', 'Align', default_value=1)
         self.add_input('ArmStringSocket', 'Label')
+        self.add_input('ArmFloatSocket', 'Radius')
 
         self.add_output('ArmNodeSocketAction', 'Clicked')
         self.add_output('ArmNodeSocketAction', 'Next')

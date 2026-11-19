@@ -21,7 +21,10 @@ class ZuiButtonNode extends LogicNode {
 			default: Align.Right;
 		};
 
-		var clicked = ui.button(inputs[1].get(), align, inputs[3].get());
+		var text: String = inputs[1].get();
+		var radius: Float = inputs[4].get();
+		if (radius > 0) text += ';' + radius;
+		var clicked = ui.button(text, align, inputs[3].get());
 		if (clicked) runOutput(0);
 		runOutput(1);
 	}
