@@ -33,7 +33,8 @@ class ZuiListNode extends LogicNode {
 			editable: inputs[2].get(),
 			showRadio: inputs[3].get(),
 			showAdd: inputs[4].get(),
-			addLabel: inputs[5].get()
+			addLabel: inputs[5].get(),
+			showRemove: inputs[6].get()
 		});
 		position = items.length == 0 ? -1 : selected;
 		changed = items.length != before.length || position != previousPosition || (inputs[3].get() && items.length > 0 && handle.nest(0).changed);

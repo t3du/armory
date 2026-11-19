@@ -15,6 +15,7 @@ class ZuiListNode(ArmLogicTreeNode):
         self.add_input('ArmBoolSocket', 'Show Radio')
         self.add_input('ArmBoolSocket', 'Show Add', default_value=True)
         self.add_input('ArmStringSocket', 'Add Label', default_value='Add')
+        self.add_input('ArmBoolSocket', 'Show Remove', default_value=True)
 
         self.add_output('ArmNodeSocketAction', 'Changed')
         self.add_output('ArmNodeSocketAction', 'Next')

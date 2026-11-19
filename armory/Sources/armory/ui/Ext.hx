@@ -14,7 +14,8 @@ typedef ListOpts = {
 	?showRadio: Bool, // false
 	?editable: Bool, // true
 	?showAdd: Bool, // true
-	?addLabel: String // 'Add'
+	?addLabel: String, // 'Add'
+	?showRemove: Bool // true
 }
 
 @:access(zui.Zui)
@@ -81,21 +82,24 @@ class Ext {
 		var editable = opts.editable != null ? opts.editable : true;
 		var showAdd = opts.showAdd != null ? opts.showAdd : true;
 		var addLabel = opts.addLabel != null ? opts.addLabel : "Add";
+		var showRemove = opts.showRemove != null ? opts.showRemove : true;
 
 		var i = 0;
 		while (i < ar.length) {
-			if (showRadio) { // Prepend ratio button
-				ui.row([0.12, 0.68, 0.2]);
+			if (showRadio) {
+				ui.row(showRemove ? [0.12, 0.68, 0.2] : [0.12, 0.88]);
 				if (ui.radio(handle.nest(0), i, "")) {
 					selected = i;
 				}
 			}
-			else ui.row([0.8, 0.2]);
+			else {
+				ui.row(showRemove ? [0.8, 0.2] : [1.0]);
+			}
 
 			var itemHandle = handle.nest(i);
 			itemHandle.text = getNameCb(i);
 			editable ? setNameCb(i, ui.textInput(itemHandle, getLabelCb(i))) : ui.text(getNameCb(i));
-			if (ui.button("X")) removeCb(i);
+			if (showRemove && ui.button("X")) removeCb(i);
 			else i++;
 
 			if (itemDrawCb != null) itemDrawCb(itemHandle.nest(i), i - 1);
