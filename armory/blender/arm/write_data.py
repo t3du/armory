@@ -327,6 +327,9 @@ project.addSources('Sources');
             p = sdk_path + '/armory/Assets/font_default.ttf'
             p = p.replace('//', '/')
             khafile.write(add_assets(p.replace('\\', '/'), use_data_dir=use_data_dir, rel_path=do_relpath_sdk))
+            for image in ('color_wheel.png', 'black_white_gradient.png'):
+                p = os.path.join(sdk_path, 'lib', 'armory2d', 'Assets', image).replace('\\', '/')
+                khafile.write(add_assets(p, use_data_dir=use_data_dir, rel_path=do_relpath_sdk))
             assets.add_khafile_def('arm_ui')
 
         if export_network:
