@@ -9,8 +9,8 @@ class CallFunctionNode extends LogicNode {
 	}
 
 	override function run(from: Int) {
-		var trait: Dynamic = inputs[1].get();
-		if (trait == null){ runOutput(0); return; }
+		var object: Dynamic = inputs[1].get();
+		if (object == null){ runOutput(0); return; }
 
 		var funName: String = inputs[2].get();
 		var args: Array<Dynamic> = [];
@@ -19,9 +19,9 @@ class CallFunctionNode extends LogicNode {
 			args.push(inputs[i].get());
 		}
 
-		var func = Reflect.field(trait, funName);
+		var func = Reflect.field(object, funName);
 		if (func != null) {
-			result = Reflect.callMethod(trait, func, args);
+			result = Reflect.callMethod(object, func, args);
 		}
 
 		runOutput(0);
