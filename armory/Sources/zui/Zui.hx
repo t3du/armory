@@ -1002,9 +1002,12 @@ class Zui {
 
 		var v = text.split(";");
 		if (v.length == 2){
-			var radius = Std.parseFloat(v[1]) * SCALE(); 
+			var bw = _w - buttonOffsetY * 2;
+			var bh = BUTTON_H();
+			var maxR = Math.min(bw, bh) * 0.5;
+			var radius = Math.min(Math.max(Std.parseFloat(v[1]) * SCALE(), 0), maxR);
 			text = v[0];
-			drawRoundRect(g, t.FILL_BUTTON_BG, _x + buttonOffsetY, _y + buttonOffsetY, _w - buttonOffsetY * 2, BUTTON_H(), radius);
+			drawRoundRect(g, t.FILL_BUTTON_BG, _x + buttonOffsetY, _y + buttonOffsetY, bw, bh, radius);
 		} else
 			drawRect(g, t.FILL_BUTTON_BG, _x + buttonOffsetY, _y + buttonOffsetY, _w - buttonOffsetY * 2, BUTTON_H()); 
 		
