@@ -19,10 +19,10 @@ class ZuiElementStateNode extends LogicNode {
 		var started = ui.isStarted;
 		var pushed = ui.isPushed;
 		var released = ui.isReleased;
-		if (hovered) runOutput(0);
-		if (started) runOutput(1);
-		if (pushed) runOutput(2);
-		if (released) runOutput(3);
+		if (hovered) runOutput(1); else runOutput(0);
+		if (started) runOutput(2);
+		if (pushed) runOutput(3);
+		if (released) runOutput(4);
 		runOutput(4);
 	}
 	#end

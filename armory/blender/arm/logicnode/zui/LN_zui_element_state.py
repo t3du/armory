@@ -11,6 +11,7 @@ class ZuiElementStateNode(ArmLogicTreeNode):
     def arm_init(self, context):
         self.add_input('ArmNodeSocketAction', 'UI')
 
+        self.add_output('ArmNodeSocketAction', 'Is Not Hovered')
         self.add_output('ArmNodeSocketAction', 'Is Hovered')
         self.add_output('ArmNodeSocketAction', 'Is Started')
         self.add_output('ArmNodeSocketAction', 'Is Pushed')
