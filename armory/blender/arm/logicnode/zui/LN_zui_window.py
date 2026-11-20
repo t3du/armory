@@ -16,9 +16,12 @@ class ZuiWindowNode(ArmLogicTreeNode):
         self.add_input('ArmIntSocket', 'Height', default_value=240)
         self.add_input('ArmBoolSocket', 'Draggable', default_value=True)
         self.add_input('ArmBoolSocket', 'Relative')
+        self.add_input('ArmFloatSocket', 'Scroll')
+        self.add_input('ArmBoolSocket', 'Scroll Override')
 
         self.add_output('ArmNodeSocketAction', 'Content')
         self.add_output('ArmNodeSocketAction', 'Next')
         self.add_output('ArmFloatSocket', 'Center X')
         self.add_output('ArmFloatSocket', 'Center Y')
+        self.add_output('ArmFloatSocket', 'Scroll')
 

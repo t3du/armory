@@ -10,7 +10,7 @@ class ZuiWindowNode extends LogicNode {
 	var handle = new Handle();
 	var cx: Float;
 	var cy: Float;
-
+	var scrollValue: Float;
 	#end
 
 	public function new(tree: LogicTree) {
@@ -27,7 +27,17 @@ class ZuiWindowNode extends LogicNode {
 		var w: Int = inputs[3].get();
 		var h: Int = inputs[4].get();
 
-		if (inputs[6].get()){
+		if (inputs[8].get()) handle.scrollOverride = false;
+		var contentHeight = handle.lastMaxY - handle.scrollOffset;
+		var maxScroll = -(contentHeight - h);
+		if (!handle.scrollOverride) {
+			var scroll: Float = Math.max(0, Math.min(1, inputs[7].get()));
+			handle.scrollOffset = maxScroll < 0 ? maxScroll * scroll : 0;
+			scrollValue = scroll;
+		} else
+			scrollValue = maxScroll < 0 ? handle.scrollOffset / maxScroll : 0;
+
+		if (inputs[6].get()) {
 			cx = kha.System.windowWidth() * x;
 			cy = kha.System.windowHeight() * y;
 			x = cx - w / 2;
@@ -45,7 +55,11 @@ class ZuiWindowNode extends LogicNode {
 	}
 
 	override function get(from: Int): Dynamic {
-		return from == 2 ? cx : cy;
+		return switch(from) {
+			case 2: cx;
+			case 3: cy;
+			default: scrollValue;
+			}
 	}
 	#end
 }

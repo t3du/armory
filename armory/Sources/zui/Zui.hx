@@ -546,6 +546,7 @@ class Zui {
 
 	function scroll(delta: Float, fullHeight: Float) {
 		currentWindow.scrollOffset -= delta;
+		currentWindow.scrollOverride = true;
 	}
 
 	public function tab(handle: Handle, text: String, vertical = false, color: Int = -1): Bool {
