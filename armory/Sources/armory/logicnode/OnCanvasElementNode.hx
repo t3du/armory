@@ -30,7 +30,9 @@ class OnCanvasElementNode extends LogicNode {
 	public function new(tree: LogicTree) {
 		super(tree);
 
+		#if arm_ui
 		tree.notifyOnUpdate(update);
+		#end
 	}
 
 	#if arm_ui
@@ -110,7 +112,4 @@ class OnCanvasElementNode extends LogicNode {
 			}
 		}
 	}
-	#else
-	function update() {}
-	#end
 }
