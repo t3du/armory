@@ -19,7 +19,17 @@ class ZuiWindowNode extends LogicNode {
 		var ui = Zui.current;
 		if (ui == null) return;
 
-		var isRedrawing = ui.window(handle, inputs[1].get(), inputs[2].get(), inputs[3].get(), inputs[4].get(), inputs[5].get());
+		var x: Float = inputs[1].get();
+		var y: Float = inputs[2].get();
+		var w: Int = inputs[3].get();
+		var h: Int = inputs[4].get();
+
+		if (inputs[6].get()){
+			x = kha.System.windowWidth() * x - w / 2;
+			y = kha.System.windowHeight() * y - h / 2;
+		}
+
+		var isRedrawing = ui.window(handle, Std.int(x), Std.int(y), w, h, inputs[5].get());
 		if (isRedrawing) runOutput(0);
 		runOutput(1);
 	}
