@@ -19,4 +19,6 @@ class ZuiWindowNode(ArmLogicTreeNode):
 
         self.add_output('ArmNodeSocketAction', 'Content')
         self.add_output('ArmNodeSocketAction', 'Next')
+        self.add_output('ArmFloatSocket', 'Center X')
+        self.add_output('ArmFloatSocket', 'Center Y')
 

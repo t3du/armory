@@ -8,6 +8,9 @@ import zui.Zui.Handle;
 class ZuiWindowNode extends LogicNode {
 	#if arm_ui
 	var handle = new Handle();
+	var cx: Float;
+	var cy: Float;
+
 	#end
 
 	public function new(tree: LogicTree) {
@@ -25,13 +28,24 @@ class ZuiWindowNode extends LogicNode {
 		var h: Int = inputs[4].get();
 
 		if (inputs[6].get()){
-			x = kha.System.windowWidth() * x - w / 2;
-			y = kha.System.windowHeight() * y - h / 2;
+			cx = kha.System.windowWidth() * x;
+			cy = kha.System.windowHeight() * y;
+			x = cx - w / 2;
+			y = cy - h / 2;
+			cx += handle.dragX;
+			cy += handle.dragY;
+		} else {
+			cx = x + w / 2 + handle.dragX;
+			cy = y + h / 2 + handle.dragY;
 		}
 
 		var isRedrawing = ui.window(handle, Std.int(x), Std.int(y), w, h, inputs[5].get());
 		if (isRedrawing) runOutput(0);
 		runOutput(1);
+	}
+
+	override function get(from: Int): Dynamic {
+		return from == 2 ? cx : cy;
 	}
 	#end
 }
