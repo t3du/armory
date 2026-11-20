@@ -2056,6 +2056,7 @@ class Handle {
 	public var redraws = 2;
 	public var scrollOffset = 0.0;
 	public var scrollEnabled = false;
+	public var scrollOverride = false;
 	public var layout: Layout = 0;
 	public var lastMaxX = 0.0;
 	public var lastMaxY = 0.0;
