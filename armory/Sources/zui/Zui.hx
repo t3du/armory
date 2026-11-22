@@ -738,6 +738,30 @@ class Zui {
 		return started ? State.Started : released ? State.Released : down ? State.Down : hover ? State.Hovered : State.Idle;
 	}
 
+	public function title(text: String, align = Align.Left, color: Int = -1) {
+		var lines = text.split("\n");
+		var lineH = Math.max(ELEMENT_H(), ops.font.height(fontSize));
+		var totalH = lineH * lines.length;
+		if (!isVisible(totalH)) {
+			endElement(totalH + ELEMENT_OFFSET());
+			return;
+		}
+		g.color = t.WINDOW_BG_COL;
+		g.fillRect(_x, _y, _w, totalH);
+		if (color != -1) {
+			g.color = color;
+			g.fillRect(_x, _y + totalH - 3 * SCALE(), _w, 3 * SCALE());
+		}
+		g.color = t.LABEL_COL;
+		var origY = _y;
+		for (i in 0...lines.length) {
+			_y = origY + lineH * i;
+			drawString(g, lines[i], 10, 0, align);
+		}
+		_y = origY;
+		endElement(totalH + ELEMENT_OFFSET());
+	}
+
 	public function text(text: String, align = Align.Left, bg = 0x00000000): State {
 		if (text.indexOf("\n") >= 0) {
 			splitText(text, align, bg);

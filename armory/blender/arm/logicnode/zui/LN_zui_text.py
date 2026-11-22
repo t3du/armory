@@ -13,5 +13,6 @@ class ZuiTextNode(ArmLogicTreeNode):
         self.add_input('ArmStringSocket', 'Text', default_value='Text')
         self.add_input('ArmIntSocket', 'Align')
         self.add_input('ArmColorSocket', 'Color', default_value =[0.0, 0.0, 0.0, 0.0])
+        self.add_input('ArmBoolSocket', 'Title')
 
         self.add_output('ArmNodeSocketAction', 'Next')

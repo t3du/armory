@@ -26,7 +26,10 @@ class ZuiTextNode extends LogicNode {
 
 		var colorVec: Vec4 = inputs[3].get();
 
-		ui.text(inputs[1].get(), align, Color.fromFloats(colorVec.x, colorVec.y, colorVec.z, colorVec.w));
+		if (inputs[4].get())
+			ui.title(inputs[1].get(), align, Color.fromFloats(colorVec.x, colorVec.y, colorVec.z, colorVec.w));
+		else
+			ui.text(inputs[1].get(), align, Color.fromFloats(colorVec.x, colorVec.y, colorVec.z, colorVec.w));
 		runOutput(0);
 	}
 	#end
