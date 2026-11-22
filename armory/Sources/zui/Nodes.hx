@@ -664,6 +664,7 @@ class Nodes {
 				val[0] = nhandle.color.R;
 				val[1] = nhandle.color.G;
 				val[2] = nhandle.color.B;
+				ny = ui._y - lineh;
 			}
 			else if (but.type == "VECTOR") {
 				ny += lineh;
