@@ -26,7 +26,7 @@ class DrawToImageNode(ArmLogicTreeNode):
     def arm_init(self, context):
         self.add_input('ArmNodeSocketAction', 'In')
         self.add_input('ArmStringSocket', 'Image File')
-        self.add_input('ArmColorSocket', 'Color', default_value=[1.0, 1.0, 1.0, 1.0])
+        self.add_input('ArmColorSocket', 'Color', default_value=[1.0, 1.0, 1.0, 0.0])
         self.add_input('ArmIntSocket', 'Width')
         self.add_input('ArmIntSocket', 'Height')
         self.add_input('ArmIntSocket', 'sX')
@@ -34,4 +34,4 @@ class DrawToImageNode(ArmLogicTreeNode):
         self.add_input('ArmIntSocket', 'sWidth')
         self.add_input('ArmIntSocket', 'sHeight')
 
-        self.add_output('ArmNodeSocketAction', 'Out')
+        self.add_output('ArmNodeSocketAction', 'Draw')

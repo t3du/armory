@@ -6,8 +6,6 @@ import armory.renderpath.RenderToTexture;
 
 class DrawToImageNode extends LogicNode {
 
-	var img: kha.Image = null;
-
 	public function new(tree: LogicTree) {
 		super(tree);
 	}
@@ -16,7 +14,7 @@ class DrawToImageNode extends LogicNode {
 		var file: String = inputs[1].get();
 		var colorVec: Vec4 = inputs[2].get();
 
-		img = kha.Image.createRenderTarget(inputs[3].get(), inputs[4].get(),
+		var img: kha.Image = kha.Image.createRenderTarget(inputs[3].get(), inputs[4].get(),
 			kha.graphics4.TextureFormat.RGBA32,
 			kha.graphics4.DepthStencilFormat.NoDepthAndStencil);
 
@@ -54,8 +52,11 @@ class DrawToImageNode extends LogicNode {
 		//var imgwriter = new iron.format.bmp.Writer(bo);
 		//imgwriter.write(iron.format.bmp.Tools.buildFromARGB(tw, th, rgb));
 		
-		var writer = new iron.format.jpg.Writer(bo);
-		writer.write({width: tw, height: th, quality: 100, pixels: rgb});
+		//var writer = new iron.format.jpg.Writer(bo);
+		//writer.write({width: tw, height: th, quality: 100, pixels: rgb});
+
+		var writer = new iron.format.png.Writer(bo);
+		writer.write(iron.format.png.Tools.build32ARGB(tw, th, rgb, 9));
 
 		#if kha_krom
 		Krom.fileSaveBytes(Krom.getFilesLocation() + "/" + file, bo.getBytes().getData());
