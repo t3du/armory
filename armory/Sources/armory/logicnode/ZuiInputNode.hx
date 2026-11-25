@@ -40,7 +40,7 @@ class ZuiInputNode extends LogicNode {
 			case "Text":
 				value = ui.textInput(handle, label, align, editable, false); //liveUpdate
 			case "Text Area":
-				value = Ext.textArea(ui, handle, align, editable, label, false);
+				value = Ext.textArea(ui, handle, align, editable, label, true);
 			case "Float":
 				if (editable) value = Ext.floatInput(ui, handle, label, inputs[5].get());
 				else {
