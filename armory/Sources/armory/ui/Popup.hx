@@ -23,8 +23,11 @@ class Popup {
 			if (ui.window(hwnd, modalX, modalY, modalW, modalH)) {
 				drawTitle(g);
 
-				for (line in boxText.split("\n")) {
+				var lines = wrapText(boxText, ui._w - 20 * ui.SCALE());
+
+				for (line in lines) {
 					ui.text(line);
+					ui._y -= ui.t.ELEMENT_OFFSET * 2;
 				}
 
 				ui._y = ui._h - ui.t.BUTTON_H - 10;
@@ -33,6 +36,7 @@ class Popup {
 				if (ui.button("OK")) {
 					show = false;
 				}
+				ui._y += 30;
 			}
 			ui.end();
 		}
@@ -46,6 +50,31 @@ class Popup {
 			}
 			ui.end();
 		}
+	}
+
+	static function wrapText(text: String, maxWidth: Float): Array<String> {
+		var result = new Array<String>();
+
+		for (paragraph in text.split("\n")) {
+			var words = paragraph.split(" ");
+			var line = "";
+
+			for (word in words) {
+				var test = line == "" ? word : line + " " + word;
+
+				if (ui.ops.font.width(ui.FONT_SIZE(), test) > maxWidth && line != "") {
+					result.push(line);
+					line = word;
+				}
+				else {
+					line = test;
+				}
+			}
+
+			result.push(line);
+		}
+
+		return result;
 	}
 
 	public static function drawTitle(g: kha.graphics2.Graphics) {
@@ -77,7 +106,18 @@ class Popup {
 	**/
 	public static function showMessage(ui: Zui, title: String, text: String) {
 		Popup.ui = ui;
-		init();
+
+		var lines = wrapText(text, 360 * ui.SCALE()).length;
+
+		var titleHeight = title != "" ? ui.t.BUTTON_H : 0;
+		var textHeight = lines * ui.t.BUTTON_H;
+		var buttonHeight = ui.t.BUTTON_H;
+
+		var padding = 30;
+
+		var height = Std.int((titleHeight + textHeight + buttonHeight + padding) / ui.SCALE());
+
+		init(-1, -1, 400, height);
 
 		boxTitle = title;
 		boxText = text;
