@@ -300,9 +300,13 @@ class Ext {
 	public static var textAreaLineNumbers = false;
 	public static var textAreaScrollPastEnd = false;
 	public static var textAreaColoring: TTextColoring = null;
+	static var textAreaSelectedHandle: Handle = null;
+	static var textAreaSelectedText = "";
 
 	public static function textArea(ui: Zui, handle: Handle, align = Align.Left, editable = true, label = "", wordWrap = false): String {
+		handle.changed = false;
 		handle.text = StringTools.replace(handle.text, "\t", "    ");
+		var prevText = handle.text;
 		var selected = ui.textSelectedHandle == handle; // Text being edited
 		var lines = handle.text.split("\n");
 		var showLabel = (lines.length == 1 && lines[0] == "");
@@ -367,6 +371,10 @@ class Ext {
 				handle.text = lines[i];
 				ui.submitTextHandle = null;
 				ui.textInput(handle, showLabel ? label : "", align, editable);
+				if (ui.textSelectedHandle == handle && textAreaSelectedHandle != handle) {
+					textAreaSelectedHandle = handle;
+					textAreaSelectedText = prevText;
+				}
 				if (keyPressed && ui.key != KeyCode.Return && ui.key != KeyCode.Escape) { // Edit text
 					lines[i] = ui.textSelected;
 				}
@@ -424,6 +432,11 @@ class Ext {
 		ui.highlightOnSelect = true;
 		ui.tabSwitchEnabled = true;
 		handle.text = lines.join("\n");
+		if (textAreaSelectedHandle == handle && ui.textSelectedHandle != handle) {
+			ui.submitTextHandle = null;
+			textAreaSelectedHandle = null;
+			if (handle.text != textAreaSelectedText) handle.changed = ui.changed = true;
+		}
 		return handle.text;
 	}
 
