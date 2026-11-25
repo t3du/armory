@@ -38,9 +38,9 @@ class ZuiInputNode extends LogicNode {
 		var editable: Bool = inputs[3].get();
 		switch (property0) {
 			case "Text":
-				value = ui.textInput(handle, label, align, editable, true); //liveUpdate
+				value = ui.textInput(handle, label, align, editable, false); //liveUpdate
 			case "Text Area":
-				value = Ext.textArea(ui, handle, align, editable, label, true);
+				value = Ext.textArea(ui, handle, align, editable, label, false);
 			case "Float":
 				if (editable) value = Ext.floatInput(ui, handle, label, inputs[5].get());
 				else {
