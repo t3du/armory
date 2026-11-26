@@ -1,18 +1,14 @@
 package armory.logicnode;
 
 import iron.math.Vec4;
-import kha.Image;
-import kha.Color;
-import armory.renderpath.RenderToTexture;
-
 import iron.format.gif.Reader;
 import iron.format.gif.Data;
 import iron.format.gif.Tools;
-
+import armory.renderpath.RenderToTexture;
 import haxe.io.Bytes;
 import haxe.io.BytesInput;
-
-import armory.system.Event; 
+import kha.Image;
+import kha.Color;
 
 class DrawGifNode extends LogicNode {
 	var data:Data = null;
@@ -25,18 +21,11 @@ class DrawGifNode extends LogicNode {
 
 	public function new(tree: LogicTree) {
 		super(tree);
-
-		Event.add('load', function() {
-			var extractedBytes:Bytes = Tools.extractFullRGBA(data, i);
-			img.push(kha.Image.fromBytes(extractedBytes, data.logicalScreenDescriptor.width, data.logicalScreenDescriptor.height, kha.graphics4.TextureFormat.RGBA32));
-		});
-
-		tree.notifyOnRemove(onRemove);
-
 	}
 
-	function onRemove() {
-		Event.remove('load');
+	function loadFrame() {
+	    var extractedBytes:Bytes = Tools.extractFullRGBA(data, i);
+		img.push(kha.Image.fromBytes(extractedBytes, data.logicalScreenDescriptor.width, data.logicalScreenDescriptor.height, kha.graphics4.TextureFormat.RGBA32));
 	}
 
 	override function run(from: Int) {
@@ -56,12 +45,16 @@ class DrawGifNode extends LogicNode {
 			final y: Float = inputs[7].get();
 			final width: Float = inputs[8].get();
 			final height: Float = inputs[9].get();
-			final angle: Float = inputs[10].get();
+			final sx: Float = inputs[10].get();
+			final sy: Float = inputs[11].get();
+			final swidth: Float = inputs[12].get();
+			final sheight: Float = inputs[13].get();
+			final angle: Float = inputs[14].get();
 
-			var sindex: Int = inputs[11].get();
-			var eindex: Int = inputs[12].get();
-			final fdur: Float = inputs[13].get();
-			final loop: Bool = inputs[14].get();
+			var sindex: Int = inputs[15].get();
+			var eindex: Int = inputs[16].get();
+			final fdur: Float = inputs[17].get();
+			final loop: Bool = inputs[18].get();
 
 			final drawx = x - 0.5 * width * anchorH;
 			final drawy = y - 0.5 * height * anchorV;
@@ -84,14 +77,14 @@ class DrawGifNode extends LogicNode {
 				duration = 0;
 				if (i < eindex){
 					++i;
-					Event.send('load');
+					loadFrame();
 				}
 			}
 
 			if (img.length > (index - sindex)){
 				RenderToTexture.g.rotate(angle, x, y);
 				RenderToTexture.g.color = Color.fromFloats(colorVec.x, colorVec.y, colorVec.z, colorVec.w);		
-				RenderToTexture.g.drawScaledImage(img[index-sindex], drawx, drawy, width, height);
+				RenderToTexture.g.drawScaledSubImage(img[index-sindex], sx, sy, swidth, sheight, drawx, drawy, width, height);
 				RenderToTexture.g.rotate(-angle, x, y);
 			}
 
@@ -103,7 +96,7 @@ class DrawGifNode extends LogicNode {
 				// Load new image
 				lastImgName = imgName;
 				img = [];
-				i = inputs[11].get();
+				i = inputs[15].get();
 				index = i;
 				iron.data.Data.getBlob(imgName, (blob: kha.Blob) -> {
 					var bytes: Bytes = blob.toBytes();
@@ -120,7 +113,7 @@ class DrawGifNode extends LogicNode {
 					var extractedBytes:Bytes = Tools.extractFullRGBA(data, i);
 					img.push(kha.Image.fromBytes(extractedBytes, data.logicalScreenDescriptor.width, data.logicalScreenDescriptor.height, kha.graphics4.TextureFormat.RGBA32));
 					++i;
-					Event.send('load');
+					loadFrame();
 				});
 			}
 
@@ -128,9 +121,6 @@ class DrawGifNode extends LogicNode {
 	}
 
 	override function get(from: Int): Dynamic {
-		if (from == 1)
-			return frames;
-		else
-			return index;
+		return from == 1 ? frames : index;
 	}
 }
