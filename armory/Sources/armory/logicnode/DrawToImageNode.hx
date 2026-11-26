@@ -19,7 +19,7 @@ class DrawToImageNode extends LogicNode {
 			kha.graphics4.DepthStencilFormat.NoDepthAndStencil);
 
 		RenderToTexture.ensureEmptyRenderTarget("DrawToImageNode");
-		img.g2.begin();
+		img.g2.begin(Color.Transparent);
 		RenderToTexture.g = img.g2;
 		RenderToTexture.g.color = Color.fromFloats(colorVec.x, colorVec.y, colorVec.z, colorVec.w);
 		RenderToTexture.g.fillRect(0, 0, img.width, img.height);
