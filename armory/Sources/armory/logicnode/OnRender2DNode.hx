@@ -1,5 +1,6 @@
 package armory.logicnode;
 
+import iron.App;
 import armory.renderpath.RenderToTexture;
 
 class OnRender2DNode extends LogicNode {
@@ -12,7 +13,7 @@ class OnRender2DNode extends LogicNode {
 	}
 
 	function initNode() {
-		tree.notifyOnRender2D(onRender2D, inputs[0].get());		
+		tree.notifyOnRender2D(onRender2D, inputs[0].get());
 	}
 
 	function onRender2D(g: kha.graphics2.Graphics) {
@@ -23,6 +24,6 @@ class OnRender2DNode extends LogicNode {
 	}
 
 	override function get(from: Int): Dynamic { 
-		return onRender2D;
+		return from == 1 ? onRender2D : @:privateAccess App.traitRenders2D.indexOf(onRender2D);
 	}
 }

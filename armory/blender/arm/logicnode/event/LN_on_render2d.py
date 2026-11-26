@@ -11,11 +11,11 @@ class OnRender2DNode(ArmLogicTreeNode):
     arm_version = 2
 
     def arm_init(self, context):
-        self.add_input('ArmIntSocket', 'Index')
+        self.add_input('ArmIntSocket', 'Index', default_value = -1)
 
         self.add_output('ArmNodeSocketAction', 'Out')
         self.add_output('ArmDynamicSocket', 'Render2D')
-        self.add_output('ArmIntSocket', 'Index', default_value = -1)
+        self.add_output('ArmIntSocket', 'Index')
 
 
     def get_replacement_node(self, node_tree: bpy.types.NodeTree):
