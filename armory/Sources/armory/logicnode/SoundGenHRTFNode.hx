@@ -18,7 +18,7 @@ class SoundGenHRTFNode extends LogicNode {
 		var soundPos: Vec4 = inputs[3].get();
 		if (camera == null || soundPos == null) { runOutput(0); return; }
 
-		generator.playHRTFPanner(camera, soundPos);
+		generator.playHRTFPanner(camera, soundPos, function() { runOutput(1); });
 		runOutput(0);
 	}
 

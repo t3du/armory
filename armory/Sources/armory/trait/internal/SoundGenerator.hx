@@ -351,42 +351,51 @@ class SoundGenerator {
 		}
 	}
 
-	public function playDSPFilter(mode: String, freq1: Float, freq2: Float = 0.0): Void {
+	public function playDSPFilter(mode: String, freq1: Float, freq2: Float = 0.0, ?onComplete: Void->Void): Void {
 		if (sound == null || sound.uncompressedData == null) return;
 
-		var dt = 1.0 / samplingRate;
-		var lastOutput: Float = 0.0;
-		var lastInput: Float = 0.0;
-		var lastLow: Float = 0.0;
-		var lastHigh: Float = 0.0;
+		// Cutoff factor: freq / Nyquist
+		var maxFreq = samplingRate / 2.0;
+		var cutoff1 = Math.min(1.0, freq1 / maxFreq);
+		var cutoff2 = if (freq2 > 0.0) Math.min(1.0, freq2 / maxFreq) else 0.0;
+
+		// 2nd order IIR state
+		var buf0: Float = 0.0;
+		var buf1: Float = 0.0;
+		// Extra buffers for two-frequency band-pass
+		var buf2: Float = 0.0;
+		var buf3: Float = 0.0;
 		var sampleIndex = 0;
 		var data = sound.uncompressedData;
-
-		var alphaLow = dt / ((1.0 / (2.0 * Math.PI * freq1)) + dt);
-		var alphaHigh = (1.0 / (2.0 * Math.PI * freq1)) / ((1.0 / (2.0 * Math.PI * freq1)) + dt);
-		var alphaBandLow = dt / ((1.0 / (2.0 * Math.PI * freq2)) + dt);
+		var completed = false;
 
 		kha.audio2.Audio.audioCallback = function(samplesRequested: kha.internal.IntBox, buffer: kha.audio2.Buffer): Void {
 			var samples = buffer.data;
-			var frames = Std.int(samples.length / 2);
+			var frames = Std.int(samplesRequested.value / 2);
 			for (i in 0...frames) {
 				if (sampleIndex < data.length) {
 					var input = data[sampleIndex++];
 					var output: Float = 0.0;
 
+					// Two-stage IIR cascade (12 dB/oct)
+					buf0 += cutoff1 * (input - buf0);
+					buf1 += cutoff1 * (buf0 - buf1);
+
 					if (mode == "Low") {
-						lastOutput = lastOutput + alphaLow * (input - lastOutput);
-						output = lastOutput;
+						output = buf1;
 					} else if (mode == "High") {
-						output = alphaHigh * (lastOutput + input - lastInput);
-						lastInput = input;
-						lastOutput = output;
+						output = input - buf0;
 					} else if (mode == "Band") {
-						var hp = alphaHigh * (lastHigh + input - lastInput);
-						lastInput = input;
-						lastHigh = hp;
-						lastLow = lastLow + alphaBandLow * (hp - lastLow);
-						output = lastLow;
+						if (freq2 > 0.0) {
+							// Two-frequency band: HP at freq1, then LP at freq2
+							var hp = input - buf0;
+							buf2 += cutoff2 * (hp - buf2);
+							buf3 += cutoff2 * (buf2 - buf3);
+							output = buf3;
+						} else {
+							// Single-frequency resonant band-pass
+							output = buf0 - buf1;
+						}
 					}
 
 					if (output > 1.0) output = 1.0;
@@ -397,24 +406,33 @@ class SoundGenerator {
 				} else {
 					samples[i * 2] = 0.0;
 					samples[i * 2 + 1] = 0.0;
+					if (!completed) {
+						completed = true;
+						if (onComplete != null) onComplete();
+					}
 				}
 			}
 		};
 	}
 
-	public function playHaasDSP(delayMs: Float): Void {
+	public function playHaasDSP(delayMs: Float, ?onComplete: Void->Void): Void {
 		if (sound == null || sound.uncompressedData == null) return;
 
-		var delaySamples = Std.int((delayMs / 1000.0) * samplingRate);
+		// Negative delay → delays left channel (sound to the left)
+		// Positive delay → delays right channel (sound to the right)
+		var delayRight = delayMs >= 0;
+		var absDelayMs = Math.abs(delayMs);
+		var delaySamples = Std.int((absDelayMs / 1000.0) * samplingRate);
 		if (delaySamples < 1) delaySamples = 1;
 		var delayBuffer = [for (i in 0...delaySamples) 0.0];
 		var bufferIndex = 0;
 		var sampleIndex = 0;
 		var data = sound.uncompressedData;
+		var completed = false;
 
 		kha.audio2.Audio.audioCallback = function(samplesRequested: kha.internal.IntBox, buffer: kha.audio2.Buffer): Void {
 			var samples = buffer.data;
-			var frames = Std.int(samples.length / 2);
+			var frames = Std.int(samplesRequested.value / 2);
 			for (i in 0...frames) {
 				if (sampleIndex < data.length) {
 					var input = data[sampleIndex++];
@@ -422,17 +440,26 @@ class SoundGenerator {
 					delayBuffer[bufferIndex] = input;
 					bufferIndex = (bufferIndex + 1) % delaySamples;
 
-					samples[i * 2] = input;
-					samples[i * 2 + 1] = delayedSample;
+					if (delayRight) {
+						samples[i * 2] = input;
+						samples[i * 2 + 1] = delayedSample;
+					} else {
+						samples[i * 2] = delayedSample;
+						samples[i * 2 + 1] = input;
+					}
 				} else {
 					samples[i * 2] = 0.0;
 					samples[i * 2 + 1] = 0.0;
+					if (!completed) {
+						completed = true;
+						if (onComplete != null) onComplete();
+					}
 				}
 			}
 		};
 	}
 
-	public function playHRTFPanner(camera: iron.object.CameraObject, soundPos: iron.math.Vec4): Void {
+	public function playHRTFPanner(camera: iron.object.CameraObject, soundPos: iron.math.Vec4, ?onComplete: Void->Void): Void {
 		if (sound == null || sound.uncompressedData == null) return;
 
 		var camTransform = camera.transform;
@@ -442,10 +469,23 @@ class SoundGenerator {
 		var dist = relPos.length();
 		var pan = dist > 0 ? dotRight / dist : 0.0;
 
-		var leftGain = Math.min(1.0, 1.0 - pan);
-		var rightGain = Math.min(1.0, 1.0 + pan);
+		var balanceNorm = (pan + 1.0) / 2.0;
+		if (balanceNorm < 0.0) balanceNorm = 0.0;
+		if (balanceNorm > 1.0) balanceNorm = 1.0;
+		var leftGain = Math.sqrt(1.0 - balanceNorm);
+		var rightGain = Math.sqrt(balanceNorm);
 
-		var maxDelayMs = 0.75;
+		// Distance attenuation — inverse model
+		var refDist = 1.0;
+		var maxDist = 50.0;
+		var attenuationFactor = 1.0;
+		var clampedDist = Math.max(refDist, Math.min(dist, maxDist));
+		var distAttenuation = refDist / (refDist + attenuationFactor * (clampedDist - refDist));
+		leftGain *= distAttenuation;
+		rightGain *= distAttenuation;
+
+		// ITD (Interaural Time Difference)
+		var maxDelayMs = 0.65;
 		var maxDelaySamples = Std.int((maxDelayMs / 1000.0) * samplingRate);
 		if (maxDelaySamples < 1) maxDelaySamples = 1;
 		var delaySamples = Std.int(Math.abs(pan) * maxDelaySamples);
@@ -454,10 +494,11 @@ class SoundGenerator {
 		var bufferIndex = 0;
 		var sampleIndex = 0;
 		var data = sound.uncompressedData;
+		var completed = false;
 
 		kha.audio2.Audio.audioCallback = function(samplesRequested: kha.internal.IntBox, buffer: kha.audio2.Buffer): Void {
 			var samples = buffer.data;
-			var frames = Std.int(samples.length / 2);
+			var frames = Std.int(samplesRequested.value / 2);
 			for (i in 0...frames) {
 				if (sampleIndex < data.length) {
 					var input = data[sampleIndex++];
@@ -480,6 +521,10 @@ class SoundGenerator {
 				} else {
 					samples[i * 2] = 0.0;
 					samples[i * 2 + 1] = 0.0;
+					if (!completed) {
+						completed = true;
+						if (onComplete != null) onComplete();
+					}
 				}
 			}
 		};

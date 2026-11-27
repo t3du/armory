@@ -29,3 +29,4 @@ class SoundGenHRTFNode(ArmLogicTreeNode):
         self.add_input('ArmVectorSocket', 'Position')
 
         self.add_output('ArmNodeSocketAction', 'Out')
+        self.add_output('ArmNodeSocketAction', 'Done')

@@ -29,3 +29,4 @@ class SoundGenHaasNode(ArmLogicTreeNode):
         self.add_input('ArmFloatSocket', 'Delay', default_value=10.0)
 
         self.add_output('ArmNodeSocketAction', 'Out')
+        self.add_output('ArmNodeSocketAction', 'Done')

@@ -20,7 +20,7 @@ class SoundGenDSPFilterNode extends LogicNode {
 
 		var freq1: Float = inputs[3].get();
 		var freq2: Float = inputs[4].get();
-		generator.playDSPFilter(mode, freq1, freq2);
+		generator.playDSPFilter(mode, freq1, freq2, function() { runOutput(1); });
 		runOutput(0);
 	}
 

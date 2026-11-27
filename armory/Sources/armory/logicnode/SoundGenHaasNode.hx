@@ -13,7 +13,7 @@ class SoundGenHaasNode extends LogicNode {
 		if (generator == null) { runOutput(0); return; }
 
 		var delayMs: Float = inputs[2].get();
-		generator.playHaasDSP(delayMs);
+		generator.playHaasDSP(delayMs, function() { runOutput(1); });
 		runOutput(0);
 	}
 	

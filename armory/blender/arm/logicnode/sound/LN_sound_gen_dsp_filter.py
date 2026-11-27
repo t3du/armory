@@ -34,3 +34,4 @@ class SoundGenDSPFilterNode(ArmLogicTreeNode):
         self.add_input('ArmFloatSocket', 'Frequency 2', default_value=0.0)
 
         self.add_output('ArmNodeSocketAction', 'Out')
+        self.add_output('ArmNodeSocketAction', 'Done')
