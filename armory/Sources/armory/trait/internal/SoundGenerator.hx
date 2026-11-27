@@ -86,21 +86,32 @@ class SoundGenerator {
 		if (byteData == null) return;
 
 		var rawBytes = byteData.getBytes();
-		var totalSamples = Std.int(rawBytes.length / (bitsPerSample / 8));
-		sound = new Sound();
-		sound.uncompressedData = new Float32Array(totalSamples);
-		sound.sampleRate = samplingRate;
-		sound.channels = channels;
+		var bytesPerSample: Int = Std.int(bitsPerSample / 8);
+		var sourceSamples: Int = Std.int(rawBytes.length / bytesPerSample);
+		var frames: Int = Std.int(sourceSamples / channels);
 
-		for (i in 0...totalSamples) {
-			if (bitsPerSample == 16) {
-				var pos = i * 2;
-				var val = rawBytes.get(pos) | (rawBytes.get(pos + 1) << 8);
-				if ((val & 0x8000) != 0) val -= 0x10000;
-				sound.uncompressedData[i] = val / 32767.0;
-			} else if (bitsPerSample == 8) {
-				var val = rawBytes.get(i) - 128;
-				sound.uncompressedData[i] = val / 127.0;
+		sound = new Sound();
+		sound.uncompressedData = new Float32Array(frames * 2);
+		sound.sampleRate = samplingRate;
+		sound.channels = 2;
+		sound.length = frames / samplingRate;
+
+		for (i in 0...frames) {
+			for (c in 0...2) {
+				var sourceChannel: Int = channels == 1 ? 0 : c;
+				var index: Int = (i * channels + sourceChannel) * bytesPerSample;
+				var value: Float = 0.0;
+
+				if (bitsPerSample == 16) {
+					var val: Int = rawBytes.get(index) | (rawBytes.get(index + 1) << 8);
+					if ((val & 0x8000) != 0) val -= 0x10000;
+					value = val / 32768.0;
+				}
+				else if (bitsPerSample == 8) {
+					value = (rawBytes.get(index) - 128) / 128.0;
+				}
+
+				sound.uncompressedData[i * 2 + c] = value;
 			}
 		}
 	}
@@ -473,4 +484,5 @@ class SoundGenerator {
 			}
 		};
 	}
+
 }
