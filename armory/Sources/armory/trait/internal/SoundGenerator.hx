@@ -351,6 +351,31 @@ class SoundGenerator {
 		}
 	}
 
+	public function addHarmonics(frequency:Float, duration:Float, count):Void {
+		var amplitude = Math.pow(2, bitsPerSample - 1) - 1;
+		for (i in 0...Std.int(samplingRate * duration)) {
+			var t = i / samplingRate, sampleVal:Float = 0.0;
+			for (h in 1...count + 1)
+				sampleVal += Math.sin(2 * Math.PI * frequency * h * t) / h;
+			writeSample(sampleVal / count * amplitude);
+		}
+	}
+
+	public function addKarplusStrong(frequency:Float, duration:Float):Void {
+		var size = Std.int(samplingRate / frequency);
+		if (size < 2) return;
+		var amplitude = Math.pow(2, bitsPerSample - 1) - 1;
+		var buffer = [for (_ in 0...size) Math.random() * 2 - 1];
+		var index = 0;
+		for (i in 0...Std.int(samplingRate * duration)) {
+			var next = (index + 1) % size;
+			var sampleVal:Float = buffer[index];
+			buffer[index] = (buffer[index] + buffer[next]) * 0.497;
+			writeSample(sampleVal * amplitude);
+			index = next;
+		}
+	}
+
 	public function playDSPFilter(mode: String, freq1: Float, freq2: Float = 0.0, ?onComplete: Void->Void): Void {
 		if (sound == null || sound.uncompressedData == null) return;
 
