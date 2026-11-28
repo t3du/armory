@@ -555,4 +555,37 @@ class SoundGenerator {
 		};
 	}
 
+	public function buildWaveform(width: Int): Array<Float> {
+		var peaks: Array<Float> = [];
+
+		if (sound == null || sound.uncompressedData == null || width <= 0)
+			return peaks;
+
+		var data = sound.uncompressedData;
+		var sampleCount = data.length;
+		var samplesPerPixel = Std.int(sampleCount / width);
+
+		for (i in 0...width) {
+			var max = 0.0;
+			var start = i * samplesPerPixel;
+			var end = start + samplesPerPixel;
+			var mid = Std.int(start + (samplesPerPixel / 2));
+
+			for (j in start...end) {
+				if (j >= sampleCount) break;
+
+				var val = Math.abs(data.get(j));
+				if (val > max) max = val;
+			}
+
+			var sample = mid < sampleCount
+				? Math.abs(data.get(mid))
+				: 0.0;
+
+			peaks.push((max + sample) / 2);
+		}
+
+		return peaks;
+	}
+
 }
